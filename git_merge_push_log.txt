@@ -1,2 +1,0 @@
-To https://github.com/DCT-Berinyuy/book-bridge.git
-   f335180..f5834ea  dev -> dev

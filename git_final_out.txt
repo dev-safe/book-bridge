@@ -1,9 +1,0 @@
-[dev 908a831] feat: implement boost listing priority, visual badge, and fix keyboard overlap in payment sheet
- 1 file changed, 0 insertions(+), 0 deletions(-)
- create mode 100644 git_final_out.txt
-To https://github.com/DCT-Berinyuy/book-bridge.git
-   f5834ea..908a831  dev -> dev
-error: Your local changes to the following files would be overwritten by checkout:
-	git_final_out.txt
-Please commit your changes or stash them before you switch branches.
-Aborting
