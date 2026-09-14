@@ -1,0 +1,108 @@
+syntax = "proto3";
+
+package bookbridge.v1;
+
+import "google/protobuf/timestamp.proto";
+import "proto/v1/common.proto";
+
+// Maps to conversation_messages.
+message Message {
+  string id = 1;
+  string conversation_id = 2;
+  string user_id = 3;
+  string content = 4;
+  UploadAttachment attachment = 5;
+  google.protobuf.Timestamp created_at = 6;
+}
+
+message UploadAttachment {
+  string upload_id = 1;
+  string url = 2;
+  string content_type = 3;
+  string file_name = 4;
+}
+
+// Conversation summary (conversations table + last message + unread count).
+message Conversation {
+  string id = 1;
+  string book_id = 2;
+  BookSummary book = 3;
+  UserSummary other_participant = 4;
+  string last_message = 5;
+  google.protobuf.Timestamp last_message_at = 6;
+  int32 unread_count = 7;
+}
+
+// Lightweight book info for conversation list rows.
+message BookSummary {
+  string id = 1;
+  string title = 2;
+  string cover_url = 3;
+}
+
+message ListConversationsRequest {
+  string page_token = 1;
+  int32 page_size = 2;
+}
+
+message ListConversationsResponse {
+  repeated Conversation conversations = 1;
+  string next_page_token = 2;
+}
+
+message GetOrCreateConversationRequest {
+  string book_id = 1;
+}
+
+message GetOrCreateConversationResponse {
+  Conversation conversation = 1;
+}
+
+message ListMessagesRequest {
+  string conversation_id = 1;
+  string page_token = 2;
+  int32 page_size = 3;
+}
+
+message ListMessagesResponse {
+  repeated Message messages = 1;
+  string next_page_token = 2;
+}
+
+message SendMessageRequest {
+  string conversation_id = 1;
+  string content = 2;
+  string attachment_upload_id = 3;
+}
+
+message SendMessageResponse {
+  Message message = 1;
+}
+
+message MarkMessagesReadRequest {
+  string conversation_id = 1;
+}
+
+message MarkMessagesReadResponse {}
+
+// Server-streamed conversation events for real-time updates.
+message StreamConversationsRequest {
+  // Client cursor: only events for changes after this timestamp are sent.
+  google.protobuf.Timestamp since = 1;
+}
+
+message StreamConversationsResponse {
+  oneof event {
+    Conversation upserted = 1;
+    Message message_created = 2;
+  }
+}
+
+service ChatService {
+  rpc ListConversations(ListConversationsRequest) returns (ListConversationsResponse);
+  rpc GetOrCreateConversation(GetOrCreateConversationRequest) returns (GetOrCreateConversationResponse);
+  rpc ListMessages(ListMessagesRequest) returns (ListMessagesResponse);
+  rpc SendMessage(SendMessageRequest) returns (SendMessageResponse);
+  rpc MarkMessagesRead(MarkMessagesReadRequest) returns (MarkMessagesReadResponse);
+  rpc StreamConversations(StreamConversationsRequest) returns (stream StreamConversationsResponse);
+}

@@ -1,0 +1,188 @@
+syntax = "proto3";
+
+package bookbridge.v1;
+
+import "google/protobuf/timestamp.proto";
+import "proto/v1/common.proto";
+
+enum BookCondition {
+  BOOK_CONDITION_UNSPECIFIED = 0;
+  BOOK_CONDITION_NEW = 1;
+  BOOK_CONDITION_LIKE_NEW = 2;
+  BOOK_CONDITION_GOOD = 3;
+  BOOK_CONDITION_FAIR = 4;
+  BOOK_CONDITION_POOR = 5;
+}
+
+enum BookStatus {
+  BOOK_STATUS_UNSPECIFIED = 0;
+  BOOK_STATUS_AVAILABLE = 1;
+  BOOK_STATUS_SOLD = 2;
+  BOOK_STATUS_RESERVED = 3;
+  BOOK_STATUS_EXPIRED = 4;
+  BOOK_STATUS_REMOVED = 5;
+}
+
+enum BookPictureType {
+  BOOK_PICTURE_TYPE_UNSPECIFIED = 0;
+  BOOK_PICTURE_TYPE_FRONT = 1;
+  BOOK_PICTURE_TYPE_BACK = 2;
+  BOOK_PICTURE_TYPE_OTHER = 3;
+}
+
+message BookCategory {
+  int64 id = 1;
+  string name = 2;
+}
+
+message BookPicture {
+  string upload_id = 1;
+  string url = 2;
+  BookPictureType type = 3;
+}
+
+// Maps to the books table with its seller joined in.
+message Book {
+  string id = 1;
+  UserSummary seller = 2;
+  string title = 3;
+  string author = 4;
+  int64 price_fcfa = 5;
+  BookCondition condition = 6;
+  string description = 7;
+  BookStatus status = 8;
+  BookCategory category = 9;
+  bool refundable = 10;
+  bool swapable = 11;
+  repeated BookPicture pictures = 12;
+  string ebook_id = 13;
+  google.protobuf.Timestamp boost_expires_at = 14;
+  google.protobuf.Timestamp expires_at = 15;
+  google.protobuf.Timestamp created_at = 16;
+  google.protobuf.Timestamp updated_at = 17;
+  LatLng location = 18;
+}
+
+message ListCategoriesRequest {}
+
+message ListCategoriesResponse {
+  repeated BookCategory categories = 1;
+}
+
+message ListBooksRequest {
+  string page_token = 1;
+  int32 page_size = 2;
+  BookStatus status = 3;
+  int64 category_id = 4;
+  // Center for radius-based discovery (uses the indexed_locations H3 columns).
+  LatLng center = 5;
+  double radius_km = 6;
+}
+
+message ListBooksResponse {
+  repeated Book books = 1;
+  string next_page_token = 2;
+}
+
+message SearchBooksRequest {
+  string query = 1;
+  string page_token = 2;
+  int32 page_size = 3;
+  int64 category_id = 4;
+  LatLng center = 5;
+  double radius_km = 6;
+}
+
+message SearchBooksResponse {
+  repeated Book books = 1;
+  string next_page_token = 2;
+}
+
+message GetBookRequest {
+  string book_id = 1;
+}
+
+message GetBookResponse {
+  Book book = 1;
+}
+
+message ListBooksBySellerRequest {
+  string seller_id = 1;
+  string page_token = 2;
+  int32 page_size = 3;
+}
+
+message ListBooksBySellerResponse {
+  repeated Book books = 1;
+  string next_page_token = 2;
+}
+
+message ListMyBooksRequest {
+  string page_token = 1;
+  int32 page_size = 2;
+  BookStatus status = 3;
+}
+
+message ListMyBooksResponse {
+  repeated Book books = 1;
+  string next_page_token = 2;
+}
+
+message CreateBookRequest {
+  string title = 1;
+  string author = 2;
+  int64 price_fcfa = 3;
+  BookCondition condition = 4;
+  string description = 5;
+  int64 category_id = 6;
+  bool refundable = 7;
+  bool swapable = 8;
+  repeated string picture_upload_ids = 9;
+  map<string, BookPictureType> picture_types = 10;
+  string ebook_upload_id = 11;
+  LatLng location = 12;
+  // Listing expiry in days from creation; server assigns a default when unset.
+  optional int32 expires_in_days = 13;
+}
+
+message CreateBookResponse {
+  Book book = 1;
+}
+
+message UpdateBookRequest {
+  string book_id = 1;
+  optional string title = 2;
+  optional string author = 3;
+  optional int64 price_fcfa = 4;
+  optional BookCondition condition = 5;
+  optional string description = 6;
+  optional int64 category_id = 7;
+  optional bool refundable = 8;
+  optional bool swapable = 9;
+  optional BookStatus status = 10;
+  repeated string picture_upload_ids = 11;
+  map<string, BookPictureType> picture_types = 12;
+  optional LatLng location = 13;
+}
+
+message UpdateBookResponse {
+  Book book = 1;
+}
+
+message DeleteBookRequest {
+  string book_id = 1;
+}
+
+message DeleteBookResponse {}
+
+service BookService {
+  rpc ListCategories(ListCategoriesRequest) returns (ListCategoriesResponse);
+  rpc ListBooks(ListBooksRequest) returns (ListBooksResponse);
+  rpc SearchBooks(SearchBooksRequest) returns (SearchBooksResponse);
+  rpc GetBook(GetBookRequest) returns (GetBookResponse);
+  rpc ListBooksBySeller(ListBooksBySellerRequest) returns (ListBooksBySellerResponse);
+  rpc ListMyBooks(ListMyBooksRequest) returns (ListMyBooksResponse);
+  rpc CreateBook(CreateBookRequest) returns (CreateBookResponse);
+  rpc UpdateBook(UpdateBookRequest) returns (UpdateBookResponse);
+  rpc DeleteBook(DeleteBookRequest) returns (DeleteBookResponse);
+}

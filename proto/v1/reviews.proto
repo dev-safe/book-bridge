@@ -1,0 +1,52 @@
+syntax = "proto3";
+
+package bookbridge.v1;
+
+import "google/protobuf/timestamp.proto";
+import "proto/v1/common.proto";
+
+// Maps to the reviews table.
+message Review {
+  string id = 1;
+  UserSummary author = 2;
+  string reviewee_id = 3;
+  int32 rating = 4;
+  string content = 5;
+  google.protobuf.Timestamp created_at = 6;
+}
+
+message CreateReviewRequest {
+  string reviewee_id = 1;
+  string transaction_id = 2;
+  int32 rating = 3;
+  string content = 4;
+}
+
+message CreateReviewResponse {
+  Review review = 1;
+}
+
+message ListUserReviewsRequest {
+  string user_id = 1;
+  string page_token = 2;
+  int32 page_size = 3;
+}
+
+message ListUserReviewsResponse {
+  repeated Review reviews = 1;
+  string next_page_token = 2;
+}
+
+message HasReviewedTransactionRequest {
+  string transaction_id = 1;
+}
+
+message HasReviewedTransactionResponse {
+  bool has_reviewed = 1;
+}
+
+service ReviewService {
+  rpc CreateReview(CreateReviewRequest) returns (CreateReviewResponse);
+  rpc ListUserReviews(ListUserReviewsRequest) returns (ListUserReviewsResponse);
+  rpc HasReviewedTransaction(HasReviewedTransactionRequest) returns (HasReviewedTransactionResponse);
+}

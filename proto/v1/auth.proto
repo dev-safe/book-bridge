@@ -1,0 +1,121 @@
+syntax = "proto3";
+
+package bookbridge.v1;
+
+import "google/protobuf/timestamp.proto";
+
+// Full user record as seen by the user themselves (maps to the users table).
+message User {
+  string id = 1;
+  string email = 2;
+  string phone = 3;
+  string first_name = 4;
+  string last_name = 5;
+  string avatar_url = 6;
+  double rating = 7;
+  bool verified = 8;
+  google.protobuf.Timestamp created_at = 9;
+  google.protobuf.Timestamp updated_at = 10;
+}
+
+message Session {
+  string session_id = 1;
+  User user = 2;
+  // Short-lived stateless access token (JWT) for authorizing API calls.
+  string access_token = 3;
+  // Opaque, single-use secret used to obtain new access tokens. Sent only
+  // when the session is created or refreshed; never returned on reads.
+  string refresh_token = 4;
+  google.protobuf.Timestamp access_token_expires_at = 5;
+  google.protobuf.Timestamp expires_at = 6;
+}
+
+message SignUpRequest {
+  string email = 1;
+  string phone = 2;
+  string password = 3;
+  string first_name = 4;
+  string last_name = 5;
+}
+
+message SignUpResponse {
+  Session session = 1;
+}
+
+message SignInRequest {
+  oneof identifier {
+    string email = 1;
+    string phone = 2;
+  }
+  string password = 3;
+}
+
+message SignInResponse {
+  Session session = 1;
+}
+
+message SignInWithGoogleRequest {
+  string id_token = 1;
+}
+
+message SignInWithGoogleResponse {
+  Session session = 1;
+}
+
+message RefreshSessionRequest {
+  // The opaque refresh token issued with the current session.
+  string refresh_token = 1;
+}
+
+message RefreshSessionResponse {
+  // New session with a fresh access token and a rotated refresh token;
+  // the presented refresh token is invalidated.
+  Session session = 1;
+}
+
+message SignOutRequest {}
+
+message SignOutResponse {}
+
+message GetCurrentUserRequest {}
+
+message GetCurrentUserResponse {
+  User user = 1;
+}
+
+message UpdateCurrentUserRequest {
+  optional string email = 1;
+  optional string first_name = 2;
+  optional string last_name = 3;
+  optional string avatar_upload_id = 4;
+}
+
+message UpdateCurrentUserResponse {
+  User user = 1;
+}
+
+message SendPasswordResetRequest {
+  string email = 1;
+}
+
+message SendPasswordResetResponse {}
+
+// Registers/updates the FCM token of the device tied to the current session
+// (maps to user_sessions.fcm_token).
+message SetDeviceTokenRequest {
+  string fcm_token = 1;
+}
+
+message SetDeviceTokenResponse {}
+
+service AuthService {
+  rpc SignUp(SignUpRequest) returns (SignUpResponse);
+  rpc SignIn(SignInRequest) returns (SignInResponse);
+  rpc SignInWithGoogle(SignInWithGoogleRequest) returns (SignInWithGoogleResponse);
+  rpc RefreshSession(RefreshSessionRequest) returns (RefreshSessionResponse);
+  rpc SignOut(SignOutRequest) returns (SignOutResponse);
+  rpc GetCurrentUser(GetCurrentUserRequest) returns (GetCurrentUserResponse);
+  rpc UpdateCurrentUser(UpdateCurrentUserRequest) returns (UpdateCurrentUserResponse);
+  rpc SendPasswordReset(SendPasswordResetRequest) returns (SendPasswordResetResponse);
+  rpc SetDeviceToken(SetDeviceTokenRequest) returns (SetDeviceTokenResponse);
+}

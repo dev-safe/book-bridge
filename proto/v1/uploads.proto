@@ -1,0 +1,57 @@
+syntax = "proto3";
+
+package bookbridge.v1;
+
+import "google/protobuf/timestamp.proto";
+
+// Maps to the uploads table.
+message Upload {
+  string id = 1;
+  string storage_key = 2;
+  string file_name = 3;
+  string content_type = 4;
+  int64 size_bytes = 5;
+  string url = 6;
+  google.protobuf.Timestamp created_at = 7;
+}
+
+message CreateUploadRequest {
+  string file_name = 1;
+  string content_type = 2;
+  int64 size_bytes = 3;
+}
+
+message CreateUploadResponse {
+  Upload upload = 1;
+  // Pre-signed PUT target the client uploads the bytes to.
+  string upload_url = 2;
+}
+
+message CompleteUploadRequest {
+  string upload_id = 1;
+}
+
+message CompleteUploadResponse {
+  Upload upload = 1;
+}
+
+message GetUploadRequest {
+  string upload_id = 1;
+}
+
+message GetUploadResponse {
+  Upload upload = 1;
+}
+
+message DeleteUploadRequest {
+  string upload_id = 1;
+}
+
+message DeleteUploadResponse {}
+
+service UploadService {
+  rpc CreateUpload(CreateUploadRequest) returns (CreateUploadResponse);
+  rpc CompleteUpload(CompleteUploadRequest) returns (CompleteUploadResponse);
+  rpc GetUpload(GetUploadRequest) returns (GetUploadResponse);
+  rpc DeleteUpload(DeleteUploadRequest) returns (DeleteUploadResponse);
+}

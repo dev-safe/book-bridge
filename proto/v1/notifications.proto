@@ -1,0 +1,54 @@
+syntax = "proto3";
+
+package bookbridge.v1;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/struct.proto";
+
+// Maps to notifications joined with notification_bodies / template translations.
+message Notification {
+  string id = 1;
+  string title = 2;
+  string body = 3;
+  string type = 4;
+  google.protobuf.Struct data = 5;
+  google.protobuf.Timestamp read_at = 6;
+  google.protobuf.Timestamp created_at = 7;
+}
+
+message ListNotificationsRequest {
+  string page_token = 1;
+  int32 page_size = 2;
+  bool unread_only = 3;
+}
+
+message ListNotificationsResponse {
+  repeated Notification notifications = 1;
+  string next_page_token = 2;
+}
+
+message MarkNotificationReadRequest {
+  string notification_id = 1;
+}
+
+message MarkNotificationReadResponse {}
+
+message MarkAllNotificationsReadRequest {}
+
+message MarkAllNotificationsReadResponse {}
+
+// Server-streamed notifications for real-time updates.
+message StreamNotificationsRequest {
+  google.protobuf.Timestamp since = 1;
+}
+
+message StreamNotificationsResponse {
+  Notification notification = 1;
+}
+
+service NotificationService {
+  rpc ListNotifications(ListNotificationsRequest) returns (ListNotificationsResponse);
+  rpc MarkNotificationRead(MarkNotificationReadRequest) returns (MarkNotificationReadResponse);
+  rpc MarkAllNotificationsRead(MarkAllNotificationsReadRequest) returns (MarkAllNotificationsReadResponse);
+  rpc StreamNotifications(StreamNotificationsRequest) returns (stream StreamNotificationsResponse);
+}

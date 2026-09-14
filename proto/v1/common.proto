@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package bookbridge.v1;
+
+message LatLng {
+  double latitude = 1;
+  double longitude = 2;
+}
+
+// Public-facing user info embedded in books, conversations, reviews, etc.
+message UserSummary {
+  string id = 1;
+  string first_name = 2;
+  string last_name = 3;
+  string avatar_url = 4;
+  double rating = 5;
+  bool verified = 6;
+}

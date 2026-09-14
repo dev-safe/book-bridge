@@ -1,0 +1,140 @@
+syntax = "proto3";
+
+package bookbridge.v1;
+
+import "google/protobuf/timestamp.proto";
+import "proto/v1/locations.proto";
+
+// Payment methods supported by the platform (Fapshi today).
+enum PaymentMethod {
+  PAYMENT_METHOD_UNSPECIFIED = 0;
+  PAYMENT_METHOD_FAPSHI = 1;
+}
+
+enum PaymentStatus {
+  PAYMENT_STATUS_UNSPECIFIED = 0;
+  PAYMENT_STATUS_PENDING = 1;
+  PAYMENT_STATUS_COMPLETED = 2;
+  PAYMENT_STATUS_FAILED = 3;
+}
+
+enum TransactionStatus {
+  TRANSACTION_STATUS_UNSPECIFIED = 0;
+  TRANSACTION_STATUS_HELD = 1;
+  TRANSACTION_STATUS_RELEASED = 2;
+  TRANSACTION_STATUS_REFUNDED = 3;
+  TRANSACTION_STATUS_DISPUTED = 4;
+}
+
+// What the payment is for (maps to payment_type enum in the schema).
+enum PaymentPurpose {
+  PAYMENT_PURPOSE_UNSPECIFIED = 0;
+  PAYMENT_PURPOSE_BOOK = 1;
+  PAYMENT_PURPOSE_DONATION = 2;
+  PAYMENT_PURPOSE_BOOST = 3;
+}
+
+// Maps to payment_intents + payments.
+message Payment {
+  string id = 1;
+  PaymentMethod method = 2;
+  int64 amount_fcfa = 3;
+  PaymentStatus status = 4;
+  PaymentPurpose purpose = 5;
+  string platform_transaction_reference = 6;
+  google.protobuf.Timestamp created_at = 7;
+  google.protobuf.Timestamp updated_at = 8;
+}
+
+// Maps to book_purchases (escrow flow).
+message Purchase {
+  string id = 1;
+  string transaction_id = 2;
+  BookPurchaseDetails book = 3;
+  string buyer_id = 4;
+  TransactionStatus status = 5;
+  bool confirmed = 6;
+  google.protobuf.Timestamp created_at = 7;
+}
+
+message BookPurchaseDetails {
+  string book_id = 1;
+  string title = 2;
+  string cover_url = 3;
+  int64 price_fcfa = 4;
+  MeetupLocation meetup_location = 5;
+}
+
+message CreateBookPurchaseRequest {
+  string book_id = 1;
+  optional string meetup_location_id = 2;
+}
+
+message CreateBookPurchaseResponse {
+  Purchase purchase = 1;
+  // Fapshi session identifier to poll for confirmation.
+  string fapshi_transaction_id = 2;
+}
+
+message GetPurchaseRequest {
+  string purchase_id = 1;
+}
+
+message GetPurchaseResponse {
+  Purchase purchase = 1;
+}
+
+message ListMyPurchasesRequest {
+  string page_token = 1;
+  int32 page_size = 2;
+}
+
+message ListMyPurchasesResponse {
+  repeated Purchase purchases = 1;
+  string next_page_token = 2;
+}
+
+message ListMySalesRequest {
+  string page_token = 1;
+  int32 page_size = 2;
+}
+
+message Sale {
+  string id = 1;
+  string transaction_id = 2;
+  BookPurchaseDetails book = 3;
+  string buyer_id = 4;
+  TransactionStatus status = 5;
+  google.protobuf.Timestamp created_at = 6;
+}
+
+message ListMySalesResponse {
+  repeated Sale sales = 1;
+  string next_page_token = 2;
+}
+
+message ConfirmReceiptRequest {
+  string purchase_id = 1;
+}
+
+message ConfirmReceiptResponse {
+  Purchase purchase = 1;
+}
+
+message DisputePurchaseRequest {
+  string purchase_id = 1;
+  string reason = 2;
+}
+
+message DisputePurchaseResponse {
+  Purchase purchase = 1;
+}
+
+service PurchaseService {
+  rpc CreateBookPurchase(CreateBookPurchaseRequest) returns (CreateBookPurchaseResponse);
+  rpc GetPurchase(GetPurchaseRequest) returns (GetPurchaseResponse);
+  rpc ListMyPurchases(ListMyPurchasesRequest) returns (ListMyPurchasesResponse);
+  rpc ListMySales(ListMySalesRequest) returns (ListMySalesResponse);
+  rpc ConfirmReceipt(ConfirmReceiptRequest) returns (ConfirmReceiptResponse);
+  rpc DisputePurchase(DisputePurchaseRequest) returns (DisputePurchaseResponse);
+}

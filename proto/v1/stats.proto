@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package bookbridge.v1;
+
+// Aggregate platform statistics for the impact screen.
+message PlatformStats {
+  int64 total_books_circulated = 1;
+  int64 total_students_reached = 2;
+  int64 total_money_saved_fcfa = 3;
+  double total_co2_avoided_kg = 4;
+}
+
+message GetPlatformStatsRequest {}
+
+message GetPlatformStatsResponse {
+  PlatformStats stats = 1;
+}
+
+service StatsService {
+  rpc GetPlatformStats(GetPlatformStatsRequest) returns (GetPlatformStatsResponse);
+}

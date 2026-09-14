@@ -1,0 +1,46 @@
+syntax = "proto3";
+
+package bookbridge.v1;
+
+import "proto/v1/books.proto";
+
+message ListWishlistRequest {
+  string page_token = 1;
+  int32 page_size = 2;
+}
+
+message ListWishlistResponse {
+  repeated Book books = 1;
+  string next_page_token = 2;
+}
+
+message AddBookToWishlistRequest {
+  string book_id = 1;
+}
+
+message AddBookToWishlistResponse {
+  bool added = 1;
+}
+
+message RemoveBookFromWishlistRequest {
+  string book_id = 1;
+}
+
+message RemoveBookFromWishlistResponse {
+  bool removed = 1;
+}
+
+message IsBookInWishlistRequest {
+  string book_id = 1;
+}
+
+message IsBookInWishlistResponse {
+  bool is_favorite = 1;
+}
+
+service WishlistService {
+  rpc ListWishlist(ListWishlistRequest) returns (ListWishlistResponse);
+  rpc AddBookToWishlist(AddBookToWishlistRequest) returns (AddBookToWishlistResponse);
+  rpc RemoveBookFromWishlist(RemoveBookFromWishlistRequest) returns (RemoveBookFromWishlistResponse);
+  rpc IsBookInWishlist(IsBookInWishlistRequest) returns (IsBookInWishlistResponse);
+}

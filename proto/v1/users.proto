@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package bookbridge.v1;
+
+import "proto/v1/common.proto";
+
+message GetUserRequest {
+  string user_id = 1;
+}
+
+message GetUserResponse {
+  UserSummary user = 1;
+}
+
+service UserService {
+  // Fetch a user's public profile (e.g. a seller's page).
+  rpc GetUser(GetUserRequest) returns (GetUserResponse);
+}

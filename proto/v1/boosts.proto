@@ -1,0 +1,64 @@
+syntax = "proto3";
+
+package bookbridge.v1;
+
+import "google/protobuf/timestamp.proto";
+
+// Maps to the boosts table (payment_type = boost).
+message Boost {
+  string id = 1;
+  string book_id = 2;
+  int64 amount_fcfa = 3;
+  google.protobuf.Timestamp expires_at = 4;
+  google.protobuf.Timestamp created_at = 5;
+}
+
+message CreateBoostRequest {
+  string book_id = 1;
+  int64 amount_fcfa = 2;
+}
+
+message CreateBoostResponse {
+  Boost boost = 1;
+  string fapshi_transaction_id = 2;
+}
+
+message GetBoostStatusRequest {
+  string boost_id = 1;
+}
+
+message GetBoostStatusResponse {
+  Boost boost = 1;
+  PaymentOutcome outcome = 2;
+}
+
+message PaymentOutcome {
+  string status = 1;
+  string message = 2;
+}
+
+message CreateDonationRequest {
+  int64 amount_fcfa = 1;
+  string message = 2;
+}
+
+message Donation {
+  string id = 1;
+  int64 amount_fcfa = 2;
+  string message = 3;
+  google.protobuf.Timestamp created_at = 4;
+}
+
+message CreateDonationResponse {
+  Donation donation = 1;
+  string fapshi_transaction_id = 2;
+}
+
+service BoostService {
+  rpc CreateBoost(CreateBoostRequest) returns (CreateBoostResponse);
+  rpc GetBoostStatus(GetBoostStatusRequest) returns (GetBoostStatusResponse);
+}
+
+service DonationService {
+  rpc CreateDonation(CreateDonationRequest) returns (CreateDonationResponse);
+}

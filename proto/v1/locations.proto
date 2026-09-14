@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+package bookbridge.v1;
+
+import "google/protobuf/timestamp.proto";
+import "proto/v1/common.proto";
+
+// Maps to the meetup_locations table.
+message MeetupLocation {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  bool verified = 4;
+  LatLng location = 5;
+  google.protobuf.Timestamp created_at = 6;
+}
+
+message ListMeetupLocationsRequest {
+  // When set, only return locations within radius of the center.
+  LatLng center = 1;
+  double radius_km = 2;
+  string page_token = 3;
+  int32 page_size = 4;
+}
+
+message ListMeetupLocationsResponse {
+  repeated MeetupLocation locations = 1;
+  string next_page_token = 2;
+}
+
+message GetMeetupLocationRequest {
+  string location_id = 1;
+}
+
+message GetMeetupLocationResponse {
+  MeetupLocation location = 1;
+}
+
+service MeetupLocationService {
+  rpc ListMeetupLocations(ListMeetupLocationsRequest) returns (ListMeetupLocationsResponse);
+  rpc GetMeetupLocation(GetMeetupLocationRequest) returns (GetMeetupLocationResponse);
+}
