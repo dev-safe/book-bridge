@@ -1,0 +1,97 @@
+.{
+    .workspace = "bookbridge",
+    .env = .{},
+    .sources = .{
+        .{ "web", "web/" },
+        .{ "backend", "backend/" },
+        .{ "app", "app/" },
+        .{ "app.web", "app/web/" },
+    },
+    .pipelines = .{
+        // /backend
+        .{
+            .name = "backend.build",
+            .in = .{"src.backend"},
+            .keep = .{
+                .{ "backend-target", "target/" },
+            },
+            .second_instance = .kill,
+        },
+        .{
+            .name = "backend.migrate",
+            .in = .{"backend.build"},
+            .required_env = .{"DATABASE_URL"},
+            .second_instance = .fail,
+        },
+        .{
+            .name = "backend.run",
+            .in = .{"backend.build"},
+            .out = .{"backend.run"},
+            .required_env = .{ "ADMIN_TOTP_SECRET", "JWT_SECRET" },
+            .env = .{
+                .{ "PORT", "3040" },
+                .{ "DATABASE_URL", "postgresql://postgres:@localhost:5432/bookbridge" },
+            },
+            .second_instance = .kill,
+        },
+        // /web
+        .{
+            .name = "install-bun",
+            .second_instance = .fail,
+        },
+        .{
+            .name = "web.build",
+            .in = .{"src.web"},
+            .keep = .{
+                .{ "web-modules", "node_modules/" },
+            },
+        },
+        .{
+            .name = "web.run",
+            .in = .{"web.build"},
+            .second_instance = .kill,
+            .env = .{
+                .{ "BACKEND_URL", "http://localhost:3040" },
+                .{ "PORT", "3000" },
+            },
+        },
+        // /app
+        .{
+            .name = "app.build-web",
+            .in = .{"src.app"},
+            .second_instance = .kill,
+            .keep = .{
+                .{ "app-build", "build/" },
+            },
+        },
+        .{
+            .name = "app.run-web",
+            .env = .{
+                .{ "PORT", "3004" },
+            },
+            .in = .{ "app.build-web", "src.app.web" },
+            .out = .{"app.run-web"},
+            .second_instance = .kill,
+        },
+        .{
+            .name = "app.build-apk",
+            .in = .{"src.app"},
+            .out = .{"app-apk"},
+            .second_instance = .kill,
+            .keep = .{
+                .{ "app-build", "build/" },
+            },
+        },
+        // /alias
+        .{
+            .name = "build",
+            .in = .{ "backend.build", "web.build", "app.build-web" },
+            .run = .nothing,
+        },
+        .{
+            .name = "run",
+            .in = .{ "backend.run", "web.run", "app.run-web" },
+            .run = .nothing,
+        },
+    },
+}
