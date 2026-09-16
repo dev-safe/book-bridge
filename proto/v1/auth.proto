@@ -4,7 +4,6 @@ package bookbridge.v1;
 
 import "google/protobuf/timestamp.proto";
 
-// Full user record as seen by the user themselves (maps to the users table).
 message User {
   string id = 1;
   string email = 2;
@@ -21,10 +20,7 @@ message User {
 message Session {
   string session_id = 1;
   User user = 2;
-  // Short-lived stateless access token (JWT) for authorizing API calls.
   string access_token = 3;
-  // Opaque, single-use secret used to obtain new access tokens. Sent only
-  // when the session is created or refreshed; never returned on reads.
   string refresh_token = 4;
   google.protobuf.Timestamp access_token_expires_at = 5;
   google.protobuf.Timestamp expires_at = 6;

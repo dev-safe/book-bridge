@@ -1,5 +1,5 @@
 -- =============================================================================
--- BookBridge — PostgreSQL Schema
+-- BookBridge — PostgreSQL Schema (Initial Setup)
 -- =============================================================================
 
 create or replace function set_updated_at()

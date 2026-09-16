@@ -1,0 +1,12 @@
+version: v2
+plugins:
+  - local: protoc-gen-buffa
+    out: backend/src/proto/buf
+    opt:
+      - file_per_package=true
+      - json=true
+  - local: protoc-gen-connect-rust
+    out: backend/src/proto/svc
+    opt:
+      - file_per_package
+      - extern_path=.=crate::proto::buf
