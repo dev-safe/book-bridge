@@ -9,7 +9,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:243422993063:android:97feef1bd71c5194d91982",
         "android_client_info": {
-          "package_name": "com.example.book_bridge"
+          "package_name": "com.bookbridge.app"
         }
       },
       "oauth_client": [],
