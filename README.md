@@ -144,6 +144,24 @@ flutter run \
   --dart-define="FAPSHI_API_KEY=$(grep FAPSHI_API_KEY .env | cut -d'=' -f2)"
 ```
 
+### Release builds (Android)
+Release builds are signed with an upload key that is read from `android/key.properties` (this file is gitignored).
+
+1. Generate the upload keystore **once**. Keep it outside the repository:
+   ```bash
+   keytool -genkeypair -v -keystore ~/keys/bookbridge-upload.jks \
+     -keyalg RSA -keysize 2048 -validity 10000 -alias upload
+   ```
+2. Copy `android/key.properties.example` to `android/key.properties` and fill in the real values.
+3. Build the bundle for Play Console with `flutter build appbundle --release`, adding the same `--dart-define` flags as above.
+
+> [!CAUTION]
+> Back up the keystore and its passwords in at least two durable places outside your laptop, and share them with a second maintainer. If the key is lost, you can't update the Play Store listing until Google approves an upload-key reset. That only works if Play App Signing is enabled, so enable it when you create the app.
+
+Without `key.properties`, release builds fall back to debug keys and print a warning. Play Console rejects bundles signed that way.
+
+Register the upload key's SHA-1 in Firebase and in the Google Cloud OAuth client so that Google Sign-In works. To print it, run `keytool -list -v -keystore ~/keys/bookbridge-upload.jks -alias upload`.
+
 ### Running Landing Page (SvelteKit)
 ```bash
 cd landingPage
