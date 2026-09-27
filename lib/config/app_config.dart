@@ -14,6 +14,12 @@ class AppConfig {
     defaultValue: '',
   );
 
+  // BookBridge Rust core service (escrow actions). Public URL, not a secret.
+  static const String rustCoreUrl = String.fromEnvironment(
+    'RUST_CORE_URL',
+    defaultValue: 'https://bookbridge-rust-core.onrender.com',
+  );
+
   // Fapshi configuration
   static const String fapshiApiUser = String.fromEnvironment(
     'FAPSHI_API_USER',
