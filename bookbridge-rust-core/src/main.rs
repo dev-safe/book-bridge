@@ -9,9 +9,11 @@ use tokio::net::TcpListener;
 
 use bookbridge_rust_core::config::AppConfig;
 use bookbridge_rust_core::routes::health::health_handler;
+use bookbridge_rust_core::routes::buyer::buyer_routes;
 use bookbridge_rust_core::routes::escrow::{process_releases_handler, poll_pending_handler};
 use bookbridge_rust_core::routes::webhook::fapshi_webhook_handler;
 use bookbridge_rust_core::auth::require_internal_auth;
+use bookbridge_rust_core::user_auth::SupabaseAuth;
 use bookbridge_rust_core::AppState;
 
 #[tokio::main]
@@ -39,6 +41,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let state = AppState {
         pool,
         in_progress_payouts: Arc::new(std::sync::Mutex::new(std::collections::HashSet::new())),
+        supabase_auth: SupabaseAuth::new(config.supabase_url.clone(), config.supabase_anon_key.clone()),
         fapshi_base_url: config.fapshi_base_url,
     };
 
@@ -52,10 +55,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         ))
         .with_state(state.clone());
 
-    // 5. Main router (health and webhooks are public / custom authenticated)
+    // 5. Main router. Health and webhooks are public / custom authenticated;
+    //    buyer routes require a Supabase access token.
     let app = Router::new()
         .route("/health", get(health_handler))
         .route("/webhooks/fapshi", post(fapshi_webhook_handler))
+        .merge(buyer_routes())
         .nest("/internal", internal_routes)
         .with_state(state);
 

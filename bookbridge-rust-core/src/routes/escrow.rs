@@ -87,38 +87,42 @@ pub async fn handle_purchase_success_db(
     Ok(())
 }
 
+/// Marks a transaction as busy (payout or dispute) in this process; released on drop.
+/// The lock is per process, so it assumes a single service instance.
+pub(crate) struct InProgressGuard {
+    tx_id: Uuid,
+    in_progress: std::sync::Arc<std::sync::Mutex<std::collections::HashSet<Uuid>>>,
+}
+
+impl InProgressGuard {
+    pub(crate) fn claim(state: &AppState, tx_id: Uuid) -> Result<Self, AppError> {
+        let mut in_progress = state.in_progress_payouts.lock().map_err(|_| {
+            AppError::Internal("Failed to acquire in-progress lock".to_string())
+        })?;
+        if !in_progress.insert(tx_id) {
+            return Err(AppError::BadRequest(format!("Payout for transaction {} is already in progress", tx_id)));
+        }
+        Ok(Self {
+            tx_id,
+            in_progress: state.in_progress_payouts.clone(),
+        })
+    }
+}
+
+impl Drop for InProgressGuard {
+    fn drop(&mut self) {
+        if let Ok(mut lock) = self.in_progress.lock() {
+            lock.remove(&self.tx_id);
+        }
+    }
+}
+
 pub async fn release_escrow(
     state: &AppState,
     tx_id: Uuid,
 ) -> Result<(), AppError> {
     // 1. Claim in-progress lock to mitigate concurrent execution / double payout risk
-    {
-        let mut in_progress = state.in_progress_payouts.lock().map_err(|_| {
-            AppError::Internal("Failed to acquire in-progress lock".to_string())
-        })?;
-        if in_progress.contains(&tx_id) {
-            return Err(AppError::BadRequest(format!("Payout for transaction {} is already in progress", tx_id)));
-        }
-        in_progress.insert(tx_id);
-    }
-
-    // Ensure we release lock on exit
-    struct LockGuard<'a> {
-        tx_id: Uuid,
-        in_progress: &'a std::sync::Mutex<std::collections::HashSet<Uuid>>,
-    }
-    impl<'a> Drop for LockGuard<'a> {
-        fn drop(&mut self) {
-            if let Ok(mut lock) = self.in_progress.lock() {
-                lock.remove(&self.tx_id);
-            }
-        }
-    }
-    let _guard = LockGuard {
-        tx_id,
-        in_progress: &state.in_progress_payouts,
-    };
-
+    let _guard = InProgressGuard::claim(state, tx_id)?;
     let fapshi = FapshiClient::new(state.fapshi_base_url.clone());
 
     // 2. Fetch transaction and escrow status to ensure both are in 'held' status
