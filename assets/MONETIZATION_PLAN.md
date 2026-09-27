@@ -1,6 +1,13 @@
-# BookBridge v2.0 — Implementation Plan
+# BookBridge v2.0 — Monetization & Backend Plan
 *Rust/Axum migration + Power Seller subscription tier*
 *July 2026*
+
+> [!NOTE]
+> **Scope:** this document covers only the monetization and backend slice of v2.0: the Power Seller subscription, the free-tier listing cap, and the Rust/Axum migration. It is not the whole v2.0 plan.
+>
+> - The secondary-school feature set (filters, meetup zones, verification, parent-as-buyer, Discover, push, and more) is tracked as GitHub issues #29–#38.
+> - The subscription work in this document is tracked in #39.
+> - The fee model in #30 (the buyer pays 6% on top, and the seller receives the full price) supersedes the "5% commission" wording below.
 
 ---
 

@@ -1,0 +1,7 @@
+# Copy to android/key.properties (gitignored) and fill in real values.
+# Keep the keystore itself OUTSIDE the repository and back it up.
+# storeFile is resolved relative to android/app/, so prefer an absolute path.
+storeFile=/home/you/keys/bookbridge-upload.jks
+storePassword=change-me
+keyAlias=upload
+keyPassword=change-me

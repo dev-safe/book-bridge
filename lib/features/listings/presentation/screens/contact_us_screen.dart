@@ -63,7 +63,7 @@ class ContactUsScreen extends StatelessWidget {
             const SizedBox(height: 40),
             _buildContactCard(
               context,
-              icon: FontAwesomeIcons.whatsapp,
+              icon: FontAwesomeIcons.whatsapp.data,
               title: AppLocalizations.of(context)!.whatsappSupport,
               subtitle: AppLocalizations.of(context)!.chatDirectly,
               color: Colors.green,
@@ -81,7 +81,7 @@ class ContactUsScreen extends StatelessWidget {
             const SizedBox(height: 16),
             _buildContactCard(
               context,
-              icon: FontAwesomeIcons.linkedinIn,
+              icon: FontAwesomeIcons.linkedinIn.data,
               title: 'LinkedIn',
               subtitle: AppLocalizations.of(
                 context,

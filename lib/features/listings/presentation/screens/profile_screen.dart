@@ -639,7 +639,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildSocialIcon(
-    IconData icon,
+    FaIconData icon,
     Color color,
     String label,
     VoidCallback onTap,

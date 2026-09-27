@@ -1,0 +1,79 @@
+name: Flutter
+
+on:
+  push:
+    branches: ["dev", "main"]
+    paths-ignore:
+      - "landingPage/**"
+      - "bookbridge-rust-core/**"
+      - "supabase/**"
+      - "**.md"
+  pull_request:
+    branches: ["dev", "main"]
+    paths-ignore:
+      - "landingPage/**"
+      - "bookbridge-rust-core/**"
+      - "supabase/**"
+      - "**.md"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: flutter-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Pinned deliberately: an unpinned SDK let Flutter 3.47 silently break the
+  # Android build (AGP/NDK minimums, final IconData). Bump in its own PR.
+  FLUTTER_VERSION: "3.47.4"
+  ANDROID_NDK_VERSION: "28.2.13676358"
+  EXPECTED_APPLICATION_ID: "com.bookbridge.app"
+
+jobs:
+  android:
+    name: Analyze, test, build Android
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: gradle
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Install Android NDK
+        timeout-minutes: 10
+        run: |
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install "ndk;${ANDROID_NDK_VERSION}"
+          test -f "$ANDROID_HOME/ndk/${ANDROID_NDK_VERSION}/source.properties"
+
+      - name: Install dependencies (must match pubspec.lock)
+        run: flutter pub get --enforce-lockfile
+
+      # Fails on errors only; tighten to --fatal-warnings once existing warnings are fixed.
+      - name: Analyze
+        run: flutter analyze --no-fatal-infos --no-fatal-warnings
+
+      - name: Test
+        run: flutter test
+
+      - name: Build debug APK
+        run: flutter build apk --debug
+
+      - name: Verify application ID
+        run: |
+          AAPT2="$(ls -d "$ANDROID_HOME"/build-tools/*/ | sort -V | tail -1)aapt2"
+          PACKAGE="$("$AAPT2" dump badging build/app/outputs/flutter-apk/app-debug.apk | sed -n "s/^package: name='\([^']*\)'.*/\1/p")"
+          echo "APK package: $PACKAGE"
+          test "$PACKAGE" = "$EXPECTED_APPLICATION_ID"

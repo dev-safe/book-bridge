@@ -75,6 +75,8 @@ supabase.json
 build/
 *.log
 *.lock
+# Applications must commit their lockfile so every machine resolves the same versions
+!/pubspec.lock
 analysis_output.txt
 
 # OS
