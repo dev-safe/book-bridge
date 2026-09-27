@@ -8,13 +8,10 @@ on:
       - "bookbridge-rust-core/**"
       - "supabase/**"
       - "**.md"
+  # No paths-ignore here: this job is a required check on dev, and a
+  # required check that never runs blocks the PR forever.
   pull_request:
     branches: ["dev", "main"]
-    paths-ignore:
-      - "landingPage/**"
-      - "bookbridge-rust-core/**"
-      - "supabase/**"
-      - "**.md"
 
 permissions:
   contents: read
