@@ -71,22 +71,30 @@ impl FapshiClient {
         cleaned
     }
 
-    /// Get payout endpoint.
-    fn payout_url(&self) -> String {
+    /// Base URL for Fapshi API calls. Live traffic always goes to
+    /// `live.fapshi.com`; `api.fapshi.com` serves no API routes and answers
+    /// with an HTML 404 page.
+    pub fn api_base(&self) -> String {
         if self.base_url.contains("live.fapshi.com") || self.base_url.contains("api.fapshi.com") {
-            "https://live.fapshi.com/payout".to_string()
+            "https://live.fapshi.com".to_string()
         } else {
-            format!("{}/payout", self.base_url)
+            self.base_url.trim_end_matches('/').to_string()
         }
     }
 
+    /// Get payout endpoint.
+    pub fn payout_url(&self) -> String {
+        format!("{}/payout", self.api_base())
+    }
+
     /// Get status endpoint.
-    fn status_url(&self, reference: &str) -> String {
-        if self.base_url.contains("live.fapshi.com") || self.base_url.contains("api.fapshi.com") {
-            format!("https://api.fapshi.com/payment-status/{}", reference)
-        } else {
-            format!("{}/payment-status/{}", self.base_url, reference)
-        }
+    pub fn status_url(&self, reference: &str) -> String {
+        format!("{}/payment-status/{}", self.api_base(), reference)
+    }
+
+    /// Get search endpoint.
+    pub fn search_url(&self) -> String {
+        format!("{}/search", self.api_base())
     }
 
     /// Checks if a payout has already been processed successfully on Fapshi by searching by externalId.
@@ -98,11 +106,7 @@ impl FapshiClient {
         let api_user = Self::get_secret(pool, "fapshi_payout_api_user").await?;
         let api_key = Self::get_secret(pool, "fapshi_payout_api_key").await?;
 
-        let endpoint = if self.base_url.contains("live.fapshi.com") || self.base_url.contains("api.fapshi.com") {
-            "https://live.fapshi.com/search".to_string()
-        } else {
-            format!("{}/search", self.base_url)
-        };
+        let endpoint = self.search_url();
 
         let response = self.http.get(&endpoint)
             .header("apiuser", &api_user)
@@ -115,7 +119,7 @@ impl FapshiClient {
             Ok(res) => {
                 let status = res.status().as_u16();
                 if status == 200 {
-                    let items: Vec<FapshiSearchItem> = res.json().await?;
+                    let items: Vec<FapshiSearchItem> = decode_body(status, res).await?;
                     for item in items {
                         if let Some(ref ext_id) = item.external_id {
                             if ext_id == external_id {
@@ -176,7 +180,7 @@ impl FapshiClient {
         let (status_code, resp_val, result) = match response {
             Ok(res) => {
                 let status = res.status().as_u16();
-                let body_res: Result<PayoutResponse, _> = res.json().await;
+                let body_res: Result<PayoutResponse, AppError> = decode_body(status, res).await;
                 match body_res {
                     Ok(body) => {
                         let val = serde_json::to_value(&body)?;
@@ -191,10 +195,7 @@ impl FapshiClient {
                             (status, val, Err(AppError::Fapshi(format!("Fapshi payout error ({}): {}", body.status_code, msg))))
                         }
                     }
-                    Err(e) => {
-                        let err_msg = format!("JSON decode error: {}", e);
-                        (status, serde_json::json!({ "error": err_msg }), Err(AppError::Reqwest(e)))
-                    }
+                    Err(e) => (status, serde_json::json!({ "error": e.to_string() }), Err(e)),
                 }
             }
             Err(e) => {
@@ -241,7 +242,7 @@ impl FapshiClient {
         let (status_code, resp_val, result) = match response {
             Ok(res) => {
                 let status = res.status().as_u16();
-                let body_res: Result<PollResponse, _> = res.json().await;
+                let body_res: Result<PollResponse, AppError> = decode_body(status, res).await;
                 match body_res {
                     Ok(body) => {
                         let val = serde_json::to_value(&body)?;
@@ -253,10 +254,7 @@ impl FapshiClient {
                             (status, val, Err(AppError::Fapshi(format!("Fapshi poll error ({}): {}", status, msg))))
                         }
                     }
-                    Err(e) => {
-                        let err_msg = format!("JSON decode error: {}", e);
-                        (status, serde_json::json!({ "error": err_msg }), Err(AppError::Reqwest(e)))
-                    }
+                    Err(e) => (status, serde_json::json!({ "error": e.to_string() }), Err(e)),
                 }
             }
             Err(e) => {
@@ -281,4 +279,26 @@ impl FapshiClient {
 
         result
     }
+}
+
+const BODY_SNIPPET_CHARS: usize = 200;
+
+/// Reads a Fapshi response body and parses it as JSON. On failure the error
+/// includes the HTTP status and the start of the body, so unexpected replies
+/// (e.g. an HTML error page) are visible in logs and fapshi_audit_logs.
+async fn decode_body<T: serde::de::DeserializeOwned>(
+    status: u16,
+    res: reqwest::Response,
+) -> Result<T, AppError> {
+    let text = res.text().await?;
+    parse_body(status, &text)
+}
+
+pub fn parse_body<T: serde::de::DeserializeOwned>(status: u16, text: &str) -> Result<T, AppError> {
+    serde_json::from_str(text).map_err(|e| {
+        let snippet: String = text.chars().take(BODY_SNIPPET_CHARS).collect();
+        AppError::Fapshi(format!(
+            "Unexpected Fapshi response (HTTP {status}, {e}): {snippet}"
+        ))
+    })
 }
