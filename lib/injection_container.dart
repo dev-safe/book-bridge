@@ -374,8 +374,10 @@ Future<void> setupDependencyInjection() async {
 
   // Transaction History
   getIt.registerLazySingleton<SupabaseTransactionsDataSource>(
-    () =>
-        SupabaseTransactionsDataSource(supabaseClient: getIt<SupabaseClient>()),
+    () => SupabaseTransactionsDataSource(
+      supabaseClient: getIt<SupabaseClient>(),
+      rustCoreUrl: AppConfig.rustCoreUrl,
+    ),
   );
 
   getIt.registerLazySingleton<TransactionRepository>(

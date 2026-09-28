@@ -144,6 +144,8 @@ flutter run \
   --dart-define="FAPSHI_API_KEY=$(grep FAPSHI_API_KEY .env | cut -d'=' -f2)"
 ```
 
+Escrow actions (confirm receipt, dispute) are sent to the Rust core service. It defaults to `https://bookbridge-rust-core.onrender.com`; to point at another deployment, add `--dart-define="RUST_CORE_URL=https://your-rust-core.example.com"`.
+
 ### Release builds (Android)
 Release builds are signed with an upload key that is read from `android/key.properties` (this file is gitignored).
 
