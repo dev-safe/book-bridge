@@ -36,6 +36,36 @@ pub struct PollResponse {
     pub message: Option<String>,
 }
 
+/// Body of a collection request (`POST /direct-pay`).
+#[derive(Serialize, Debug, Clone, PartialEq)]
+pub struct DirectPayRequest {
+    pub amount: i64,
+    pub phone: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub medium: Option<String>,
+    #[serde(rename = "externalId")]
+    pub external_id: String,
+    pub message: String,
+}
+
+#[derive(Deserialize, Debug)]
+struct DirectPayResponse {
+    #[serde(rename = "transId")]
+    trans_id: Option<String>,
+    message: Option<String>,
+}
+
+/// The parts of `GET /payment-status/{transId}` the app-facing status endpoint needs.
+#[derive(Deserialize, Debug)]
+pub struct PaymentStatus {
+    pub status: Option<String>,
+    #[serde(rename = "externalId")]
+    pub external_id: Option<String>,
+    pub message: Option<String>,
+}
+
+const COLLECTION_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(60);
+
 #[derive(Deserialize, Serialize, Debug)]
 pub struct FapshiSearchItem {
     #[serde(rename = "transId")]
@@ -95,6 +125,73 @@ impl FapshiClient {
     /// Get search endpoint.
     pub fn search_url(&self) -> String {
         format!("{}/search", self.api_base())
+    }
+
+    /// Get direct-pay (collection) endpoint.
+    pub fn direct_pay_url(&self) -> String {
+        format!("{}/direct-pay", self.api_base())
+    }
+
+    /// Sends a Mobile Money payment prompt to the payer using the collection
+    /// account, and returns Fapshi's transId.
+    pub async fn direct_pay(
+        &self,
+        pool: &PgPool,
+        request: &DirectPayRequest,
+    ) -> Result<String, AppError> {
+        let api_user = Self::get_secret(pool, "fapshi_api_user").await?;
+        let api_key = Self::get_secret(pool, "fapshi_api_key").await?;
+
+        let res = self
+            .http
+            .post(self.direct_pay_url())
+            .timeout(COLLECTION_TIMEOUT)
+            .header("apiuser", &api_user)
+            .header("apikey", &api_key)
+            .json(request)
+            .send()
+            .await?;
+
+        let status = res.status().as_u16();
+        let body: DirectPayResponse = decode_body(status, res).await?;
+        if status != 200 {
+            let msg = body.message.unwrap_or_else(|| "Unknown error".to_string());
+            return Err(AppError::Fapshi(format!(
+                "Fapshi direct-pay error ({status}): {msg}"
+            )));
+        }
+        body.trans_id.ok_or_else(|| {
+            AppError::Fapshi("Fapshi direct-pay succeeded but returned no transId".to_string())
+        })
+    }
+
+    /// Looks up a collection transaction with the collection account.
+    pub async fn payment_status(
+        &self,
+        pool: &PgPool,
+        trans_id: &str,
+    ) -> Result<PaymentStatus, AppError> {
+        let api_user = Self::get_secret(pool, "fapshi_api_user").await?;
+        let api_key = Self::get_secret(pool, "fapshi_api_key").await?;
+
+        let res = self
+            .http
+            .get(self.status_url(trans_id))
+            .timeout(COLLECTION_TIMEOUT)
+            .header("apiuser", &api_user)
+            .header("apikey", &api_key)
+            .send()
+            .await?;
+
+        let status = res.status().as_u16();
+        let body: PaymentStatus = decode_body(status, res).await?;
+        if status != 200 {
+            let msg = body.message.unwrap_or_else(|| "Unknown error".to_string());
+            return Err(AppError::Fapshi(format!(
+                "Fapshi payment-status error ({status}): {msg}"
+            )));
+        }
+        Ok(body)
     }
 
     /// Checks if a payout has already been processed successfully on Fapshi by searching by externalId.

@@ -1,4 +1,5 @@
 import 'package:book_bridge/core/error/failures.dart';
+import 'package:book_bridge/features/payments/domain/entities/payment_purpose.dart';
 import 'package:book_bridge/features/payments/domain/repositories/payment_repository.dart';
 import 'package:dartz/dartz.dart';
 
@@ -9,15 +10,13 @@ class CollectPaymentUseCase {
     : _repository = repository;
 
   Future<Either<Failure, String>> call({
-    required int amount,
+    required PaymentPurpose purpose,
     required String phoneNumber,
-    required String externalReference,
-    required String medium,
+    String? medium,
   }) {
     return _repository.collect(
-      amount: amount,
+      purpose: purpose,
       phoneNumber: phoneNumber,
-      externalReference: externalReference,
       medium: medium,
     );
   }

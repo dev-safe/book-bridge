@@ -12,6 +12,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:book_bridge/l10n/app_localizations.dart';
+import 'package:book_bridge/features/payments/domain/entities/payment_purpose.dart';
 import 'package:book_bridge/features/payments/presentation/widgets/payment_bottom_sheet.dart';
 import 'package:book_bridge/features/payments/presentation/viewmodels/payment_viewmodel.dart';
 import 'package:book_bridge/injection_container.dart';
@@ -900,9 +901,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       onPressed: () {
         Navigator.pop(context); // close amount picker
 
-        final userId = user?.id ?? 'anonymous';
-        final timestamp = DateTime.now().millisecondsSinceEpoch;
-
         showModalBottomSheet(
           context: context,
           isScrollControlled: true,
@@ -914,7 +912,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             child: PaymentBottomSheet(
               amount: amount,
               title: AppLocalizations.of(context)!.supportBookBridge,
-              externalReference: 'donation_${userId}_$timestamp',
+              purpose: DonationPayment(amount),
               onSuccess: () {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(

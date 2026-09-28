@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:book_bridge/features/chat/presentation/viewmodels/chat_viewmodel.dart';
 import 'package:book_bridge/features/chat/domain/entities/message.dart';
 import 'package:book_bridge/features/payments/presentation/viewmodels/payment_viewmodel.dart';
+import 'package:book_bridge/features/payments/domain/entities/payment_purpose.dart';
 import 'package:book_bridge/features/payments/presentation/widgets/payment_bottom_sheet.dart';
 import 'package:book_bridge/l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
@@ -123,8 +124,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     child: PaymentBottomSheet(
                       amount: widget.listingPrice!,
                       title: AppLocalizations.of(context)!.payNow,
-                      externalReference:
-                          'purchase_${widget.listingId}_${widget.otherUserId}_${DateTime.now().millisecondsSinceEpoch}',
+                      purpose: PurchasePayment(widget.listingId),
                       onSuccess: () {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(

@@ -129,10 +129,10 @@ Create a `.env` file in the project root:
 ```env
 SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_ANON_KEY=your-anon-key
-FAPSHI_API_USER=your-fapshi-user
-FAPSHI_API_KEY=your-fapshi-key
-FAPSHI_BASE_URL=https://live.fapshi.com
+GOOGLE_CLIENT_ID=your-google-web-client-id
 ```
+
+The app holds no payment credentials. Fapshi keys live only in the Rust core service's `app_secrets` table.
 
 ### Launching the App
 Run the application with environments injected using `--dart-define`:
@@ -140,11 +140,10 @@ Run the application with environments injected using `--dart-define`:
 flutter run \
   --dart-define="SUPABASE_URL=$(grep SUPABASE_URL .env | cut -d'=' -f2)" \
   --dart-define="SUPABASE_ANON_KEY=$(grep SUPABASE_ANON_KEY .env | cut -d'=' -f2)" \
-  --dart-define="FAPSHI_API_USER=$(grep FAPSHI_API_USER .env | cut -d'=' -f2)" \
-  --dart-define="FAPSHI_API_KEY=$(grep FAPSHI_API_KEY .env | cut -d'=' -f2)"
+  --dart-define="GOOGLE_CLIENT_ID=$(grep GOOGLE_CLIENT_ID .env | cut -d'=' -f2)"
 ```
 
-Escrow actions (confirm receipt, dispute) are sent to the Rust core service. It defaults to `https://bookbridge-rust-core.onrender.com`; to point at another deployment, add `--dart-define="RUST_CORE_URL=https://your-rust-core.example.com"`.
+Payments (purchases, boosts, donations) and escrow actions (confirm receipt, dispute) are sent to the Rust core service. It defaults to `https://bookbridge-rust-core.onrender.com`; to point at another deployment, add `--dart-define="RUST_CORE_URL=https://your-rust-core.example.com"`.
 
 ### Release builds (Android)
 Release builds are signed with an upload key that is read from `android/key.properties` (this file is gitignored).
