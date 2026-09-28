@@ -26,6 +26,15 @@ pub enum AppError {
     #[error("Bad Request: {0}")]
     BadRequest(String),
 
+    #[error("Not found: {0}")]
+    NotFound(String),
+
+    #[error("Conflict: {0}")]
+    Conflict(String),
+
+    #[error("Auth service error: {0}")]
+    AuthService(String),
+
     #[error("Internal server error: {0}")]
     Internal(String),
 }
@@ -56,6 +65,18 @@ impl IntoResponse for AppError {
             AppError::BadRequest(msg) => {
                 tracing::warn!("Bad request: {}", msg);
                 (StatusCode::BAD_REQUEST, msg.clone())
+            }
+            AppError::NotFound(msg) => {
+                tracing::warn!("Not found: {}", msg);
+                (StatusCode::NOT_FOUND, msg.clone())
+            }
+            AppError::Conflict(msg) => {
+                tracing::warn!("Conflict: {}", msg);
+                (StatusCode::CONFLICT, msg.clone())
+            }
+            AppError::AuthService(msg) => {
+                tracing::error!("Auth service error: {}", msg);
+                (StatusCode::BAD_GATEWAY, "Authentication service unavailable".to_string())
             }
             AppError::Internal(msg) => {
                 tracing::error!("Internal error: {}", msg);

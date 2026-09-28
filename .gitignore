@@ -54,8 +54,12 @@ config/secrets.properties
 Secrets*.toml
 
 
-# Supabase
-supabase/
+# Supabase: migrations and functions are tracked; only local CLI state and
+# secrets are ignored. (Ignoring all of supabase/ kept policies out of git.)
+supabase/.branches/
+supabase/.temp/
+supabase/**/.env
+supabase/**/.env.*
 supabase.json
 
 # IDE
