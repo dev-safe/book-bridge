@@ -66,7 +66,7 @@ Deno.serve(async (req: Request) => {
       const reference = tx.payment_reference;
       try {
         console.log(`Checking Fapshi status for transaction ref: ${reference}`);
-        const fapshiRes = await fetch(`https://live.fapshi.com/payment-status/${reference}`, {
+        const fapshiRes = await fetch(`https://api.fapshi.com/payment-status/${reference}`, {
           method: "GET",
           headers: {
             "apiuser": fapshiApiUser,
