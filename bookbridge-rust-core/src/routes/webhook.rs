@@ -105,6 +105,32 @@ fn parse_donation_ref(external_ref: &str) -> Result<Option<Uuid>, AppError> {
     }
 }
 
+/// Keeps a durable record of money Fapshi collected that was not credited to
+/// anything, so it can be refunded by hand. An error here fails the webhook,
+/// which makes Fapshi retry rather than lose the record.
+async fn record_unmatched_payment(
+    pool: &PgPool,
+    reference: &str,
+    amount: f64,
+    external_ref: &str,
+    reason: &str,
+) -> Result<(), AppError> {
+    tracing::warn!("Unmatched Fapshi payment {}: {}", reference, reason);
+    sqlx::query(
+        "INSERT INTO fapshi_audit_logs (transaction_id, endpoint, request_payload, response_payload, status_code) \
+         VALUES (NULL, 'webhook/unmatched-payment', $1, NULL, NULL)",
+    )
+    .bind(serde_json::json!({
+        "transId": reference,
+        "amount": amount,
+        "externalId": external_ref,
+        "reason": reason,
+    }))
+    .execute(pool)
+    .await?;
+    Ok(())
+}
+
 async fn handle_boost_success(
     pool: &PgPool,
     reference: &str,
@@ -115,11 +141,8 @@ async fn handle_boost_success(
     // The price and duration are fixed server-side; the externalId's duration
     // is ignored so a payment can't buy a longer boost than it paid for.
     if !covers_expected(amount, BOOST_PRICE_XAF as f64) {
-        tracing::warn!(
-            "Ignoring boost payment {}: paid {} XAF, boost costs {} XAF",
-            reference, amount, BOOST_PRICE_XAF
-        );
-        return Ok(());
+        let reason = format!("boost underpaid: costs {BOOST_PRICE_XAF} XAF");
+        return record_unmatched_payment(pool, reference, amount, external_ref, &reason).await;
     }
     if requested_days != BOOST_DAYS {
         tracing::warn!(
@@ -237,32 +260,48 @@ async fn handle_purchase_success(
             let row_listing: Uuid = row.try_get("listing_id")?;
             let row_buyer: Uuid = row.try_get("buyer_id")?;
             if row_listing != listing_id || row_buyer != buyer_id {
-                tracing::warn!(
-                    "Ignoring purchase webhook {}: externalId does not match the recorded transaction",
-                    reference
-                );
-                return Ok(());
+                return record_unmatched_payment(
+                    &state.pool,
+                    reference,
+                    amount,
+                    external_ref,
+                    "externalId does not match the recorded transaction",
+                )
+                .await;
             }
             row.try_get::<Option<f64>, _>("amount")?.unwrap_or(f64::MAX)
         }
         None => {
             if buyer_id == seller_id || listing_status.as_deref() != Some("available") {
-                tracing::warn!(
-                    "Ignoring unrecorded purchase webhook {}: listing {} is not purchasable by this buyer",
-                    reference, listing_id
-                );
-                return Ok(());
+                return record_unmatched_payment(
+                    &state.pool,
+                    reference,
+                    amount,
+                    external_ref,
+                    "no recorded purchase, and the listing is not available to this buyer",
+                )
+                .await;
             }
-            listing_price.map(|p| p as f64).unwrap_or(f64::MAX)
+            match listing_price {
+                Some(price) => price as f64,
+                None => {
+                    return record_unmatched_payment(
+                        &state.pool,
+                        reference,
+                        amount,
+                        external_ref,
+                        "no recorded purchase, and the listing has no price",
+                    )
+                    .await;
+                }
+            }
         }
     };
 
     if !covers_expected(amount, expected) {
-        tracing::warn!(
-            "Ignoring purchase webhook {}: paid {} XAF, expected {} XAF",
-            reference, amount, expected
-        );
-        return Ok(());
+        let reason = format!("purchase underpaid: expected {expected} XAF");
+        return record_unmatched_payment(&state.pool, reference, amount, external_ref, &reason)
+            .await;
     }
 
     if listing_status.as_deref() == Some("sold") {
@@ -278,6 +317,9 @@ async fn handle_purchase_success(
     let commission_amount = amount - payout_amount;
 
     let now = Utc::now();
+    // The claim and the escrow writes share one DB transaction, so a failed
+    // escrow write leaves the row claimable by Fapshi's retry or the poller.
+    let mut transaction = state.pool.begin().await?;
 
     // Atomically upsert the transaction using ON CONFLICT DO UPDATE.
     // If the transaction status is already 'held' or 'successful' (completed), the DO UPDATE will fail the WHERE clause
@@ -301,7 +343,7 @@ async fn handle_purchase_success(
     .bind(amount)
     .bind(commission_amount)
     .bind(now)
-    .fetch_optional(&state.pool)
+    .fetch_optional(&mut *transaction)
     .await?;
 
     let tx_id = match tx_row {
@@ -311,12 +353,11 @@ async fn handle_purchase_success(
         }
         None => {
             tracing::info!("Transaction with reference {} already claimed or processed. Skipping success logic.", reference);
+            transaction.rollback().await?;
             return Ok(());
         }
     };
 
-    let mut transaction = state.pool.begin().await?;
-    
     if let Err(e) = handle_purchase_success_db(
         &mut transaction,
         listing_id,
