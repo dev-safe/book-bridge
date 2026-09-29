@@ -326,6 +326,26 @@ pub async fn poll_pending_handler(
                     let now = Utc::now();
                     let mut transaction = state.pool.begin().await?;
 
+                    // Claim the row so a webhook that settled it meanwhile
+                    // (or an overlapping poll) isn't processed twice.
+                    let claimed = sqlx::query(
+                        "UPDATE transactions SET status = 'held' \
+                         WHERE id = $1 AND status = 'pending_payment' RETURNING id",
+                    )
+                    .bind(tx_id)
+                    .fetch_optional(&mut *transaction)
+                    .await?;
+                    if claimed.is_none() {
+                        transaction.rollback().await?;
+                        results.push(PollResult {
+                            id: tx_id,
+                            reference: reference.clone(),
+                            status: "already_settled".to_string(),
+                            error: None,
+                        });
+                        continue;
+                    }
+
                     if let Err(e) = handle_purchase_success_db(
                         &mut transaction,
                         listing_id,
@@ -355,7 +375,7 @@ pub async fn poll_pending_handler(
                     });
                 } else if status_upper == "FAILED" || status_upper == "EXPIRED" {
                     // Mark transaction as failed
-                    sqlx::query("UPDATE transactions SET status = 'failed' WHERE id = $1")
+                    sqlx::query("UPDATE transactions SET status = 'failed' WHERE id = $1 AND status = 'pending_payment'")
                         .bind(tx_id)
                         .execute(&state.pool)
                         .await?;

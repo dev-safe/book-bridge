@@ -6,6 +6,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:book_bridge/features/listings/presentation/viewmodels/listing_details_viewmodel.dart';
 import 'package:book_bridge/features/auth/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:book_bridge/features/favorites/presentation/viewmodels/favorites_viewmodel.dart';
+import 'package:book_bridge/features/payments/domain/entities/payment_purpose.dart';
 import 'package:book_bridge/features/payments/presentation/widgets/payment_bottom_sheet.dart';
 import 'package:book_bridge/features/payments/presentation/viewmodels/payment_viewmodel.dart';
 import 'package:book_bridge/injection_container.dart';
@@ -737,8 +738,7 @@ ${l10n.shareTextDownload}
         child: PaymentBottomSheet(
           amount: 500, // 500 FCFA for 7 days
           title: AppLocalizations.of(context)!.boostListing,
-          externalReference:
-              'boost_${listing.id}_7_${DateTime.now().millisecondsSinceEpoch}',
+          purpose: BoostPayment(listing.id),
           onSuccess: () {
             // Refresh details to show boosted status
             viewModel.loadListingDetails(listing.id);
@@ -886,7 +886,6 @@ ${l10n.shareTextDownload}
                   height: 52,
                   child: OutlinedButton.icon(
                     onPressed: () {
-                      final buyerId = authVM.currentUser!.id;
                       showModalBottomSheet(
                         context: context,
                         isScrollControlled: true,
@@ -896,8 +895,7 @@ ${l10n.shareTextDownload}
                           child: PaymentBottomSheet(
                             amount: listing.priceFcfa,
                             title: AppLocalizations.of(context)!.buyNow,
-                            externalReference:
-                                'purchase_${listing.id}_${buyerId}_${DateTime.now().millisecondsSinceEpoch}',
+                            purpose: PurchasePayment(listing.id),
                             onSuccess: () {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(

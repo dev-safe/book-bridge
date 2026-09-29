@@ -14,23 +14,10 @@ class AppConfig {
     defaultValue: '',
   );
 
-  // BookBridge Rust core service (escrow actions). Public URL, not a secret.
+  // BookBridge Rust core service (payments and escrow actions). Public URL,
+  // not a secret. Fapshi credentials live only on that service.
   static const String rustCoreUrl = String.fromEnvironment(
     'RUST_CORE_URL',
     defaultValue: 'https://bookbridge-rust-core.onrender.com',
-  );
-
-  // Fapshi configuration
-  static const String fapshiApiUser = String.fromEnvironment(
-    'FAPSHI_API_USER',
-    defaultValue: '',
-  );
-  static const String fapshiApiKey = String.fromEnvironment(
-    'FAPSHI_API_KEY',
-    defaultValue: '',
-  );
-  static const String fapshiBaseUrl = String.fromEnvironment(
-    'FAPSHI_BASE_URL',
-    defaultValue: 'https://sandbox.fapshi.com',
   );
 }

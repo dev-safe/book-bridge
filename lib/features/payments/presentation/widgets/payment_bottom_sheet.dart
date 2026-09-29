@@ -1,3 +1,4 @@
+import 'package:book_bridge/features/payments/domain/entities/payment_purpose.dart';
 import 'package:book_bridge/features/payments/presentation/viewmodels/payment_viewmodel.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -8,16 +9,18 @@ import 'package:book_bridge/features/reviews/presentation/widgets/review_dialog.
 import 'package:book_bridge/features/transactions/domain/entities/transaction_entity.dart';
 
 class PaymentBottomSheet extends StatefulWidget {
+  /// Shown to the user. What is actually charged is decided by the server
+  /// from [purpose].
   final int amount;
   final String title;
-  final String externalReference;
+  final PaymentPurpose purpose;
   final VoidCallback onSuccess;
 
   const PaymentBottomSheet({
     super.key,
     required this.amount,
     required this.title,
-    required this.externalReference,
+    required this.purpose,
     required this.onSuccess,
   });
 
@@ -121,9 +124,8 @@ class _PaymentBottomSheetState extends State<PaymentBottomSheet> {
                       onPressed: () {
                         if (_formKey.currentState!.validate()) {
                           viewModel.collectPayment(
-                            amount: widget.amount,
+                            purpose: widget.purpose,
                             phoneNumber: _phoneController.text,
-                            externalReference: widget.externalReference,
                             medium: _getMedium(_phoneController.text),
                           );
                         }
@@ -173,14 +175,17 @@ class _PaymentBottomSheetState extends State<PaymentBottomSheet> {
                       ),
                     ),
                     const SizedBox(height: 24),
-                    _ReviewPrompt(
-                      externalReference: widget.externalReference,
-                      onCompleted: () {
-                        widget.onSuccess();
-                        Navigator.pop(context);
-                      },
-                    ),
-                    const SizedBox(height: 16),
+                    if (widget.purpose is PurchasePayment &&
+                        viewModel.transactionReference != null) ...[
+                      _ReviewPrompt(
+                        paymentReference: viewModel.transactionReference!,
+                        onCompleted: () {
+                          widget.onSuccess();
+                          Navigator.pop(context);
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                    ],
                     ElevatedButton(
                       onPressed: () {
                         widget.onSuccess();
@@ -223,11 +228,11 @@ class _PaymentBottomSheetState extends State<PaymentBottomSheet> {
 }
 
 class _ReviewPrompt extends StatefulWidget {
-  final String externalReference;
+  final String paymentReference;
   final VoidCallback onCompleted;
 
   const _ReviewPrompt({
-    required this.externalReference,
+    required this.paymentReference,
     required this.onCompleted,
   });
 
@@ -249,7 +254,7 @@ class _ReviewPromptState extends State<_ReviewPrompt> {
     final reviewViewModel = context.read<ReviewViewModel>();
     // Wait a bit for Supabase to index the transaction
     final result = await reviewViewModel.getTransactionByExternalRef(
-      widget.externalReference,
+      widget.paymentReference,
     );
 
     if (mounted) {

@@ -1,3 +1,4 @@
+import 'package:book_bridge/features/payments/domain/entities/payment_purpose.dart';
 import 'package:book_bridge/features/payments/domain/usecases/collect_payment_usecase.dart';
 import 'package:book_bridge/features/payments/domain/usecases/get_payment_status_usecase.dart';
 import 'package:flutter/material.dart';
@@ -23,19 +24,17 @@ class PaymentViewModel extends ChangeNotifier {
   String? get transactionReference => _transactionReference;
 
   Future<void> collectPayment({
-    required int amount,
+    required PaymentPurpose purpose,
     required String phoneNumber,
-    required String externalReference,
-    required String medium,
+    String? medium,
   }) async {
     _state = PaymentState.processing;
     _errorMessage = null;
     notifyListeners();
 
     final result = await _collectPaymentUseCase(
-      amount: amount,
+      purpose: purpose,
       phoneNumber: phoneNumber,
-      externalReference: externalReference,
       medium: medium,
     );
 

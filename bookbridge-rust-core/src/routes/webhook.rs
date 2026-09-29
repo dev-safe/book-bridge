@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 use crate::error::AppError;
 use crate::auth::constant_time_compare;
 use crate::routes::escrow::handle_purchase_success_db;
+use crate::routes::payments::{covers_expected, BOOST_DAYS, BOOST_PRICE_XAF};
 use crate::AppState;
 use sqlx::{PgPool, Row};
 use uuid::Uuid;
@@ -28,7 +29,7 @@ pub struct FapshiWebhookPayload {
 async fn verify_webhook_auth(pool: &PgPool, headers: &HeaderMap) -> Result<(), AppError> {
     // A. Check x-wh-secret header (dashboard verification key)
     if let Some(wh_secret_header) = headers.get("x-wh-secret").and_then(|h| h.to_str().ok()) {
-        let secret_row: Option<(String,)> = sqlx::query_as("SELECT value FROM app_secrets WHERE key = 'fapshi_webhook_secret'")
+        let secret_row: Option<(String,)> = sqlx::query_as("SELECT value FROM app_secrets WHERE key = 'fapshi_collection_webhook_secret'")
             .fetch_optional(pool)
             .await?;
         
@@ -104,13 +105,52 @@ fn parse_donation_ref(external_ref: &str) -> Result<Option<Uuid>, AppError> {
     }
 }
 
+/// Keeps a durable record of money Fapshi collected that was not credited to
+/// anything, so it can be refunded by hand. An error here fails the webhook,
+/// which makes Fapshi retry rather than lose the record.
+async fn record_unmatched_payment(
+    pool: &PgPool,
+    reference: &str,
+    amount: f64,
+    external_ref: &str,
+    reason: &str,
+) -> Result<(), AppError> {
+    tracing::warn!("Unmatched Fapshi payment {}: {}", reference, reason);
+    sqlx::query(
+        "INSERT INTO fapshi_audit_logs (transaction_id, endpoint, request_payload, response_payload, status_code) \
+         VALUES (NULL, 'webhook/unmatched-payment', $1, NULL, NULL)",
+    )
+    .bind(serde_json::json!({
+        "transId": reference,
+        "amount": amount,
+        "externalId": external_ref,
+        "reason": reason,
+    }))
+    .execute(pool)
+    .await?;
+    Ok(())
+}
+
 async fn handle_boost_success(
     pool: &PgPool,
     reference: &str,
     amount: f64,
     external_ref: &str,
 ) -> Result<(), AppError> {
-    let (listing_id, duration) = parse_boost_ref(external_ref)?;
+    let (listing_id, requested_days) = parse_boost_ref(external_ref)?;
+    // The price and duration are fixed server-side; the externalId's duration
+    // is ignored so a payment can't buy a longer boost than it paid for.
+    if !covers_expected(amount, BOOST_PRICE_XAF as f64) {
+        let reason = format!("boost underpaid: costs {BOOST_PRICE_XAF} XAF");
+        return record_unmatched_payment(pool, reference, amount, external_ref, &reason).await;
+    }
+    if requested_days != BOOST_DAYS {
+        tracing::warn!(
+            "Boost payment {} asked for {} days; granting {}",
+            reference, requested_days, BOOST_DAYS
+        );
+    }
+    let duration = BOOST_DAYS;
 
     let listing_row = sqlx::query("SELECT seller_id FROM listings WHERE id = $1")
         .bind(listing_id)
@@ -190,21 +230,96 @@ async fn handle_purchase_success(
 ) -> Result<(), AppError> {
     let (listing_id, buyer_id) = parse_purchase_ref(external_ref)?;
 
-    let listing_row = sqlx::query("SELECT seller_id FROM listings WHERE id = $1")
-        .bind(listing_id)
-        .fetch_optional(&state.pool)
-        .await?;
+    let listing_row = sqlx::query(
+        "SELECT seller_id, price_fcfa::bigint AS price, status FROM listings WHERE id = $1",
+    )
+    .bind(listing_id)
+    .fetch_optional(&state.pool)
+    .await?;
 
     let listing = match listing_row {
         Some(row) => row,
         None => return Err(AppError::BadRequest(format!("Listing {} not found for purchase", listing_id))),
     };
     let seller_id: Uuid = listing.get("seller_id");
+    let listing_price: Option<i64> = listing.try_get("price")?;
+    let listing_status: Option<String> = listing.try_get("status")?;
+
+    // The amount a purchase must cover: the server-set amount recorded when
+    // the payment was initiated, or the listing's current price if there is
+    // no such row (payments initiated outside /payments/initiate).
+    let existing = sqlx::query(
+        "SELECT amount::float8 AS amount, listing_id, buyer_id FROM transactions WHERE payment_reference = $1",
+    )
+    .bind(reference)
+    .fetch_optional(&state.pool)
+    .await?;
+
+    let expected = match existing {
+        Some(row) => {
+            let row_listing: Uuid = row.try_get("listing_id")?;
+            let row_buyer: Uuid = row.try_get("buyer_id")?;
+            if row_listing != listing_id || row_buyer != buyer_id {
+                return record_unmatched_payment(
+                    &state.pool,
+                    reference,
+                    amount,
+                    external_ref,
+                    "externalId does not match the recorded transaction",
+                )
+                .await;
+            }
+            row.try_get::<Option<f64>, _>("amount")?.unwrap_or(f64::MAX)
+        }
+        None => {
+            if buyer_id == seller_id || listing_status.as_deref() != Some("available") {
+                return record_unmatched_payment(
+                    &state.pool,
+                    reference,
+                    amount,
+                    external_ref,
+                    "no recorded purchase, and the listing is not available to this buyer",
+                )
+                .await;
+            }
+            match listing_price {
+                Some(price) => price as f64,
+                None => {
+                    return record_unmatched_payment(
+                        &state.pool,
+                        reference,
+                        amount,
+                        external_ref,
+                        "no recorded purchase, and the listing has no price",
+                    )
+                    .await;
+                }
+            }
+        }
+    };
+
+    if !covers_expected(amount, expected) {
+        let reason = format!("purchase underpaid: expected {expected} XAF");
+        return record_unmatched_payment(&state.pool, reference, amount, external_ref, &reason)
+            .await;
+    }
+
+    if listing_status.as_deref() == Some("sold") {
+        // Two buyers paid for the same book. Keep the money in escrow so the
+        // second buyer can dispute and be refunded.
+        tracing::error!(
+            "Purchase {} paid for listing {} which is already sold; holding in escrow",
+            reference, listing_id
+        );
+    }
 
     let payout_amount = (amount * 0.95).floor();
     let commission_amount = amount - payout_amount;
 
     let now = Utc::now();
+    // The claim and the escrow writes share one DB transaction, so a failed
+    // escrow write leaves the row claimable by Fapshi's retry or the poller.
+    let mut transaction = state.pool.begin().await?;
 
     // Atomically upsert the transaction using ON CONFLICT DO UPDATE.
     // If the transaction status is already 'held' or 'successful' (completed), the DO UPDATE will fail the WHERE clause
@@ -228,7 +343,7 @@ async fn handle_purchase_success(
     .bind(amount)
     .bind(commission_amount)
     .bind(now)
-    .fetch_optional(&state.pool)
+    .fetch_optional(&mut *transaction)
     .await?;
 
     let tx_id = match tx_row {
@@ -238,12 +353,11 @@ async fn handle_purchase_success(
         }
         None => {
             tracing::info!("Transaction with reference {} already claimed or processed. Skipping success logic.", reference);
+            transaction.rollback().await?;
             return Ok(());
         }
     };
 
-    let mut transaction = state.pool.begin().await?;
-    
     if let Err(e) = handle_purchase_success_db(
         &mut transaction,
         listing_id,
@@ -262,49 +376,12 @@ async fn handle_purchase_success(
     Ok(())
 }
 
-async fn handle_purchase_pending(
-    pool: &PgPool,
-    reference: &str,
-    amount: f64,
-    external_ref: &str,
-) -> Result<(), AppError> {
-    let (listing_id, buyer_id) = parse_purchase_ref(external_ref)?;
-
-    let listing_row = sqlx::query("SELECT seller_id FROM listings WHERE id = $1")
-        .bind(listing_id)
-        .fetch_optional(pool)
-        .await?;
-
-    let listing = match listing_row {
-        Some(row) => row,
-        None => return Err(AppError::BadRequest(format!("Listing {} not found", listing_id))),
-    };
-    let seller_id: Uuid = listing.get("seller_id");
-
-    let payout_amount = (amount * 0.95).floor();
-    let commission_amount = amount - payout_amount;
-
-    let now = Utc::now();
-    sqlx::query(
-        "INSERT INTO transactions ( \
-            payment_reference, listing_id, buyer_id, seller_id, amount, status, \
-            payout_status, payout_reference, commission_amount, created_at \
-         ) \
-         VALUES ($1, $2, $3, $4, $5, 'pending_payment', 'pending', NULL, $6, $7) \
-         ON CONFLICT (payment_reference) \
-         DO UPDATE SET status = 'pending_payment' \
-         WHERE transactions.status = 'pending_payment'"
-    )
-    .bind(reference)
-    .bind(listing_id)
-    .bind(buyer_id)
-    .bind(seller_id)
-    .bind(amount)
-    .bind(commission_amount)
-    .bind(now)
-    .execute(pool)
-    .await?;
-
+/// Pending purchases are recorded by `/payments/initiate` with the
+/// server-set price. A webhook must never create one, because its amount and
+/// externalId would come from whoever initiated the payment.
+fn handle_purchase_pending(reference: &str, external_ref: &str) -> Result<(), AppError> {
+    parse_purchase_ref(external_ref)?;
+    tracing::info!("Purchase {} is pending at Fapshi", reference);
     Ok(())
 }
 
@@ -357,12 +434,12 @@ pub async fn fapshi_webhook_handler(
     } else if (status_upper == "CREATED" || status_upper == "PENDING" || status_upper == "PENDING_PAYMENT")
         && (external_reference.starts_with("purchase:") || external_reference.starts_with("purchase_"))
     {
-        handle_purchase_pending(&state.pool, &reference, amount, &external_reference).await?;
+        handle_purchase_pending(&reference, &external_reference)?;
     } else if (status_upper == "FAILED" || status_upper == "EXPIRED")
         && (external_reference.starts_with("purchase:") || external_reference.starts_with("purchase_"))
     {
         tracing::info!("Marking transaction failed: Ref={}", reference);
-        sqlx::query("UPDATE transactions SET status = 'failed' WHERE payment_reference = $1")
+        sqlx::query("UPDATE transactions SET status = 'failed' WHERE payment_reference = $1 AND status = 'pending_payment'")
             .bind(&reference)
             .execute(&state.pool)
             .await?;

@@ -10,6 +10,7 @@ use tokio::net::TcpListener;
 use bookbridge_rust_core::config::AppConfig;
 use bookbridge_rust_core::routes::health::health_handler;
 use bookbridge_rust_core::routes::buyer::buyer_routes;
+use bookbridge_rust_core::routes::payments::payment_routes;
 use bookbridge_rust_core::routes::escrow::{process_releases_handler, poll_pending_handler};
 use bookbridge_rust_core::routes::webhook::fapshi_webhook_handler;
 use bookbridge_rust_core::auth::require_internal_auth;
@@ -61,6 +62,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .route("/health", get(health_handler))
         .route("/webhooks/fapshi", post(fapshi_webhook_handler))
         .merge(buyer_routes())
+        .merge(payment_routes())
         .nest("/internal", internal_routes)
         .with_state(state);
 
