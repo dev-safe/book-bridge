@@ -111,9 +111,9 @@ async fn test_release_escrow_db_integration() -> Result<(), Box<dyn std::error::
         "INSERT INTO app_secrets (key, value) VALUES ($1, $2), ($3, $4) \
          ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value"
     )
-    .bind("fapshi_payout_api_user")
+    .bind("fapshi_disbursement_api_user")
     .bind("mock_payout_user")
-    .bind("fapshi_payout_api_key")
+    .bind("fapshi_disbursement_api_key")
     .bind("mock_payout_key")
     .execute(&mut *tx)
     .await?;
@@ -132,7 +132,7 @@ async fn test_release_escrow_db_integration() -> Result<(), Box<dyn std::error::
     let result = release_escrow(&state, transaction_id).await;
 
     // Manual cleanup to leave the database clean
-    let _ = sqlx::query("DELETE FROM app_secrets WHERE key IN ('fapshi_payout_api_user', 'fapshi_payout_api_key')").execute(&pool).await;
+    let _ = sqlx::query("DELETE FROM app_secrets WHERE key IN ('fapshi_disbursement_api_user', 'fapshi_disbursement_api_key')").execute(&pool).await;
     let _ = sqlx::query("DELETE FROM escrow_transactions WHERE transaction_id = $1").bind(transaction_id).execute(&pool).await;
     let _ = sqlx::query("DELETE FROM transactions WHERE id = $1").bind(transaction_id).execute(&pool).await;
     let _ = sqlx::query("DELETE FROM listings WHERE id = $1").bind(listing_id).execute(&pool).await;
@@ -250,9 +250,9 @@ async fn test_poll_pending_db_integration() -> Result<(), Box<dyn std::error::Er
         "INSERT INTO app_secrets (key, value) VALUES ($1, $2), ($3, $4) \
          ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value"
     )
-    .bind("fapshi_api_user")
+    .bind("fapshi_collection_api_user")
     .bind("mock_api_user")
-    .bind("fapshi_api_key")
+    .bind("fapshi_collection_api_key")
     .bind("mock_api_key")
     .execute(&mut *tx)
     .await?;
@@ -266,7 +266,7 @@ async fn test_poll_pending_db_integration() -> Result<(), Box<dyn std::error::Er
     let result = fapshi.poll_payment_status(&pool, transaction_id, "poll_test_ref_999").await;
 
     // Manual cleanup
-    let _ = sqlx::query("DELETE FROM app_secrets WHERE key IN ('fapshi_api_user', 'fapshi_api_key')").execute(&pool).await;
+    let _ = sqlx::query("DELETE FROM app_secrets WHERE key IN ('fapshi_collection_api_user', 'fapshi_collection_api_key')").execute(&pool).await;
     let _ = sqlx::query("DELETE FROM transactions WHERE id = $1").bind(transaction_id).execute(&pool).await;
     let _ = sqlx::query("DELETE FROM listings WHERE id = $1").bind(listing_id).execute(&pool).await;
     let _ = sqlx::query("DELETE FROM profiles WHERE id = $1").bind(seller_id).execute(&pool).await;

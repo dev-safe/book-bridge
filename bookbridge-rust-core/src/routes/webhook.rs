@@ -29,7 +29,7 @@ pub struct FapshiWebhookPayload {
 async fn verify_webhook_auth(pool: &PgPool, headers: &HeaderMap) -> Result<(), AppError> {
     // A. Check x-wh-secret header (dashboard verification key)
     if let Some(wh_secret_header) = headers.get("x-wh-secret").and_then(|h| h.to_str().ok()) {
-        let secret_row: Option<(String,)> = sqlx::query_as("SELECT value FROM app_secrets WHERE key = 'fapshi_webhook_secret'")
+        let secret_row: Option<(String,)> = sqlx::query_as("SELECT value FROM app_secrets WHERE key = 'fapshi_collection_webhook_secret'")
             .fetch_optional(pool)
             .await?;
         

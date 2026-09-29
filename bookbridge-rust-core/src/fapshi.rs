@@ -139,8 +139,8 @@ impl FapshiClient {
         pool: &PgPool,
         request: &DirectPayRequest,
     ) -> Result<String, AppError> {
-        let api_user = Self::get_secret(pool, "fapshi_api_user").await?;
-        let api_key = Self::get_secret(pool, "fapshi_api_key").await?;
+        let api_user = Self::get_secret(pool, "fapshi_collection_api_user").await?;
+        let api_key = Self::get_secret(pool, "fapshi_collection_api_key").await?;
 
         let res = self
             .http
@@ -171,8 +171,8 @@ impl FapshiClient {
         pool: &PgPool,
         trans_id: &str,
     ) -> Result<PaymentStatus, AppError> {
-        let api_user = Self::get_secret(pool, "fapshi_api_user").await?;
-        let api_key = Self::get_secret(pool, "fapshi_api_key").await?;
+        let api_user = Self::get_secret(pool, "fapshi_collection_api_user").await?;
+        let api_key = Self::get_secret(pool, "fapshi_collection_api_key").await?;
 
         let res = self
             .http
@@ -200,8 +200,8 @@ impl FapshiClient {
         pool: &PgPool,
         external_id: &str,
     ) -> Result<Option<String>, AppError> {
-        let api_user = Self::get_secret(pool, "fapshi_payout_api_user").await?;
-        let api_key = Self::get_secret(pool, "fapshi_payout_api_key").await?;
+        let api_user = Self::get_secret(pool, "fapshi_disbursement_api_user").await?;
+        let api_key = Self::get_secret(pool, "fapshi_disbursement_api_key").await?;
 
         let endpoint = self.search_url();
 
@@ -251,8 +251,8 @@ impl FapshiClient {
         external_id: &str,
         listing_id: Uuid,
     ) -> Result<String, AppError> {
-        let api_user = Self::get_secret(pool, "fapshi_payout_api_user").await?;
-        let api_key = Self::get_secret(pool, "fapshi_payout_api_key").await?;
+        let api_user = Self::get_secret(pool, "fapshi_disbursement_api_user").await?;
+        let api_key = Self::get_secret(pool, "fapshi_disbursement_api_key").await?;
 
         let cleaned_phone = Self::clean_phone(phone);
         let request_payload = PayoutPayload {
@@ -325,8 +325,8 @@ impl FapshiClient {
         tx_id: Uuid,
         reference: &str,
     ) -> Result<String, AppError> {
-        let api_user = Self::get_secret(pool, "fapshi_api_user").await?;
-        let api_key = Self::get_secret(pool, "fapshi_api_key").await?;
+        let api_user = Self::get_secret(pool, "fapshi_collection_api_user").await?;
+        let api_key = Self::get_secret(pool, "fapshi_collection_api_key").await?;
 
         let endpoint = self.status_url(reference);
 
