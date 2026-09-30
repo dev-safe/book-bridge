@@ -2,6 +2,7 @@ use axum::{extract::State, Json, response::IntoResponse};
 use serde::Serialize;
 use crate::error::AppError;
 use crate::fapshi::FapshiClient;
+use crate::routes::payments::{seller_payout, MIN_AMOUNT_XAF};
 use crate::AppState;
 use sqlx::Row;
 use sqlx::PgConnection;
@@ -180,7 +181,12 @@ pub async fn release_escrow(
         _ => return Err(AppError::BadRequest("Seller has no payout number configured".to_string())),
     };
 
-    let payout_amount = amount - commission_amount.unwrap_or(0.0);
+    let payout_amount = seller_payout(amount, commission_amount.unwrap_or(0.0)).ok_or_else(|| {
+        AppError::BadRequest(format!(
+            "Transaction {} is below Fapshi's {} XAF payout minimum",
+            tx_id, MIN_AMOUNT_XAF
+        ))
+    })?;
     let external_id = format!("escrow_payout_{}", payment_reference);
     let seller_name_str = full_name.unwrap_or_else(|| "BookBridge Seller".to_string());
 
@@ -228,11 +234,13 @@ pub async fn release_escrow(
     .await?;
 
     sqlx::query(
-        "UPDATE transactions SET status = 'successful', payout_status = 'successful', payout_reference = $1 \
+        "UPDATE transactions SET status = 'successful', payout_status = 'successful', payout_reference = $1, \
+         commission_amount = $3 \
          WHERE id = $2"
     )
     .bind(&trans_id_str)
     .bind(tx_id)
+    .bind(amount - payout_amount)
     .execute(&mut *transaction)
     .await?;
 

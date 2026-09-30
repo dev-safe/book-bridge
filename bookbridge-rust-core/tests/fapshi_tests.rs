@@ -1,5 +1,5 @@
 use bookbridge_rust_core::error::AppError;
-use bookbridge_rust_core::fapshi::{parse_body, FapshiClient, PollResponse};
+use bookbridge_rust_core::fapshi::{parse_body, FapshiClient, PayoutResponse, PollResponse};
 
 #[test]
 fn live_base_urls_route_to_live_fapshi() {
@@ -43,4 +43,17 @@ fn parse_body_truncates_long_bodies() {
     let long = "x".repeat(5000);
     let err = parse_body::<PollResponse>(502, &long).unwrap_err();
     assert!(err.to_string().len() < 400);
+}
+
+#[test]
+fn payout_response_parses_without_status_code() {
+    let ok: PayoutResponse =
+        parse_body(200, r#"{"message":"Accepted","transId":"abc123","dateInitiated":"2026-09-30"}"#).unwrap();
+    assert_eq!(ok.status_code, None);
+    assert_eq!(ok.trans_id.as_deref(), Some("abc123"));
+
+    let err: PayoutResponse =
+        parse_body(400, r#"{"message":"Transaction amount cannot be less than 100 XAF"}"#).unwrap();
+    assert_eq!(err.trans_id, None);
+    assert_eq!(err.message.as_deref(), Some("Transaction amount cannot be less than 100 XAF"));
 }

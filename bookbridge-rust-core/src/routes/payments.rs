@@ -244,6 +244,17 @@ pub fn commission_for(amount: f64) -> f64 {
     amount - (amount * 0.95).floor()
 }
 
+/// What the seller receives on release. Fapshi rejects payouts below
+/// `MIN_AMOUNT_XAF`, so for small sales the commission shrinks to keep the
+/// payout at that minimum. `None` if the sale itself is below the minimum.
+pub fn seller_payout(amount: f64, commission: f64) -> Option<f64> {
+    let min = MIN_AMOUNT_XAF as f64;
+    if amount < min {
+        return None;
+    }
+    Some((amount - commission).max(min))
+}
+
 /// Whether a payment covers what was expected, allowing for float rounding.
 pub fn covers_expected(paid: f64, expected: f64) -> bool {
     paid + 0.000_001 >= expected
