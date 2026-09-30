@@ -20,8 +20,9 @@ pub struct PayoutPayload {
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct PayoutResponse {
+    /// Fapshi omits this on success and on most errors; the HTTP status is authoritative.
     #[serde(rename = "statusCode")]
-    pub status_code: u16,
+    pub status_code: Option<u16>,
     #[serde(rename = "transId")]
     pub trans_id: Option<String>,
     pub message: Option<String>,
@@ -281,7 +282,7 @@ impl FapshiClient {
                 match body_res {
                     Ok(body) => {
                         let val = serde_json::to_value(&body)?;
-                        if status == 200 && body.status_code == 200 {
+                        if status == 200 && body.status_code.is_none_or(|code| code == 200) {
                             if let Some(trans_id) = body.trans_id {
                                 (status, val, Ok(trans_id))
                             } else {
@@ -289,7 +290,8 @@ impl FapshiClient {
                             }
                         } else {
                             let msg = body.message.unwrap_or_else(|| "Unknown Fapshi payout error".to_string());
-                            (status, val, Err(AppError::Fapshi(format!("Fapshi payout error ({}): {}", body.status_code, msg))))
+                            let code = body.status_code.unwrap_or(status);
+                            (status, val, Err(AppError::Fapshi(format!("Fapshi payout error ({code}): {msg}"))))
                         }
                     }
                     Err(e) => (status, serde_json::json!({ "error": e.to_string() }), Err(e)),

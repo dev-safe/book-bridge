@@ -14,7 +14,8 @@ use axum::{
 use bookbridge_rust_core::{
     routes::payments::{
         boost_external_id, commission_for, covers_expected, donation_external_id,
-        parse_external_ref, payment_routes, purchase_external_id, validate_donation_amount,
+        parse_external_ref, payment_routes, purchase_external_id, seller_payout,
+        validate_donation_amount,
         validate_medium, validate_phone, validate_trans_id, ExternalRef, BOOST_DAYS,
         MAX_DONATION_XAF, MIN_AMOUNT_XAF,
     },
@@ -331,6 +332,13 @@ fn amount_rules() {
 
     assert_eq!(commission_for(5000.0), 250.0);
     assert_eq!(commission_for(101.0), 6.0);
+
+    // Fapshi rejects payouts below 100 XAF, so small sales pay out the minimum.
+    assert_eq!(seller_payout(5000.0, 250.0), Some(4750.0));
+    assert_eq!(seller_payout(100.0, commission_for(100.0)), Some(100.0));
+    assert_eq!(seller_payout(103.0, commission_for(103.0)), Some(100.0));
+    assert_eq!(seller_payout(110.0, commission_for(110.0)), Some(104.0));
+    assert_eq!(seller_payout(99.0, 0.0), None);
 
     assert!(validate_trans_id("KGEartB8BK").is_ok());
     assert!(validate_trans_id("a-b_c").is_ok());
