@@ -127,7 +127,8 @@ pub async fn release_escrow(
 
     // 2. Fetch transaction and escrow status to ensure both are in 'held' status
     let tx_row = sqlx::query(
-        "SELECT t.listing_id, t.seller_id, t.amount, t.commission_amount, t.payment_reference, \
+        "SELECT t.listing_id, t.seller_id, t.amount::float8 AS amount, \
+         t.commission_amount::float8 AS commission_amount, t.payment_reference, \
          t.status as tx_status, e.status as escrow_status \
          FROM transactions t \
          JOIN escrow_transactions e ON t.id = e.transaction_id \
