@@ -62,6 +62,7 @@ pub struct PaymentStatus {
     pub status: Option<String>,
     #[serde(rename = "externalId")]
     pub external_id: Option<String>,
+    pub amount: Option<f64>,
     pub message: Option<String>,
 }
 
@@ -201,56 +202,61 @@ impl FapshiClient {
         pool: &PgPool,
         external_id: &str,
     ) -> Result<Option<String>, AppError> {
+        let items = self.search_by_external_id(pool, external_id).await?;
+        Ok(items
+            .into_iter()
+            .find(|item| {
+                let status = item.status.to_uppercase();
+                status == "SUCCESSFUL" || status == "SUCCESS"
+            })
+            .map(|item| item.trans_id))
+    }
+
+    /// Returns every disbursement-account transaction whose externalId is
+    /// exactly `external_id`, whatever its status.
+    pub async fn search_by_external_id(
+        &self,
+        pool: &PgPool,
+        external_id: &str,
+    ) -> Result<Vec<FapshiSearchItem>, AppError> {
         let api_user = Self::get_secret(pool, "fapshi_disbursement_api_user").await?;
         let api_key = Self::get_secret(pool, "fapshi_disbursement_api_key").await?;
 
-        let endpoint = self.search_url();
-
-        let response = self.http.get(&endpoint)
+        let res = self
+            .http
+            .get(self.search_url())
             .header("apiuser", &api_user)
             .header("apikey", &api_key)
             .query(&[("externalId", external_id)])
             .send()
-            .await;
+            .await?;
 
-        match response {
-            Ok(res) => {
-                let status = res.status().as_u16();
-                if status == 200 {
-                    let items: Vec<FapshiSearchItem> = decode_body(status, res).await?;
-                    for item in items {
-                        if let Some(ref ext_id) = item.external_id {
-                            if ext_id == external_id {
-                                let status_upper = item.status.to_uppercase();
-                                if status_upper == "SUCCESSFUL" || status_upper == "SUCCESS" {
-                                    return Ok(Some(item.trans_id));
-                                }
-                            }
-                        }
-                    }
-                    Ok(None)
-                } else {
-                    let body_text = res.text().await.unwrap_or_else(|_| "No body".to_string());
-                    Err(AppError::Fapshi(format!("Fapshi search returned status {}: {}", status, body_text)))
-                }
-            }
-            Err(e) => {
-                Err(AppError::Reqwest(e))
-            }
+        let status = res.status().as_u16();
+        if status != 200 {
+            let body_text = res.text().await.unwrap_or_else(|_| "No body".to_string());
+            return Err(AppError::Fapshi(format!(
+                "Fapshi search returned status {status}: {body_text}"
+            )));
         }
+        let items: Vec<FapshiSearchItem> = decode_body(status, res).await?;
+        Ok(items
+            .into_iter()
+            .filter(|item| item.external_id.as_deref() == Some(external_id))
+            .collect())
     }
 
-    /// Performs payout via Fapshi and logs to fapshi_audit_logs.
+    /// Performs payout via Fapshi and logs to fapshi_audit_logs. `tx_id` is
+    /// `None` for payouts not tied to a transaction (unmatched-payment refunds).
     #[allow(clippy::too_many_arguments)]
     pub async fn execute_payout(
         &self,
         pool: &PgPool,
-        tx_id: Uuid,
+        tx_id: Option<Uuid>,
         amount: f64,
         phone: &str,
-        seller_name: &str,
+        recipient_name: &str,
         external_id: &str,
-        listing_id: Uuid,
+        message: &str,
     ) -> Result<String, AppError> {
         let api_user = Self::get_secret(pool, "fapshi_disbursement_api_user").await?;
         let api_key = Self::get_secret(pool, "fapshi_disbursement_api_key").await?;
@@ -259,9 +265,9 @@ impl FapshiClient {
         let request_payload = PayoutPayload {
             amount,
             phone: cleaned_phone,
-            name: seller_name.to_string(),
+            name: recipient_name.to_string(),
             external_id: external_id.to_string(),
-            message: format!("BookBridge escrow payout for listing {}", listing_id),
+            message: message.to_string(),
         };
 
         let endpoint = self.payout_url();

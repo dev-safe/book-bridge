@@ -1,3 +1,4 @@
+pub mod admin;
 pub mod buyer;
 pub mod escrow;
 pub mod health;

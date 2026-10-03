@@ -1,0 +1,213 @@
+import 'dart:convert';
+
+import 'package:book_bridge/core/error/exceptions.dart';
+import 'package:book_bridge/core/network/rust_core_client.dart';
+import 'package:book_bridge/features/admin/data/datasources/rust_admin_data_source.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
+
+const _txId = '11111111-2222-4333-8444-555555555555';
+const _logId = '99999999-2222-4333-8444-555555555555';
+
+void main() {
+  late List<http.Request> requests;
+
+  RustAdminDataSource build(http.Response Function(http.Request) respond) {
+    requests = [];
+    return RustAdminDataSource(
+      RustCoreClient(
+        baseUrl: 'https://rust.example.com',
+        accessToken: () async => 'access-token',
+        httpClient: MockClient((request) async {
+          requests.add(request);
+          return respond(request);
+        }),
+      ),
+    );
+  }
+
+  // Axum sends UTF-8 JSON without a charset parameter.
+  http.Response ok(Object body) => http.Response.bytes(
+    utf8.encode(jsonEncode(body)),
+    200,
+    headers: {'content-type': 'application/json'},
+  );
+
+  group('checkAdmin', () {
+    test('passes for admins', () async {
+      final ds = build((_) => ok({'admin': true}));
+
+      await ds.checkAdmin();
+
+      expect(requests.single.method, 'GET');
+      expect(requests.single.url.path, '/admin/me');
+    });
+
+    test('throws the server message for non-admins (403)', () async {
+      final ds = build(
+        (_) =>
+            http.Response(jsonEncode({'error': 'Admin access required'}), 403),
+      );
+
+      await expectLater(
+        ds.checkAdmin(),
+        throwsA(
+          isA<ServerException>().having(
+            (e) => e.message,
+            'message',
+            contains('Admin access required'),
+          ),
+        ),
+      );
+    });
+
+    test('throws AuthAppException when signed out (401)', () async {
+      final ds = build(
+        (_) => http.Response(jsonEncode({'error': 'Unauthorized'}), 401),
+      );
+
+      await expectLater(ds.checkAdmin(), throwsA(isA<AuthAppException>()));
+    });
+  });
+
+  test('disputes parses the list', () async {
+    final ds = build(
+      (_) => ok({
+        'disputes': [
+          {
+            'transaction_id': _txId,
+            'amount': 500,
+            'listing_title': 'Physics F5',
+            'buyer_name': 'Élodie',
+            'seller_name': 'Ben',
+            'dispute_reason': 'Not received',
+            'purchased_at': '2026-09-30T01:00:00Z',
+            'disputed_at': '2026-09-30T02:00:00Z',
+            'payer_phone_hint': '677•••456',
+          },
+          {'transaction_id': _txId, 'amount': 100},
+        ],
+      }),
+    );
+
+    final disputes = await ds.disputes();
+
+    expect(requests.single.url.path, '/admin/disputes');
+    expect(disputes, hasLength(2));
+    expect(disputes.first.transactionId, _txId);
+    expect(disputes.first.amount, 500);
+    expect(disputes.first.listingTitle, 'Physics F5');
+    expect(disputes.first.buyerName, 'Élodie');
+    expect(disputes.first.payerPhoneHint, '677•••456');
+    expect(disputes.first.disputedAt, DateTime.utc(2026, 9, 30, 2).toLocal());
+    expect(disputes.last.payerPhoneHint, isNull);
+    expect(disputes.last.disputedAt, isNull);
+  });
+
+  test('disputes rejects a response without a list', () async {
+    final ds = build((_) => ok({'items': []}));
+
+    await expectLater(ds.disputes(), throwsA(isA<ServerException>()));
+  });
+
+  test('unmatchedPayments parses the list', () async {
+    final ds = build(
+      (_) => ok({
+        'payments': [
+          {
+            'id': _logId,
+            'trans_id': 'abc123',
+            'amount': 1500.0,
+            'external_id': null,
+            'reason': 'No matching transaction',
+            'received_at': '2026-09-30T02:00:00Z',
+            'payer_phone_hint': null,
+          },
+        ],
+      }),
+    );
+
+    final payments = await ds.unmatchedPayments();
+
+    expect(requests.single.url.path, '/admin/unmatched-payments');
+    expect(payments.single.id, _logId);
+    expect(payments.single.transId, 'abc123');
+    expect(payments.single.amount, 1500);
+    expect(payments.single.payerPhoneHint, isNull);
+  });
+
+  group('actions POST the note, and the phone only when given', () {
+    final cases =
+        <
+          String,
+          (
+            String path,
+            Future<void> Function(RustAdminDataSource ds) run,
+            Map<String, Object?> body,
+          )
+        >{
+          'releaseDispute': (
+            '/admin/disputes/$_txId/release',
+            (ds) => ds.releaseDispute(_txId, 'Seller showed proof'),
+            {'note': 'Seller showed proof'},
+          ),
+          'refundDispute with phone': (
+            '/admin/disputes/$_txId/refund',
+            (ds) => ds.refundDispute(_txId, 'Never sent', phone: '677123456'),
+            {'note': 'Never sent', 'phone': '677123456'},
+          ),
+          'refundDispute without phone': (
+            '/admin/disputes/$_txId/refund',
+            (ds) => ds.refundDispute(_txId, 'Never sent'),
+            {'note': 'Never sent'},
+          ),
+          'refundUnmatched': (
+            '/admin/unmatched-payments/$_logId/refund',
+            (ds) =>
+                ds.refundUnmatched(_logId, 'Paid twice', phone: '690000000'),
+            {'note': 'Paid twice', 'phone': '690000000'},
+          ),
+          'dismissUnmatched': (
+            '/admin/unmatched-payments/$_logId/dismiss',
+            (ds) => ds.dismissUnmatched(_logId, 'Refunded by hand'),
+            {'note': 'Refunded by hand'},
+          ),
+        };
+
+    cases.forEach((name, c) {
+      test(name, () async {
+        final ds = build(
+          (_) => ok({'ok': true, 'payout_reference': 'payout-1'}),
+        );
+
+        await c.$2(ds);
+
+        final request = requests.single;
+        expect(request.method, 'POST');
+        expect(request.url.path, c.$1);
+        expect(jsonDecode(request.body), c.$3);
+      });
+    });
+  });
+
+  test('a 409 from a second click surfaces the server message', () async {
+    final ds = build(
+      (_) => http.Response(
+        jsonEncode({'error': 'A refund is already in progress'}),
+        409,
+      ),
+    );
+
+    await expectLater(
+      ds.refundDispute(_txId, 'again'),
+      throwsA(
+        isA<ServerException>().having(
+          (e) => e.message,
+          'message',
+          contains('already in progress'),
+        ),
+      ),
+    );
+  });
+}

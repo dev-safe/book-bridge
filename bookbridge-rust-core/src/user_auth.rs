@@ -106,3 +106,30 @@ where
             .map(AuthenticatedUser)
     }
 }
+
+/// A signed-in user listed in `admin_users`. Others get 403.
+pub struct AdminUser(pub Uuid);
+
+#[async_trait]
+impl<S> FromRequestParts<S> for AdminUser
+where
+    AppState: FromRef<S>,
+    S: Send + Sync,
+{
+    type Rejection = AppError;
+
+    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
+        let AuthenticatedUser(user_id) = AuthenticatedUser::from_request_parts(parts, state).await?;
+        let state = AppState::from_ref(state);
+        let is_admin: bool =
+            sqlx::query_scalar("SELECT EXISTS (SELECT 1 FROM admin_users WHERE user_id = $1)")
+                .bind(user_id)
+                .fetch_one(&state.pool)
+                .await?;
+        if is_admin {
+            Ok(AdminUser(user_id))
+        } else {
+            Err(AppError::Forbidden("Admin access required".to_string()))
+        }
+    }
+}

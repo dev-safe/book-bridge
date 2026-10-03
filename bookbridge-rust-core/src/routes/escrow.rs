@@ -118,15 +118,57 @@ impl Drop for InProgressGuard {
     }
 }
 
+/// An admin's decision, recorded in `admin_actions` in the same database
+/// transaction as the status change it causes.
+pub(crate) struct AdminDecision<'a> {
+    pub admin_id: Uuid,
+    pub action: &'a str,
+    pub note: &'a str,
+}
+
+pub(crate) async fn record_admin_action(
+    conn: &mut PgConnection,
+    decision: &AdminDecision<'_>,
+    transaction_id: Option<Uuid>,
+    audit_log_id: Option<Uuid>,
+    payout_reference: Option<&str>,
+) -> Result<(), AppError> {
+    sqlx::query(
+        "INSERT INTO admin_actions (admin_id, action, transaction_id, audit_log_id, payout_reference, note) \
+         VALUES ($1, $2, $3, $4, $5, $6)",
+    )
+    .bind(decision.admin_id)
+    .bind(decision.action)
+    .bind(transaction_id)
+    .bind(audit_log_id)
+    .bind(payout_reference)
+    .bind(decision.note)
+    .execute(&mut *conn)
+    .await?;
+    Ok(())
+}
+
+/// Pays the seller for a `held` escrow (buyer confirmation or deadline).
 pub async fn release_escrow(
     state: &AppState,
     tx_id: Uuid,
 ) -> Result<(), AppError> {
     // 1. Claim in-progress lock to mitigate concurrent execution / double payout risk
     let _guard = InProgressGuard::claim(state, tx_id)?;
+    release_escrow_locked(state, tx_id, "held", None).await
+}
+
+/// Pays the seller for an escrow whose transaction and escrow rows are both
+/// `from_status`. The caller must hold the transaction's `InProgressGuard`.
+pub(crate) async fn release_escrow_locked(
+    state: &AppState,
+    tx_id: Uuid,
+    from_status: &str,
+    admin: Option<&AdminDecision<'_>>,
+) -> Result<(), AppError> {
     let fapshi = FapshiClient::new(state.fapshi_base_url.clone());
 
-    // 2. Fetch transaction and escrow status to ensure both are in 'held' status
+    // 2. Fetch transaction and escrow status to ensure both are in `from_status`
     let tx_row = sqlx::query(
         "SELECT t.listing_id, t.seller_id, t.amount::float8 AS amount, \
          t.commission_amount::float8 AS commission_amount, t.payment_reference, \
@@ -143,10 +185,10 @@ pub async fn release_escrow(
         Some(row) => {
             let tx_status: String = row.get("tx_status");
             let escrow_status: String = row.get("escrow_status");
-            if tx_status != "held" || escrow_status != "held" {
+            if tx_status != from_status || escrow_status != from_status {
                 return Err(AppError::BadRequest(format!(
-                    "Transaction or Escrow {} is not in 'held' status (tx: {}, escrow: {})",
-                    tx_id, tx_status, escrow_status
+                    "Transaction or Escrow {} is not in '{}' status (tx: {}, escrow: {})",
+                    tx_id, from_status, tx_status, escrow_status
                 )));
             }
             row
@@ -207,12 +249,12 @@ pub async fn release_escrow(
     if trans_id.is_none() {
         let tid = fapshi.execute_payout(
             &state.pool,
-            tx_id,
+            Some(tx_id),
             payout_amount,
             &phone,
             &seller_name_str,
             &external_id,
-            listing_id,
+            &format!("BookBridge escrow payout for listing {}", listing_id),
         )
         .await?;
         trans_id = Some(tid);
@@ -226,10 +268,11 @@ pub async fn release_escrow(
 
     sqlx::query(
         "UPDATE escrow_transactions SET status = 'released', updated_at = $1 \
-         WHERE transaction_id = $2 AND status = 'held'"
+         WHERE transaction_id = $2 AND status = $3"
     )
     .bind(now)
     .bind(tx_id)
+    .bind(from_status)
     .execute(&mut *transaction)
     .await?;
 
@@ -243,6 +286,10 @@ pub async fn release_escrow(
     .bind(amount - payout_amount)
     .execute(&mut *transaction)
     .await?;
+
+    if let Some(decision) = admin {
+        record_admin_action(&mut transaction, decision, Some(tx_id), None, Some(&trans_id_str)).await?;
+    }
 
     transaction.commit().await?;
 

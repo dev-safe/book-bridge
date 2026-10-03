@@ -97,7 +97,7 @@ class RustCoreClient {
           message: '$failurePrefix: ${_errorMessage(response)}',
         );
       }
-      final decoded = jsonDecode(response.body);
+      final decoded = jsonDecode(_utf8Body(response));
       if (decoded is! Map<String, dynamic>) {
         throw ServerException(message: '$failurePrefix: unexpected response');
       }
@@ -109,9 +109,14 @@ class RustCoreClient {
     }
   }
 
+  /// JSON is always UTF-8, but `response.body` falls back to Latin-1 when the
+  /// server sends no charset (Axum doesn't), garbling accented names.
+  static String _utf8Body(http.Response response) =>
+      utf8.decode(response.bodyBytes, allowMalformed: true);
+
   static String _errorMessage(http.Response response) {
     try {
-      final decoded = jsonDecode(response.body);
+      final decoded = jsonDecode(_utf8Body(response));
       if (decoded is Map && decoded['error'] is String) {
         return decoded['error'] as String;
       }
