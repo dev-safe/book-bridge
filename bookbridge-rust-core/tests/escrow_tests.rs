@@ -66,18 +66,20 @@ async fn test_release_escrow_db_integration() -> Result<(), Box<dyn std::error::
     }
 
     // Insert profile details
-    sqlx::query(
-        "INSERT INTO profiles (id, full_name, whatsapp_number) VALUES ($1, $2, $3)"
-    )
-    .bind(seller_id)
-    .bind("Integration Test Seller")
-    .bind("+237677777777")
-    .execute(&mut *tx)
-    .await?;
+    sqlx::query("INSERT INTO profiles (id, full_name) VALUES ($1, $2)")
+        .bind(seller_id)
+        .bind("Integration Test Seller")
+        .execute(&mut *tx)
+        .await?;
+    sqlx::query("INSERT INTO profiles_private (id, whatsapp_number) VALUES ($1, $2)")
+        .bind(seller_id)
+        .bind("+237677777777")
+        .execute(&mut *tx)
+        .await?;
 
     // Insert listing details
     sqlx::query(
-        "INSERT INTO listings (id, seller_id, title, status) VALUES ($1, $2, $3, $4)"
+        "INSERT INTO listings (id, seller_id, title, status, author, price_fcfa, condition) VALUES ($1, $2, $3, $4, 'Author', 500, 'good')"
     )
     .bind(listing_id)
     .bind(seller_id)
@@ -124,7 +126,7 @@ async fn test_release_escrow_db_integration() -> Result<(), Box<dyn std::error::
     let state = AppState {
         pool: pool.clone(),
         in_progress_payouts: Arc::new(Mutex::new(HashSet::new())),
-        fapshi_base_url: "https://sandbox.fapshi.com".to_string(), // Mock sandbox URL for testing
+        fapshi_base_url: "http://127.0.0.1:1".to_string(), // Unreachable: fail at the network boundary
         rate_limits: Default::default(),
         supabase_auth: bookbridge_rust_core::user_auth::SupabaseAuth::new("http://127.0.0.1:1", "test-anon-key"),
     };
@@ -141,7 +143,7 @@ async fn test_release_escrow_db_integration() -> Result<(), Box<dyn std::error::
     let _ = sqlx::query("DELETE FROM auth.users WHERE id IN ($1, $2)").bind(seller_id).bind(buyer_id).execute(&pool).await;
 
     // Verify database status checks compiled and succeeded by ensuring the execution failed
-    // ONLY at the network boundary (Reqwest error attempting to reach sandbox.fapshi.com)
+    // ONLY at the network boundary (Reqwest error attempting to reach the unreachable mock Fapshi URL)
     match result {
         Ok(_) => {
             panic!("Expected Fapshi payout network call to fail, but it returned Ok");
@@ -154,6 +156,8 @@ async fn test_release_escrow_db_integration() -> Result<(), Box<dyn std::error::
                 || err_str.contains("connect") 
                 || err_str.contains("builder") 
                 || err_str.contains("resolve")
+                || e.is_connect()
+                || e.is_request()
             );
         }
         Err(other) => {
@@ -212,18 +216,20 @@ async fn test_poll_pending_db_integration() -> Result<(), Box<dyn std::error::Er
     }
 
     // Insert profile
-    sqlx::query(
-        "INSERT INTO profiles (id, full_name, whatsapp_number) VALUES ($1, $2, $3)"
-    )
-    .bind(seller_id)
-    .bind("Poll Test Seller")
-    .bind("+237677777778")
-    .execute(&mut *tx)
-    .await?;
+    sqlx::query("INSERT INTO profiles (id, full_name) VALUES ($1, $2)")
+        .bind(seller_id)
+        .bind("Poll Test Seller")
+        .execute(&mut *tx)
+        .await?;
+    sqlx::query("INSERT INTO profiles_private (id, whatsapp_number) VALUES ($1, $2)")
+        .bind(seller_id)
+        .bind("+237677777778")
+        .execute(&mut *tx)
+        .await?;
 
     // Insert listing
     sqlx::query(
-        "INSERT INTO listings (id, seller_id, title, status) VALUES ($1, $2, $3, $4)"
+        "INSERT INTO listings (id, seller_id, title, status, author, price_fcfa, condition) VALUES ($1, $2, $3, $4, 'Author', 500, 'good')"
     )
     .bind(listing_id)
     .bind(seller_id)
@@ -261,7 +267,7 @@ async fn test_poll_pending_db_integration() -> Result<(), Box<dyn std::error::Er
     // Commit setup transaction so poll_payment_status can read from pool connections
     tx.commit().await?;
 
-    let fapshi = FapshiClient::new("https://sandbox.fapshi.com".to_string());
+    let fapshi = FapshiClient::new("http://127.0.0.1:1".to_string());
 
     // Call status checking. Since we use a mock api key and are offline, this will hit connection/Fapshi error.
     let result = fapshi.poll_payment_status(&pool, transaction_id, "poll_test_ref_999").await;
@@ -285,6 +291,8 @@ async fn test_poll_pending_db_integration() -> Result<(), Box<dyn std::error::Er
                 || err_str.contains("connect") 
                 || err_str.contains("builder") 
                 || err_str.contains("resolve")
+                || e.is_connect()
+                || e.is_request()
             );
         }
         Err(other) => {

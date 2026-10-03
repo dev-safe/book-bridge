@@ -26,7 +26,6 @@ class ListingModel extends Listing {
     super.expiresAt,
     super.sellerName,
     super.sellerLocality,
-    super.sellerWhatsapp,
     super.sellerAvatarUrl,
     super.sellerRating,
     super.sellerReviewCount,
@@ -90,9 +89,6 @@ class ListingModel extends Listing {
           (json['profiles'] as Map<String, dynamic>?)?['full_name'] as String?,
       sellerLocality:
           (json['profiles'] as Map<String, dynamic>?)?['locality'] as String?,
-      sellerWhatsapp:
-          (json['profiles'] as Map<String, dynamic>?)?['whatsapp_number']
-              as String?,
       sellerAvatarUrl:
           (json['profiles'] as Map<String, dynamic>?)?['avatar_url'] as String?,
       sellerRating:
@@ -156,7 +152,6 @@ class ListingModel extends Listing {
       expiresAt: listing.expiresAt,
       sellerName: listing.sellerName,
       sellerLocality: listing.sellerLocality,
-      sellerWhatsapp: listing.sellerWhatsapp,
       sellerAvatarUrl: listing.sellerAvatarUrl,
       sellerRating: listing.sellerRating,
       sellerReviewCount: listing.sellerReviewCount,
@@ -186,7 +181,6 @@ class ListingModel extends Listing {
       expiresAt: expiresAt,
       sellerName: sellerName,
       sellerLocality: sellerLocality,
-      sellerWhatsapp: sellerWhatsapp,
       sellerAvatarUrl: sellerAvatarUrl,
       sellerRating: sellerRating,
       sellerReviewCount: sellerReviewCount,

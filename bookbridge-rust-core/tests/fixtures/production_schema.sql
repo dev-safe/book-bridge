@@ -1,7 +1,7 @@
 -- Local test database for the DB integration tests: the production tables
 -- the Rust service touches, with production's column types, defaults and
 -- constraints (captured from the live schema on 2026-10-03), plus a stub
--- auth.users and the Supabase API roles. Triggers, RLS policies and the
+-- auth.users, auth.uid() and the Supabase API roles. Triggers, RLS policies and the
 -- tables the service never reads are left out.
 --
 -- Load it into a throwaway local Postgres, apply the migrations newer than
@@ -26,6 +26,12 @@ create table auth.users (
   id    uuid primary key,
   email text
 );
+
+-- Stub so migrations that define RLS policies load; the service role the
+-- tests connect as bypasses RLS anyway.
+create or replace function auth.uid() returns uuid
+language sql stable
+as $$ select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid $$;
 
 create table public.app_secrets (
   key   text primary key,

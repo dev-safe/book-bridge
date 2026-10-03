@@ -224,9 +224,12 @@ pub(crate) async fn release_escrow_locked(
     let commission_amount: Option<f64> = tx.get("commission_amount");
     let payment_reference: String = tx.get("payment_reference");
 
-    // 3. Fetch seller profile
+    // 3. Fetch seller profile; the payout number lives in owner-only profiles_private
     let seller_row = sqlx::query(
-        "SELECT whatsapp_number, full_name FROM profiles WHERE id = $1"
+        "SELECT ppr.whatsapp_number, pr.full_name \
+         FROM profiles pr \
+         LEFT JOIN profiles_private ppr ON ppr.id = pr.id \
+         WHERE pr.id = $1"
     )
     .bind(seller_id)
     .fetch_optional(&state.pool)
