@@ -279,6 +279,7 @@ async fn unreachable_db_state() -> AppState {
         pool,
         in_progress_payouts: Arc::new(Mutex::new(HashSet::new())),
         fapshi_base_url: "http://127.0.0.1:1".to_string(),
+        rate_limits: Default::default(),
         supabase_auth: SupabaseAuth::new(auth_url, ANON_KEY),
     }
 }
@@ -388,6 +389,7 @@ async fn world() -> Option<World> {
         pool: pool.clone(),
         in_progress_payouts: Arc::new(Mutex::new(HashSet::new())),
         fapshi_base_url: fapshi_url,
+        rate_limits: Default::default(),
         supabase_auth: SupabaseAuth::new(auth_url, ANON_KEY),
     };
     Some(World {

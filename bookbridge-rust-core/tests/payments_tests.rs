@@ -66,6 +66,14 @@ async fn test_state() -> AppState {
         pool,
         in_progress_payouts: Arc::new(Mutex::new(HashSet::new())),
         fapshi_base_url: "http://127.0.0.1:1".to_string(),
+        // Validation tests send many requests from one user; keep limits out of the way.
+        rate_limits: bookbridge_rust_core::rate_limit::RateLimits::new(
+            bookbridge_rust_core::rate_limit::RateLimitSettings {
+                payment_initiations_per_user: 1_000,
+                per_user: 1_000,
+                ..Default::default()
+            },
+        ),
         supabase_auth: SupabaseAuth::new(auth_url, ANON_KEY),
     }
 }

@@ -16,6 +16,7 @@ use std::time::Duration;
 use uuid::Uuid;
 
 use crate::error::AppError;
+use crate::rate_limit::too_many_requests;
 use crate::AppState;
 
 const AUTH_TIMEOUT: Duration = Duration::from_secs(10);
@@ -99,11 +100,12 @@ where
     async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
         let token = bearer_token(&parts.headers)?;
         let state = AppState::from_ref(state);
-        state
-            .supabase_auth
-            .user_id(token)
-            .await
-            .map(AuthenticatedUser)
+        let user_id = state.supabase_auth.user_id(token).await?;
+        if let Err(retry_after) = state.rate_limits.per_user.check(&user_id) {
+            tracing::warn!(%user_id, "Rate limit hit for user");
+            return Err(too_many_requests(retry_after));
+        }
+        Ok(AuthenticatedUser(user_id))
     }
 }
 
@@ -119,7 +121,8 @@ where
     type Rejection = AppError;
 
     async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
-        let AuthenticatedUser(user_id) = AuthenticatedUser::from_request_parts(parts, state).await?;
+        let AuthenticatedUser(user_id) =
+            AuthenticatedUser::from_request_parts(parts, state).await?;
         let state = AppState::from_ref(state);
         let is_admin: bool =
             sqlx::query_scalar("SELECT EXISTS (SELECT 1 FROM admin_users WHERE user_id = $1)")

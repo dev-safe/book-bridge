@@ -1,3 +1,6 @@
+use crate::rate_limit::RateLimitSettings;
+use std::time::Duration;
+
 #[derive(Clone, Debug)]
 pub struct AppConfig {
     pub database_url: String,
@@ -6,6 +9,7 @@ pub struct AppConfig {
     pub supabase_url: String,
     pub supabase_anon_key: String,
     pub port: u16,
+    pub rate_limits: RateLimitSettings,
 }
 
 impl AppConfig {
@@ -36,6 +40,20 @@ impl AppConfig {
             .and_then(|p| p.parse().ok())
             .unwrap_or(8080);
 
+        let defaults = RateLimitSettings::default();
+        let rate_limits = RateLimitSettings {
+            window: Duration::from_secs(env_u64(
+                "RATE_LIMIT_WINDOW_SECS",
+                defaults.window.as_secs(),
+            )?),
+            per_ip: env_u32("RATE_LIMIT_PER_IP", defaults.per_ip)?,
+            per_user: env_u32("RATE_LIMIT_PER_USER", defaults.per_user)?,
+            payment_initiations_per_user: env_u32(
+                "RATE_LIMIT_PAYMENT_INITIATIONS_PER_USER",
+                defaults.payment_initiations_per_user,
+            )?,
+        };
+
         Ok(Self {
             database_url,
             internal_api_secret,
@@ -43,6 +61,24 @@ impl AppConfig {
             supabase_url,
             supabase_anon_key,
             port,
+            rate_limits,
         })
     }
+}
+
+/// Reads a positive whole number from the environment, or `default` if unset.
+/// A set but invalid value stops startup instead of being silently ignored.
+fn env_u64(name: &str, default: u64) -> anyhow::Result<u64> {
+    match std::env::var(name) {
+        Err(_) => Ok(default),
+        Ok(raw) => match raw.trim().parse::<u64>() {
+            Ok(value) if value > 0 => Ok(value),
+            _ => Err(anyhow::anyhow!("{name} must be a positive whole number")),
+        },
+    }
+}
+
+fn env_u32(name: &str, default: u32) -> anyhow::Result<u32> {
+    let value = env_u64(name, u64::from(default))?;
+    u32::try_from(value).map_err(|_| anyhow::anyhow!("{name} is too large"))
 }
