@@ -98,6 +98,7 @@ async fn test_webhook_integration() -> Result<(), Box<dyn std::error::Error>> {
         pool: pool.clone(),
         in_progress_payouts: Arc::new(Mutex::new(HashSet::new())),
         fapshi_base_url: "https://sandbox.fapshi.com".to_string(),
+        rate_limits: Default::default(),
         supabase_auth: bookbridge_rust_core::user_auth::SupabaseAuth::new("http://127.0.0.1:1", "test-anon-key"),
     };
 

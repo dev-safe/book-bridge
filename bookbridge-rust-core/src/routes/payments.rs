@@ -15,6 +15,7 @@ use uuid::Uuid;
 
 use crate::error::AppError;
 use crate::fapshi::{DirectPayRequest, FapshiClient};
+use crate::rate_limit::too_many_requests;
 use crate::user_auth::AuthenticatedUser;
 use crate::AppState;
 
@@ -70,6 +71,12 @@ pub async fn initiate_payment_handler(
     AuthenticatedUser(user_id): AuthenticatedUser,
     Json(request): Json<InitiatePaymentRequest>,
 ) -> Result<Json<InitiatePaymentResponse>, AppError> {
+    // Each initiation sends a mobile-money prompt to a phone, so it has its
+    // own, lower limit on top of the general per-user one.
+    if let Err(retry_after) = state.rate_limits.payment_initiations.check(&user_id) {
+        tracing::warn!(%user_id, "Payment initiation rate limit hit");
+        return Err(too_many_requests(retry_after));
+    }
     let phone = validate_phone(&request.phone)?;
     let medium = validate_medium(request.medium.as_deref())?;
     let now = Utc::now();

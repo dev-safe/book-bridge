@@ -199,6 +199,7 @@ async fn world() -> Option<World> {
         pool: pool.clone(),
         in_progress_payouts: Arc::new(Mutex::new(HashSet::new())),
         fapshi_base_url: fapshi_url,
+        rate_limits: Default::default(),
         supabase_auth: SupabaseAuth::new(auth_url, ANON_KEY),
     };
     Some(World {
