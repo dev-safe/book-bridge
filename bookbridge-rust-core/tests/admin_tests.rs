@@ -419,15 +419,18 @@ async fn seed_sale(w: &World, status: &str, payer_phone: Option<&str>) -> Sale {
         .execute(&w.pool)
         .await
         .unwrap();
-    sqlx::query(
-        "INSERT INTO profiles (id, full_name, whatsapp_number) VALUES ($1, 'Seller', $3), ($2, 'Buyer', NULL)",
-    )
-    .bind(seller)
-    .bind(buyer)
-    .bind(SELLER_PHONE)
-    .execute(&w.pool)
-    .await
-    .unwrap();
+    sqlx::query("INSERT INTO profiles (id, full_name) VALUES ($1, 'Seller'), ($2, 'Buyer')")
+        .bind(seller)
+        .bind(buyer)
+        .execute(&w.pool)
+        .await
+        .unwrap();
+    sqlx::query("INSERT INTO profiles_private (id, whatsapp_number) VALUES ($1, $2)")
+        .bind(seller)
+        .bind(SELLER_PHONE)
+        .execute(&w.pool)
+        .await
+        .unwrap();
     let listing: Uuid = sqlx::query_scalar(
         "INSERT INTO listings (title, author, price_fcfa, condition, seller_id, status) \
          VALUES ('Test Book', 'Author', 500, 'good', $1, 'sold') RETURNING id",

@@ -58,12 +58,16 @@ async fn test_webhook_integration() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     // Profiles
-    sqlx::query("INSERT INTO profiles (id, full_name, whatsapp_number) VALUES ($1, $2, $3)")
-        .bind(seller_id).bind("Webhook Seller").bind("+237612345678")
+    sqlx::query("INSERT INTO profiles (id, full_name) VALUES ($1, $2), ($3, $4)")
+        .bind(seller_id).bind("Webhook Seller")
+        .bind(buyer_id).bind("Webhook Buyer")
+        .execute(&mut *tx).await?;
+    sqlx::query("INSERT INTO profiles_private (id, whatsapp_number) VALUES ($1, $2)")
+        .bind(seller_id).bind("+237612345678")
         .execute(&mut *tx).await?;
 
     // Listing
-    sqlx::query("INSERT INTO listings (id, seller_id, title, status) VALUES ($1, $2, $3, $4)")
+    sqlx::query("INSERT INTO listings (id, seller_id, title, status, author, price_fcfa, condition) VALUES ($1, $2, $3, $4, 'Author', 500, 'good')")
         .bind(listing_id).bind(seller_id).bind("Webhook Book").bind("active")
         .execute(&mut *tx).await?;
 
@@ -97,7 +101,7 @@ async fn test_webhook_integration() -> Result<(), Box<dyn std::error::Error>> {
     let state = AppState {
         pool: pool.clone(),
         in_progress_payouts: Arc::new(Mutex::new(HashSet::new())),
-        fapshi_base_url: "https://sandbox.fapshi.com".to_string(),
+        fapshi_base_url: "http://127.0.0.1:1".to_string(),
         rate_limits: Default::default(),
         supabase_auth: bookbridge_rust_core::user_auth::SupabaseAuth::new("http://127.0.0.1:1", "test-anon-key"),
     };
@@ -230,7 +234,7 @@ async fn test_webhook_integration() -> Result<(), Box<dyn std::error::Error>> {
     let _ = sqlx::query("DELETE FROM escrow_transactions WHERE transaction_id = $1").bind(transaction_id).execute(&pool).await;
     let _ = sqlx::query("DELETE FROM transactions WHERE id = $1").bind(transaction_id).execute(&pool).await;
     let _ = sqlx::query("DELETE FROM listings WHERE id = $1").bind(listing_id).execute(&pool).await;
-    let _ = sqlx::query("DELETE FROM profiles WHERE id = $1").bind(seller_id).execute(&pool).await;
+    let _ = sqlx::query("DELETE FROM profiles WHERE id IN ($1, $2)").bind(seller_id).bind(buyer_id).execute(&pool).await;
     let _ = sqlx::query("DELETE FROM auth.users WHERE id IN ($1, $2)").bind(seller_id).bind(buyer_id).execute(&pool).await;
 
     Ok(())

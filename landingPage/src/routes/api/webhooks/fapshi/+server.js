@@ -241,12 +241,20 @@ async function handlePurchaseSuccess(listingId, buyerId, reference, amount) {
 
 	const sellerId = listing.seller_id;
 
-	// 2. Fetch the seller's mobile money (whatsapp) number
-	const { data: profile } = await supabase
-		.from('profiles')
-		.select('whatsapp_number, full_name')
-		.eq('id', sellerId)
-		.single();
+	// 2. Fetch the seller's mobile money (whatsapp) number. The number lives in
+	// the owner-only profiles_private table; the service-role client bypasses RLS.
+	const [{ data: publicProfile }, { data: privateProfile }] = await Promise.all([
+		supabase.from('profiles').select('full_name').eq('id', sellerId).maybeSingle(),
+		supabase
+			.from('profiles_private')
+			.select('whatsapp_number')
+			.eq('id', sellerId)
+			.maybeSingle()
+	]);
+	const profile = {
+		full_name: publicProfile?.full_name ?? null,
+		whatsapp_number: privateProfile?.whatsapp_number ?? null
+	};
 
 	// 3. Update listing status to 'sold'
 	const { error: listingError } = await supabase

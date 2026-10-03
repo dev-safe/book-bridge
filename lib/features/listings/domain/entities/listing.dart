@@ -31,7 +31,6 @@ class Listing extends Equatable {
   // Seller info (populated from join)
   final String? sellerName;
   final String? sellerLocality;
-  final String? sellerWhatsapp;
   final String? sellerAvatarUrl;
   final double? sellerRating;
   final int? sellerReviewCount;
@@ -61,7 +60,6 @@ class Listing extends Equatable {
     this.expiresAt,
     this.sellerName,
     this.sellerLocality,
-    this.sellerWhatsapp,
     this.sellerAvatarUrl,
     this.sellerRating,
     this.sellerReviewCount,
@@ -91,7 +89,6 @@ class Listing extends Equatable {
     expiresAt,
     sellerName,
     sellerLocality,
-    sellerWhatsapp,
     sellerAvatarUrl,
     sellerRating,
     sellerReviewCount,
