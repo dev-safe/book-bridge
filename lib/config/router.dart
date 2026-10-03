@@ -29,6 +29,8 @@ import 'package:book_bridge/features/chat/presentation/screens/chat_screen.dart'
 import 'package:book_bridge/features/chat/presentation/viewmodels/chat_viewmodel.dart';
 import 'package:book_bridge/features/transactions/presentation/screens/transaction_history_screen.dart';
 import 'package:book_bridge/features/transactions/presentation/viewmodels/transaction_history_viewmodel.dart';
+import 'package:book_bridge/features/admin/presentation/screens/admin_screen.dart';
+import 'package:book_bridge/features/admin/presentation/viewmodels/admin_viewmodel.dart';
 import 'package:book_bridge/injection_container.dart' as di;
 
 final routerKey = GlobalKey<NavigatorState>();
@@ -287,6 +289,15 @@ final appRouter = GoRouter(
           child: const TransactionHistoryScreen(),
         );
       },
+    ),
+    // Admin dispute resolution (entry: long-press About on Profile)
+    GoRoute(
+      path: '/admin',
+      name: 'admin',
+      builder: (context, state) => ChangeNotifierProvider(
+        create: (_) => di.getIt<AdminViewModel>()..open(),
+        child: const AdminScreen(),
+      ),
     ),
     // Seller Public Profile Route
     GoRoute(

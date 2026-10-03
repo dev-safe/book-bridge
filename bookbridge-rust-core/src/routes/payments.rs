@@ -96,7 +96,7 @@ pub async fn initiate_payment_handler(
             }
             let pay = DirectPayRequest {
                 amount: listing.price,
-                phone,
+                phone: phone.clone(),
                 medium,
                 external_id: purchase_external_id(listing_id, user_id, millis),
                 message: "BookBridge book purchase".to_string(),
@@ -134,7 +134,7 @@ pub async fn initiate_payment_handler(
             }
             let pay = DirectPayRequest {
                 amount: BOOST_PRICE_XAF,
-                phone,
+                phone: phone.clone(),
                 medium,
                 external_id: boost_external_id(listing_id, millis),
                 message: format!("BookBridge listing boost ({BOOST_DAYS} days)"),
@@ -145,7 +145,7 @@ pub async fn initiate_payment_handler(
             validate_donation_amount(amount)?;
             let pay = DirectPayRequest {
                 amount,
-                phone,
+                phone: phone.clone(),
                 medium,
                 external_id: donation_external_id(user_id, millis),
                 message: "Donation to BookBridge".to_string(),
@@ -154,7 +154,25 @@ pub async fn initiate_payment_handler(
         }
     };
 
+    // Kept so an admin can refund this payment to the number that paid.
+    // Like the pending row, a failed insert must not hide the transId.
+    if let Err(e) = record_payer(&state.pool, &trans_id, &phone).await {
+        tracing::error!("Failed to record payer for payment {}: {:?}", trans_id, e);
+    }
+
     Ok(Json(InitiatePaymentResponse { trans_id }))
+}
+
+async fn record_payer(pool: &PgPool, trans_id: &str, phone: &str) -> Result<(), AppError> {
+    sqlx::query(
+        "INSERT INTO payment_payers (payment_reference, phone) VALUES ($1, $2) \
+         ON CONFLICT (payment_reference) DO NOTHING",
+    )
+    .bind(trans_id)
+    .bind(phone)
+    .execute(pool)
+    .await?;
+    Ok(())
 }
 
 /// Payments that aren't the caller's get the same 404 as unknown ones.

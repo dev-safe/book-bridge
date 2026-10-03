@@ -79,6 +79,10 @@ import 'package:book_bridge/features/safety/data/repositories/safety_repository_
 import 'package:book_bridge/features/safety/domain/repositories/safety_repository.dart';
 import 'package:book_bridge/features/safety/domain/usecases/get_campus_zones_usecase.dart';
 import 'package:book_bridge/features/safety/presentation/viewmodels/safety_viewmodel.dart';
+import 'package:book_bridge/features/admin/data/datasources/rust_admin_data_source.dart';
+import 'package:book_bridge/features/admin/data/repositories/admin_repository_impl.dart';
+import 'package:book_bridge/features/admin/domain/repositories/admin_repository.dart';
+import 'package:book_bridge/features/admin/presentation/viewmodels/admin_viewmodel.dart';
 
 /// Service locator for dependency injection.
 ///
@@ -329,6 +333,19 @@ Future<void> setupDependencyInjection() async {
       collectPaymentUseCase: getIt<CollectPaymentUseCase>(),
       getPaymentStatusUseCase: getIt<GetPaymentStatusUseCase>(),
     ),
+  );
+
+  // Admin Feature (dispute resolution; the server checks admin_users)
+  getIt.registerLazySingleton<RustAdminDataSource>(
+    () => RustAdminDataSource(getIt<RustCoreClient>()),
+  );
+
+  getIt.registerLazySingleton<AdminRepository>(
+    () => AdminRepositoryImpl(getIt<RustAdminDataSource>()),
+  );
+
+  getIt.registerFactory<AdminViewModel>(
+    () => AdminViewModel(getIt<AdminRepository>()),
   );
 
   // Favorites Feature

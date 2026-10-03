@@ -9,6 +9,7 @@ use tokio::net::TcpListener;
 
 use bookbridge_rust_core::config::AppConfig;
 use bookbridge_rust_core::routes::health::health_handler;
+use bookbridge_rust_core::routes::admin::admin_routes;
 use bookbridge_rust_core::routes::buyer::buyer_routes;
 use bookbridge_rust_core::routes::payments::payment_routes;
 use bookbridge_rust_core::routes::escrow::{process_releases_handler, poll_pending_handler};
@@ -57,12 +58,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .with_state(state.clone());
 
     // 5. Main router. Health and webhooks are public / custom authenticated;
-    //    buyer routes require a Supabase access token.
+    //    buyer routes require a Supabase access token; admin routes also
+    //    require a row in admin_users.
     let app = Router::new()
         .route("/health", get(health_handler))
         .route("/webhooks/fapshi", post(fapshi_webhook_handler))
         .merge(buyer_routes())
         .merge(payment_routes())
+        .merge(admin_routes())
         .nest("/internal", internal_routes)
         .with_state(state);
 

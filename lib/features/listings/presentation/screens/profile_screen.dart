@@ -275,6 +275,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     icon: Icons.info_outline_rounded,
                     title: AppLocalizations.of(context)!.aboutBookBridge,
                     onTap: () => context.push('/about'),
+                    // Hidden admin entry; the server rejects non-admins.
+                    onLongPress: () => context.push('/admin'),
                   ),
                   _buildMenuItem(
                     context,
@@ -442,6 +444,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     required IconData icon,
     required String title,
     required VoidCallback onTap,
+    VoidCallback? onLongPress,
     Color? textColor,
     bool isLast = false,
     bool indent = false,
@@ -465,6 +468,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           ),
           onTap: onTap,
+          onLongPress: onLongPress,
           trailing: Icon(
             Icons.chevron_right,
             size: 18,
