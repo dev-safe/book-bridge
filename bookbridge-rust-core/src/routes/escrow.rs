@@ -38,6 +38,16 @@ pub struct PollResult {
     pub error: Option<String>,
 }
 
+/// Whether a successful payment got the book.
+#[derive(Debug, PartialEq, Eq)]
+pub enum PurchaseOutcome {
+    /// The listing was marked sold and the money is held in escrow.
+    Held,
+    /// Another buyer already bought the listing. Nothing was written; the
+    /// caller must roll back and refund this buyer.
+    AlreadySold,
+}
+
 /// Shared helper function to process all database side effects for a successful book purchase.
 /// This includes marking the listing as sold, setting the transaction to 'held', upserting the escrow row,
 /// and creating the initial buyer/seller chat message.
@@ -48,9 +58,21 @@ pub async fn handle_purchase_success_db(
     seller_id: Uuid,
     tx_id: Uuid,
     now: chrono::DateTime<chrono::Utc>,
-) -> Result<(), AppError> {
-    // 1. Update listing status to 'sold'
-    sqlx::query("UPDATE listings SET status = 'sold' WHERE id = $1")
+) -> Result<PurchaseOutcome, AppError> {
+    // 1. Mark the listing sold. The row lock makes this the single point where
+    // two concurrent successful payments are ordered; only the first wins.
+    let marked = sqlx::query(
+        "UPDATE listings SET status = 'sold' \
+         WHERE id = $1 AND status IS DISTINCT FROM 'sold' RETURNING id",
+    )
+    .bind(listing_id)
+    .fetch_optional(&mut *conn)
+    .await?;
+    if marked.is_none() {
+        return Ok(PurchaseOutcome::AlreadySold);
+    }
+
+    sqlx::query("DELETE FROM listing_reservations WHERE listing_id = $1")
         .bind(listing_id)
         .execute(&mut *conn)
         .await?;
@@ -85,7 +107,7 @@ pub async fn handle_purchase_success_db(
     .execute(&mut *conn)
     .await?;
 
-    Ok(())
+    Ok(PurchaseOutcome::Held)
 }
 
 /// Marks a transaction as busy (payout or dispute) in this process; released on drop.
@@ -355,7 +377,7 @@ pub async fn poll_pending_handler(
     let ten_minutes_ago = Utc::now() - chrono::Duration::minutes(10);
     
     let txs = sqlx::query(
-        "SELECT id, payment_reference, listing_id, buyer_id, seller_id, amount \
+        "SELECT id, payment_reference, listing_id, buyer_id, seller_id, amount::float8 AS amount \
          FROM transactions \
          WHERE status = 'pending_payment' AND created_at <= $1"
     )
@@ -371,6 +393,7 @@ pub async fn poll_pending_handler(
         let listing_id: Uuid = row.get("listing_id");
         let buyer_id: Uuid = row.get("buyer_id");
         let seller_id: Uuid = row.get("seller_id");
+        let amount: f64 = row.try_get::<Option<f64>, _>("amount")?.unwrap_or(0.0);
 
         tracing::info!("Checking Fapshi status for transaction ref: {}", reference);
 
@@ -402,39 +425,63 @@ pub async fn poll_pending_handler(
                         continue;
                     }
 
-                    if let Err(e) = handle_purchase_success_db(
+                    let outcome = handle_purchase_success_db(
                         &mut transaction,
                         listing_id,
                         buyer_id,
                         seller_id,
                         tx_id,
                         now,
-                    ).await {
-                        tracing::error!("Error writing successful purchase updates to DB during poll: {:?}", e);
-                        transaction.rollback().await?;
-                        results.push(PollResult {
-                            id: tx_id,
-                            reference: reference.clone(),
-                            status: "error".to_string(),
-                            error: Some(e.to_string()),
-                        });
-                        continue;
-                    }
+                    ).await;
+                    let outcome = match outcome {
+                        Ok(PurchaseOutcome::AlreadySold) => {
+                            // The poller doesn't see Fapshi's externalId; this
+                            // identifies the same listing and buyer for the admin.
+                            let external_ref = format!("purchase_{listing_id}_{buyer_id}");
+                            crate::routes::webhook::fail_purchase_as_unmatched(
+                                &mut transaction, tx_id, listing_id, buyer_id, &reference, amount, &external_ref,
+                            )
+                            .await
+                            .map(|_| PurchaseOutcome::AlreadySold)
+                        }
+                        other => other,
+                    };
+                    let outcome = match outcome {
+                        Ok(outcome) => outcome,
+                        Err(e) => {
+                            tracing::error!("Error writing successful purchase updates to DB during poll: {:?}", e);
+                            transaction.rollback().await?;
+                            results.push(PollResult {
+                                id: tx_id,
+                                reference: reference.clone(),
+                                status: "error".to_string(),
+                                error: Some(e.to_string()),
+                            });
+                            continue;
+                        }
+                    };
 
                     transaction.commit().await?;
 
+                    let status = match outcome {
+                        PurchaseOutcome::Held => "held",
+                        PurchaseOutcome::AlreadySold => "already_sold",
+                    };
                     results.push(PollResult {
                         id: tx_id,
                         reference: reference.clone(),
-                        status: "held".to_string(),
+                        status: status.to_string(),
                         error: None,
                     });
                 } else if status_upper == "FAILED" || status_upper == "EXPIRED" {
                     // Mark transaction as failed
-                    sqlx::query("UPDATE transactions SET status = 'failed' WHERE id = $1 AND status = 'pending_payment'")
+                    let failed = sqlx::query("UPDATE transactions SET status = 'failed' WHERE id = $1 AND status = 'pending_payment'")
                         .bind(tx_id)
                         .execute(&state.pool)
                         .await?;
+                    if failed.rows_affected() > 0 {
+                        crate::routes::payments::release_reservation(&state.pool, listing_id, buyer_id).await?;
+                    }
 
                     results.push(PollResult {
                         id: tx_id,

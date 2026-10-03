@@ -94,6 +94,12 @@ pub async fn initiate_payment_handler(
                     "Listings priced below {MIN_AMOUNT_XAF} XAF cannot be paid online"
                 )));
             }
+            if !reserve_listing(&state.pool, listing_id, user_id).await? {
+                return Err(AppError::Conflict(
+                    "Someone else is paying for this book right now. Try again in a few minutes."
+                        .to_string(),
+                ));
+            }
             let pay = DirectPayRequest {
                 amount: listing.price,
                 phone: phone.clone(),
@@ -101,7 +107,21 @@ pub async fn initiate_payment_handler(
                 external_id: purchase_external_id(listing_id, user_id, millis),
                 message: "BookBridge book purchase".to_string(),
             };
-            let trans_id = fapshi.direct_pay(&state.pool, &pay).await?;
+            let trans_id = match fapshi.direct_pay(&state.pool, &pay).await {
+                Ok(id) => id,
+                Err(e) => {
+                    if let Err(release_err) =
+                        release_reservation(&state.pool, listing_id, user_id).await
+                    {
+                        tracing::error!(
+                            "Failed to release reservation on listing {}: {:?}",
+                            listing_id,
+                            release_err
+                        );
+                    }
+                    return Err(e);
+                }
+            };
             // The payment prompt is already on the buyer's phone, so a failed
             // insert must not hide the transId. The webhook re-validates
             // against the listing price when no pending row exists.
@@ -225,6 +245,56 @@ async fn load_listing(pool: &PgPool, listing_id: Uuid) -> Result<ListingForPayme
             .try_get::<Option<String>, _>("status")?
             .unwrap_or_default(),
     })
+}
+
+/// How long a buyer holds a listing while their payment is in flight. Longer
+/// than the poller's pending window, so a reservation never lapses while a
+/// payment can still succeed unnoticed.
+pub const RESERVATION_MINUTES: i32 = 15;
+
+/// Reserves the listing for `buyer_id`. Returns false if another buyer holds
+/// an unexpired reservation. The same buyer may renew their own reservation,
+/// e.g. to retry after dismissing the payment prompt.
+pub(crate) async fn reserve_listing(
+    pool: &PgPool,
+    listing_id: Uuid,
+    buyer_id: Uuid,
+) -> Result<bool, AppError> {
+    let row = sqlx::query(
+        "INSERT INTO listing_reservations (listing_id, buyer_id, reserved_until) \
+         VALUES ($1, $2, now() + make_interval(mins => $3)) \
+         ON CONFLICT (listing_id) DO UPDATE \
+            SET buyer_id = EXCLUDED.buyer_id, \
+                reserved_until = EXCLUDED.reserved_until, \
+                created_at = now() \
+         WHERE listing_reservations.reserved_until < now() \
+            OR listing_reservations.buyer_id = EXCLUDED.buyer_id \
+         RETURNING listing_id",
+    )
+    .bind(listing_id)
+    .bind(buyer_id)
+    .bind(RESERVATION_MINUTES)
+    .fetch_optional(pool)
+    .await?;
+    Ok(row.is_some())
+}
+
+/// Frees a buyer's reservation, e.g. after their payment failed. Another
+/// buyer's reservation on the same listing is left alone.
+pub(crate) async fn release_reservation<'e, E>(
+    executor: E,
+    listing_id: Uuid,
+    buyer_id: Uuid,
+) -> Result<(), AppError>
+where
+    E: sqlx::PgExecutor<'e>,
+{
+    sqlx::query("DELETE FROM listing_reservations WHERE listing_id = $1 AND buyer_id = $2")
+        .bind(listing_id)
+        .bind(buyer_id)
+        .execute(executor)
+        .await?;
+    Ok(())
 }
 
 async fn record_pending_purchase(

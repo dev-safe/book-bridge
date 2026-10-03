@@ -2,7 +2,7 @@ use axum::{extract::State, http::HeaderMap, response::IntoResponse, Json};
 use serde::{Deserialize, Serialize};
 use crate::error::AppError;
 use crate::auth::constant_time_compare;
-use crate::routes::escrow::handle_purchase_success_db;
+use crate::routes::escrow::{handle_purchase_success_db, PurchaseOutcome};
 use crate::routes::payments::{covers_expected, BOOST_DAYS, BOOST_PRICE_XAF};
 use crate::AppState;
 use sqlx::{PgPool, Row};
@@ -108,13 +108,16 @@ fn parse_donation_ref(external_ref: &str) -> Result<Option<Uuid>, AppError> {
 /// Keeps a durable record of money Fapshi collected that was not credited to
 /// anything, so it can be refunded by hand. An error here fails the webhook,
 /// which makes Fapshi retry rather than lose the record.
-async fn record_unmatched_payment(
-    pool: &PgPool,
+pub(crate) async fn record_unmatched_payment<'e, E>(
+    executor: E,
     reference: &str,
     amount: f64,
     external_ref: &str,
     reason: &str,
-) -> Result<(), AppError> {
+) -> Result<(), AppError>
+where
+    E: sqlx::PgExecutor<'e>,
+{
     tracing::warn!("Unmatched Fapshi payment {}: {}", reference, reason);
     sqlx::query(
         "INSERT INTO fapshi_audit_logs (transaction_id, endpoint, request_payload, response_payload, status_code) \
@@ -126,9 +129,34 @@ async fn record_unmatched_payment(
         "externalId": external_ref,
         "reason": reason,
     }))
-    .execute(pool)
+    .execute(executor)
     .await?;
     Ok(())
+}
+
+pub(crate) const ALREADY_SOLD_REASON: &str = "listing already sold to another buyer";
+
+/// A buyer paid for a listing someone else bought first. Inside the caller's
+/// DB transaction, marks their claimed transaction failed and records the
+/// money as unmatched so an admin refunds it. Doing both atomically means a
+/// retried webhook neither loses nor duplicates the refund record.
+#[allow(clippy::too_many_arguments)]
+pub(crate) async fn fail_purchase_as_unmatched(
+    conn: &mut sqlx::PgConnection,
+    tx_id: Uuid,
+    listing_id: Uuid,
+    buyer_id: Uuid,
+    reference: &str,
+    amount: f64,
+    external_ref: &str,
+) -> Result<(), AppError> {
+    sqlx::query("UPDATE transactions SET status = 'failed' WHERE id = $1")
+        .bind(tx_id)
+        .execute(&mut *conn)
+        .await?;
+    crate::routes::payments::release_reservation(&mut *conn, listing_id, buyer_id).await?;
+    record_unmatched_payment(&mut *conn, reference, amount, external_ref, ALREADY_SOLD_REASON)
+        .await
 }
 
 async fn handle_boost_success(
@@ -304,15 +332,6 @@ async fn handle_purchase_success(
             .await;
     }
 
-    if listing_status.as_deref() == Some("sold") {
-        // Two buyers paid for the same book. Keep the money in escrow so the
-        // second buyer can dispute and be refunded.
-        tracing::error!(
-            "Purchase {} paid for listing {} which is already sold; holding in escrow",
-            reference, listing_id
-        );
-    }
-
     let payout_amount = (amount * 0.95).floor();
     let commission_amount = amount - payout_amount;
 
@@ -358,7 +377,7 @@ async fn handle_purchase_success(
         }
     };
 
-    if let Err(e) = handle_purchase_success_db(
+    match handle_purchase_success_db(
         &mut transaction,
         listing_id,
         buyer_id,
@@ -366,9 +385,24 @@ async fn handle_purchase_success(
         tx_id,
         now,
     ).await {
-        tracing::error!("Error writing webhook purchase success updates: {:?}", e);
-        transaction.rollback().await?;
-        return Err(e);
+        Ok(PurchaseOutcome::Held) => {}
+        Ok(PurchaseOutcome::AlreadySold) => {
+            tracing::error!(
+                "Purchase {} paid for listing {} which is already sold; recording for refund",
+                reference, listing_id
+            );
+            if let Err(e) = fail_purchase_as_unmatched(
+                &mut transaction, tx_id, listing_id, buyer_id, reference, amount, external_ref,
+            ).await {
+                transaction.rollback().await?;
+                return Err(e);
+            }
+        }
+        Err(e) => {
+            tracing::error!("Error writing webhook purchase success updates: {:?}", e);
+            transaction.rollback().await?;
+            return Err(e);
+        }
     }
 
     transaction.commit().await?;
@@ -439,10 +473,19 @@ pub async fn fapshi_webhook_handler(
         && (external_reference.starts_with("purchase:") || external_reference.starts_with("purchase_"))
     {
         tracing::info!("Marking transaction failed: Ref={}", reference);
-        sqlx::query("UPDATE transactions SET status = 'failed' WHERE payment_reference = $1 AND status = 'pending_payment'")
-            .bind(&reference)
-            .execute(&state.pool)
-            .await?;
+        let failed = sqlx::query(
+            "UPDATE transactions SET status = 'failed' \
+             WHERE payment_reference = $1 AND status = 'pending_payment' \
+             RETURNING listing_id, buyer_id",
+        )
+        .bind(&reference)
+        .fetch_optional(&state.pool)
+        .await?;
+        if let Some(row) = failed {
+            let listing_id: Uuid = row.try_get("listing_id")?;
+            let buyer_id: Uuid = row.try_get("buyer_id")?;
+            crate::routes::payments::release_reservation(&state.pool, listing_id, buyer_id).await?;
+        }
     }
 
     Ok((axum::http::StatusCode::OK, Json(serde_json::json!({ "success": true }))))
