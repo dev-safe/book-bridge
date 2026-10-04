@@ -129,10 +129,10 @@ Create a `.env` file in the project root:
 ```env
 SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_ANON_KEY=your-anon-key
-FAPSHI_API_USER=your-fapshi-user
-FAPSHI_API_KEY=your-fapshi-key
-FAPSHI_BASE_URL=https://live.fapshi.com
+GOOGLE_CLIENT_ID=your-google-web-client-id
 ```
+
+The app holds no payment credentials. Fapshi keys live only in the Rust core service's `app_secrets` table.
 
 ### Launching the App
 Run the application with environments injected using `--dart-define`:
@@ -140,9 +140,28 @@ Run the application with environments injected using `--dart-define`:
 flutter run \
   --dart-define="SUPABASE_URL=$(grep SUPABASE_URL .env | cut -d'=' -f2)" \
   --dart-define="SUPABASE_ANON_KEY=$(grep SUPABASE_ANON_KEY .env | cut -d'=' -f2)" \
-  --dart-define="FAPSHI_API_USER=$(grep FAPSHI_API_USER .env | cut -d'=' -f2)" \
-  --dart-define="FAPSHI_API_KEY=$(grep FAPSHI_API_KEY .env | cut -d'=' -f2)"
+  --dart-define="GOOGLE_CLIENT_ID=$(grep GOOGLE_CLIENT_ID .env | cut -d'=' -f2)"
 ```
+
+Payments (purchases, boosts, donations) and escrow actions (confirm receipt, dispute) are sent to the Rust core service. It defaults to `https://bookbridge-rust-core.onrender.com`; to point at another deployment, add `--dart-define="RUST_CORE_URL=https://your-rust-core.example.com"`.
+
+### Release builds (Android)
+Release builds are signed with an upload key that is read from `android/key.properties` (this file is gitignored).
+
+1. Generate the upload keystore **once**. Keep it outside the repository:
+   ```bash
+   keytool -genkeypair -v -keystore ~/keys/bookbridge-upload.jks \
+     -keyalg RSA -keysize 2048 -validity 10000 -alias upload
+   ```
+2. Copy `android/key.properties.example` to `android/key.properties` and fill in the real values.
+3. Build the bundle for Play Console with `flutter build appbundle --release`, adding the same `--dart-define` flags as above.
+
+> [!CAUTION]
+> Back up the keystore and its passwords in at least two durable places outside your laptop, and share them with a second maintainer. If the key is lost, you can't update the Play Store listing until Google approves an upload-key reset. That only works if Play App Signing is enabled, so enable it when you create the app.
+
+Without `key.properties`, release builds fall back to debug keys and print a warning. Play Console rejects bundles signed that way.
+
+Register the upload key's SHA-1 in Firebase and in the Google Cloud OAuth client so that Google Sign-In works. To print it, run `keytool -list -v -keystore ~/keys/bookbridge-upload.jks -alias upload`.
 
 ### Running Landing Page (SvelteKit)
 ```bash

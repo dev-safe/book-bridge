@@ -21,6 +21,7 @@ class UpdateListingUseCase implements UseCase<Listing, UpdateListingParams> {
       priceFcfa: params.priceFcfa,
       condition: params.condition,
       imageUrl: params.imageUrl,
+      imageUrls: params.imageUrls,
       description: params.description,
       category: params.category,
       sellerType: params.sellerType,
@@ -28,6 +29,14 @@ class UpdateListingUseCase implements UseCase<Listing, UpdateListingParams> {
       stockCount: params.stockCount,
       latitude: params.latitude,
       longitude: params.longitude,
+      classLevelId: params.classLevelId,
+      subjectId: params.subjectId,
+      schoolId: params.schoolId,
+      clearSchool: params.clearSchool,
+      meetupSpot: params.meetupSpot,
+      meetupLatitude: params.meetupLatitude,
+      meetupLongitude: params.meetupLongitude,
+      updateMeetup: params.updateMeetup,
     );
   }
 }
@@ -39,6 +48,9 @@ class UpdateListingParams extends Equatable {
   final int? priceFcfa;
   final BookCondition? condition;
   final String? imageUrl;
+
+  /// When set, replaces all photos (cover first).
+  final List<String>? imageUrls;
   final String? description;
   final String? category;
   final String? sellerType;
@@ -46,6 +58,18 @@ class UpdateListingParams extends Equatable {
   final int? stockCount;
   final double? latitude;
   final double? longitude;
+  final String? classLevelId;
+  final String? subjectId;
+  final String? schoolId;
+
+  /// When true and [schoolId] is null, the listing's school is cleared.
+  final bool clearSchool;
+  final String? meetupSpot;
+  final double? meetupLatitude;
+  final double? meetupLongitude;
+
+  /// When true, the meetup fields are written as given (nulls clear them).
+  final bool updateMeetup;
 
   const UpdateListingParams({
     required this.id,
@@ -54,6 +78,7 @@ class UpdateListingParams extends Equatable {
     this.priceFcfa,
     this.condition,
     this.imageUrl,
+    this.imageUrls,
     this.description,
     this.category,
     this.sellerType,
@@ -61,6 +86,14 @@ class UpdateListingParams extends Equatable {
     this.stockCount,
     this.latitude,
     this.longitude,
+    this.classLevelId,
+    this.subjectId,
+    this.schoolId,
+    this.clearSchool = false,
+    this.meetupSpot,
+    this.meetupLatitude,
+    this.meetupLongitude,
+    this.updateMeetup = false,
   });
 
   @override
@@ -71,6 +104,7 @@ class UpdateListingParams extends Equatable {
     priceFcfa,
     condition,
     imageUrl,
+    imageUrls,
     description,
     category,
     sellerType,
@@ -78,5 +112,13 @@ class UpdateListingParams extends Equatable {
     stockCount,
     latitude,
     longitude,
+    classLevelId,
+    subjectId,
+    schoolId,
+    clearSchool,
+    meetupSpot,
+    meetupLatitude,
+    meetupLongitude,
+    updateMeetup,
   ];
 }

@@ -1,3 +1,4 @@
+import 'package:book_bridge/features/listings/presentation/widgets/listing_image_carousel.dart';
 import 'package:flutter/material.dart';
 import 'package:book_bridge/l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
@@ -6,13 +7,16 @@ import 'package:share_plus/share_plus.dart';
 import 'package:book_bridge/features/listings/presentation/viewmodels/listing_details_viewmodel.dart';
 import 'package:book_bridge/features/auth/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:book_bridge/features/favorites/presentation/viewmodels/favorites_viewmodel.dart';
+import 'package:book_bridge/features/payments/domain/entities/payment_purpose.dart';
 import 'package:book_bridge/features/payments/presentation/widgets/payment_bottom_sheet.dart';
 import 'package:book_bridge/features/payments/presentation/viewmodels/payment_viewmodel.dart';
 import 'package:book_bridge/injection_container.dart';
 import 'package:book_bridge/features/listings/domain/entities/listing.dart';
 import 'package:book_bridge/features/reviews/presentation/widgets/seller_rating_badge.dart';
 import 'package:book_bridge/core/theme/app_theme.dart';
+import 'package:book_bridge/core/utils/listing_share.dart';
 import 'package:book_bridge/features/safety/presentation/widgets/meetup_tips_card.dart';
+import 'package:book_bridge/features/listings/presentation/widgets/meetup_info_card.dart';
 
 /// Listing details screen showing comprehensive information about a book.
 ///
@@ -55,17 +59,7 @@ class _ListingDetailsScreenState extends State<ListingDetailsScreen> {
     if (listing == null) return;
 
     final l10n = AppLocalizations.of(context)!;
-    final shareText =
-        '''
-${l10n.shareTextCheckOut}
-📚 ${listing.title} by ${listing.author}
-💰 ${l10n.priceFormat(listing.priceFcfa)}
-🔍 ${l10n.shareTextCondition}: ${listing.condition.localizedLabel(l10n)}
-
-${l10n.shareTextDownload}
-''';
-
-    await Share.share(shareText);
+    await Share.share(buildListingShareText(listing, l10n));
   }
 
   @override
@@ -217,51 +211,37 @@ ${l10n.shareTextDownload}
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(12),
-                child: listing.imageUrl.isNotEmpty
-                    ? Image.network(
-                        listing.imageUrl,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          // If image fails to load in details screen, it's likely a broken listing
-                          // Inform user and go back
-                          Future.microtask(() {
-                            if (context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    AppLocalizations.of(
-                                      context,
-                                    )!.listingNotAvailableSnackBar,
-                                  ),
-                                  duration: const Duration(seconds: 2),
-                                ),
-                              );
-                              // Check if we can pop before attempting to do so
-                              if (Navigator.of(context).canPop()) {
-                                Navigator.of(context).pop();
-                              } else {
-                                // If we can't pop, navigate to home using go_router
-                                if (context.mounted) {
-                                  context.go('/home');
-                                }
-                              }
-                            }
-                          });
-                          return const Center(
-                            child: CircularProgressIndicator(),
-                          );
-                        },
-                      )
-                    : Container(
-                        color: Theme.of(context).colorScheme.surface,
-                        child: Icon(
-                          Icons.image_not_supported,
-                          size:
-                              MediaQuery.of(context).size.height *
-                              0.05, // Responsive size
-                          color: Theme.of(context).disabledColor,
-                        ),
-                      ),
+                child: ListingImageCarousel(
+                  imageUrls: listing.gallery,
+                  coverErrorBuilder: (context, error, stackTrace) {
+                    // If image fails to load in details screen, it's likely a broken listing
+                    // Inform user and go back
+                    Future.microtask(() {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              AppLocalizations.of(
+                                context,
+                              )!.listingNotAvailableSnackBar,
+                            ),
+                            duration: const Duration(seconds: 2),
+                          ),
+                        );
+                        // Check if we can pop before attempting to do so
+                        if (Navigator.of(context).canPop()) {
+                          Navigator.of(context).pop();
+                        } else {
+                          // If we can't pop, navigate to home using go_router
+                          if (context.mounted) {
+                            context.go('/home');
+                          }
+                        }
+                      }
+                    });
+                    return const Center(child: CircularProgressIndicator());
+                  },
+                ),
               ),
             ),
           ),
@@ -713,6 +693,15 @@ ${l10n.shareTextDownload}
                     ),
                   ),
                   const SizedBox(height: 24),
+                  if (listing.meetupSpot != null || listing.hasMeetupPin) ...[
+                    MeetupInfoCard(
+                      spot: listing.meetupSpot,
+                      latitude: listing.meetupLatitude,
+                      longitude: listing.meetupLongitude,
+                      showSafetyHint: false,
+                    ),
+                    const SizedBox(height: 16),
+                  ],
                   const MeetupTipsCard(),
                 ],
               ),
@@ -737,8 +726,7 @@ ${l10n.shareTextDownload}
         child: PaymentBottomSheet(
           amount: 500, // 500 FCFA for 7 days
           title: AppLocalizations.of(context)!.boostListing,
-          externalReference:
-              'boost_${listing.id}_7_${DateTime.now().millisecondsSinceEpoch}',
+          purpose: BoostPayment(listing.id),
           onSuccess: () {
             // Refresh details to show boosted status
             viewModel.loadListingDetails(listing.id);
@@ -886,7 +874,6 @@ ${l10n.shareTextDownload}
                   height: 52,
                   child: OutlinedButton.icon(
                     onPressed: () {
-                      final buyerId = authVM.currentUser!.id;
                       showModalBottomSheet(
                         context: context,
                         isScrollControlled: true,
@@ -896,8 +883,10 @@ ${l10n.shareTextDownload}
                           child: PaymentBottomSheet(
                             amount: listing.priceFcfa,
                             title: AppLocalizations.of(context)!.buyNow,
-                            externalReference:
-                                'purchase_${listing.id}_${buyerId}_${DateTime.now().millisecondsSinceEpoch}',
+                            purpose: PurchasePayment(listing.id),
+                            meetupSpot: listing.meetupSpot,
+                            meetupLatitude: listing.meetupLatitude,
+                            meetupLongitude: listing.meetupLongitude,
                             onSuccess: () {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(

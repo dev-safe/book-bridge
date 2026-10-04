@@ -1,3 +1,5 @@
+import 'package:book_bridge/features/payments/domain/entities/buyer_fee.dart';
+import 'package:book_bridge/features/payments/domain/entities/payment_purpose.dart';
 import 'package:book_bridge/features/payments/presentation/viewmodels/payment_viewmodel.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -6,19 +8,32 @@ import 'package:book_bridge/features/auth/presentation/viewmodels/auth_viewmodel
 import 'package:book_bridge/features/reviews/presentation/viewmodels/review_viewmodel.dart';
 import 'package:book_bridge/features/reviews/presentation/widgets/review_dialog.dart';
 import 'package:book_bridge/features/transactions/domain/entities/transaction_entity.dart';
+import 'package:book_bridge/features/listings/presentation/widgets/meetup_info_card.dart';
 
 class PaymentBottomSheet extends StatefulWidget {
+  /// Shown to the user (the book price for purchases; the 6% buyer fee is
+  /// added on top). What is actually charged is decided by the server from
+  /// [purpose].
   final int amount;
   final String title;
-  final String externalReference;
+  final PaymentPurpose purpose;
   final VoidCallback onSuccess;
+
+  /// Seller's meetup spot for purchases; shown so the buyer knows where to
+  /// collect the book.
+  final String? meetupSpot;
+  final double? meetupLatitude;
+  final double? meetupLongitude;
 
   const PaymentBottomSheet({
     super.key,
     required this.amount,
     required this.title,
-    required this.externalReference,
+    required this.purpose,
     required this.onSuccess,
+    this.meetupSpot,
+    this.meetupLatitude,
+    this.meetupLongitude,
   });
 
   @override
@@ -28,6 +43,20 @@ class PaymentBottomSheet extends StatefulWidget {
 class _PaymentBottomSheetState extends State<PaymentBottomSheet> {
   final _phoneController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+
+  Widget _meetupCard() => MeetupInfoCard(
+    spot: widget.meetupSpot,
+    latitude: widget.meetupLatitude,
+    longitude: widget.meetupLongitude,
+  );
+
+  bool get _hasMeetup =>
+      widget.purpose is PurchasePayment &&
+      ((widget.meetupSpot?.trim().isNotEmpty ?? false) ||
+          (widget.meetupLatitude != null && widget.meetupLongitude != null));
+
+  int get _buyerFee =>
+      widget.purpose is PurchasePayment ? buyerFeeFor(widget.amount) : 0;
 
   @override
   void dispose() {
@@ -79,8 +108,25 @@ class _PaymentBottomSheetState extends State<PaymentBottomSheet> {
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 8),
+                  if (_buyerFee > 0) ...[
+                    Text(
+                      AppLocalizations.of(
+                        context,
+                      )!.bookPriceLabel(widget.amount),
+                      textAlign: TextAlign.center,
+                    ),
+                    Text(
+                      AppLocalizations.of(
+                        context,
+                      )!.serviceFeeLabel(buyerFeePercent, _buyerFee),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 4),
+                  ],
                   Text(
-                    AppLocalizations.of(context)!.totalLabel(widget.amount),
+                    AppLocalizations.of(
+                      context,
+                    )!.totalLabel(widget.amount + _buyerFee),
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
@@ -89,6 +135,12 @@ class _PaymentBottomSheetState extends State<PaymentBottomSheet> {
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 24),
+                  if (_hasMeetup &&
+                      (viewModel.state == PaymentState.initial ||
+                          viewModel.state == PaymentState.success)) ...[
+                    _meetupCard(),
+                    const SizedBox(height: 24),
+                  ],
                   if (viewModel.state == PaymentState.initial) ...[
                     Form(
                       key: _formKey,
@@ -121,9 +173,8 @@ class _PaymentBottomSheetState extends State<PaymentBottomSheet> {
                       onPressed: () {
                         if (_formKey.currentState!.validate()) {
                           viewModel.collectPayment(
-                            amount: widget.amount,
+                            purpose: widget.purpose,
                             phoneNumber: _phoneController.text,
-                            externalReference: widget.externalReference,
                             medium: _getMedium(_phoneController.text),
                           );
                         }
@@ -173,14 +224,17 @@ class _PaymentBottomSheetState extends State<PaymentBottomSheet> {
                       ),
                     ),
                     const SizedBox(height: 24),
-                    _ReviewPrompt(
-                      externalReference: widget.externalReference,
-                      onCompleted: () {
-                        widget.onSuccess();
-                        Navigator.pop(context);
-                      },
-                    ),
-                    const SizedBox(height: 16),
+                    if (widget.purpose is PurchasePayment &&
+                        viewModel.transactionReference != null) ...[
+                      _ReviewPrompt(
+                        paymentReference: viewModel.transactionReference!,
+                        onCompleted: () {
+                          widget.onSuccess();
+                          Navigator.pop(context);
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                    ],
                     ElevatedButton(
                       onPressed: () {
                         widget.onSuccess();
@@ -223,11 +277,11 @@ class _PaymentBottomSheetState extends State<PaymentBottomSheet> {
 }
 
 class _ReviewPrompt extends StatefulWidget {
-  final String externalReference;
+  final String paymentReference;
   final VoidCallback onCompleted;
 
   const _ReviewPrompt({
-    required this.externalReference,
+    required this.paymentReference,
     required this.onCompleted,
   });
 
@@ -249,7 +303,7 @@ class _ReviewPromptState extends State<_ReviewPrompt> {
     final reviewViewModel = context.read<ReviewViewModel>();
     // Wait a bit for Supabase to index the transaction
     final result = await reviewViewModel.getTransactionByExternalRef(
-      widget.externalReference,
+      widget.paymentReference,
     );
 
     if (mounted) {

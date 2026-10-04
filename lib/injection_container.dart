@@ -1,6 +1,7 @@
 import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:book_bridge/core/network/rust_core_client.dart';
 import 'package:book_bridge/features/auth/data/datasources/supabase_auth_data_source.dart';
 import 'package:book_bridge/features/auth/data/repositories/auth_repository_impl.dart';
 import 'package:book_bridge/features/auth/domain/repositories/auth_repository.dart';
@@ -37,7 +38,7 @@ import 'package:book_bridge/features/notifications/data/repositories/notificatio
 import 'package:book_bridge/features/notifications/domain/repositories/notifications_repository.dart';
 import 'package:book_bridge/features/notifications/presentation/viewmodels/notifications_viewmodel.dart';
 import 'package:book_bridge/features/notifications/data/services/push_notification_service.dart';
-import 'package:book_bridge/features/payments/data/datasources/fapshi_data_source.dart';
+import 'package:book_bridge/features/payments/data/datasources/rust_payments_data_source.dart';
 import 'package:book_bridge/features/payments/data/repositories/payment_repository_impl.dart';
 import 'package:book_bridge/features/payments/domain/repositories/payment_repository.dart';
 import 'package:book_bridge/features/payments/domain/usecases/collect_payment_usecase.dart';
@@ -78,6 +79,11 @@ import 'package:book_bridge/features/safety/data/repositories/safety_repository_
 import 'package:book_bridge/features/safety/domain/repositories/safety_repository.dart';
 import 'package:book_bridge/features/safety/domain/usecases/get_campus_zones_usecase.dart';
 import 'package:book_bridge/features/safety/presentation/viewmodels/safety_viewmodel.dart';
+import 'package:book_bridge/features/admin/data/datasources/rust_admin_data_source.dart';
+import 'package:book_bridge/features/subscriptions/data/datasources/rust_subscription_data_source.dart';
+import 'package:book_bridge/features/admin/data/repositories/admin_repository_impl.dart';
+import 'package:book_bridge/features/admin/domain/repositories/admin_repository.dart';
+import 'package:book_bridge/features/admin/presentation/viewmodels/admin_viewmodel.dart';
 
 /// Service locator for dependency injection.
 ///
@@ -254,6 +260,8 @@ Future<void> setupDependencyInjection() async {
       updateListingUseCase: getIt<UpdateListingUseCase>(),
       repository: getIt<ListingRepository>(),
       locationViewModel: getIt<LocationViewModel>(),
+      // Resolved lazily: the safety feature is registered further below.
+      loadMeetupSuggestions: () => getIt<GetCampusZonesUseCase>()(),
     ),
   );
 
@@ -300,16 +308,19 @@ Future<void> setupDependencyInjection() async {
   );
 
   // Payments Feature
-  getIt.registerLazySingleton<FapshiDataSource>(
-    () => FapshiDataSource(
-      apiUser: AppConfig.fapshiApiUser,
-      apiKey: AppConfig.fapshiApiKey,
-      baseUrl: AppConfig.fapshiBaseUrl,
+  getIt.registerLazySingleton<RustCoreClient>(
+    () => RustCoreClient.forSupabase(
+      supabaseClient: getIt<SupabaseClient>(),
+      baseUrl: AppConfig.rustCoreUrl,
     ),
   );
 
+  getIt.registerLazySingleton<RustPaymentsDataSource>(
+    () => RustPaymentsDataSource(getIt<RustCoreClient>()),
+  );
+
   getIt.registerLazySingleton<PaymentRepository>(
-    () => PaymentRepositoryImpl(getIt<FapshiDataSource>()),
+    () => PaymentRepositoryImpl(getIt<RustPaymentsDataSource>()),
   );
 
   getIt.registerLazySingleton<CollectPaymentUseCase>(
@@ -325,6 +336,24 @@ Future<void> setupDependencyInjection() async {
       collectPaymentUseCase: getIt<CollectPaymentUseCase>(),
       getPaymentStatusUseCase: getIt<GetPaymentStatusUseCase>(),
     ),
+  );
+
+  // Power Seller subscription (payment happens on the web upgrade page)
+  getIt.registerLazySingleton<RustSubscriptionDataSource>(
+    () => RustSubscriptionDataSource(getIt<RustCoreClient>()),
+  );
+
+  // Admin Feature (dispute resolution; the server checks admin_users)
+  getIt.registerLazySingleton<RustAdminDataSource>(
+    () => RustAdminDataSource(getIt<RustCoreClient>()),
+  );
+
+  getIt.registerLazySingleton<AdminRepository>(
+    () => AdminRepositoryImpl(getIt<RustAdminDataSource>()),
+  );
+
+  getIt.registerFactory<AdminViewModel>(
+    () => AdminViewModel(getIt<AdminRepository>()),
   );
 
   // Favorites Feature
@@ -374,8 +403,10 @@ Future<void> setupDependencyInjection() async {
 
   // Transaction History
   getIt.registerLazySingleton<SupabaseTransactionsDataSource>(
-    () =>
-        SupabaseTransactionsDataSource(supabaseClient: getIt<SupabaseClient>()),
+    () => SupabaseTransactionsDataSource(
+      supabaseClient: getIt<SupabaseClient>(),
+      rustCoreUrl: AppConfig.rustCoreUrl,
+    ),
   );
 
   getIt.registerLazySingleton<TransactionRepository>(

@@ -62,8 +62,7 @@ import 'app_localizations_fr.dart';
 /// be consistent with the languages listed in the AppLocalizations.supportedLocales
 /// property.
 abstract class AppLocalizations {
-  AppLocalizations(String locale)
-    : localeName = intl.Intl.canonicalizedLocale(locale.toString());
+  AppLocalizations(String locale) : localeName = intl.Intl.canonicalizedLocale(locale.toString());
 
   final String localeName;
 
@@ -71,8 +70,7 @@ abstract class AppLocalizations {
     return Localizations.of<AppLocalizations>(context, AppLocalizations);
   }
 
-  static const LocalizationsDelegate<AppLocalizations> delegate =
-      _AppLocalizationsDelegate();
+  static const LocalizationsDelegate<AppLocalizations> delegate = _AppLocalizationsDelegate();
 
   /// A list of this localizations delegate along with the default localizations
   /// delegates.
@@ -84,18 +82,17 @@ abstract class AppLocalizations {
   /// Additional delegates can be added by appending to this list in
   /// MaterialApp. This list does not have to be used at all if a custom list
   /// of delegates is preferred or required.
-  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates =
-      <LocalizationsDelegate<dynamic>>[
-        delegate,
-        GlobalMaterialLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-      ];
+  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates = <LocalizationsDelegate<dynamic>>[
+    delegate,
+    GlobalMaterialLocalizations.delegate,
+    GlobalCupertinoLocalizations.delegate,
+    GlobalWidgetsLocalizations.delegate,
+  ];
 
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
     Locale('en'),
-    Locale('fr'),
+    Locale('fr')
   ];
 
   /// The title of the application
@@ -1253,7 +1250,7 @@ abstract class AppLocalizations {
   /// No description provided for @inviteMessage.
   ///
   /// In en, this message translates to:
-  /// **'Join me on BookBridge, the peer-to-peer marketplace for used books in Cameroon! 📚✨\n\nDownload or visit us at: https://book-bridge-three.vercel.app/'**
+  /// **'Join me on BookBridge, the peer-to-peer marketplace for used books in Cameroon! 📚✨\n\nDownload or visit us at: https://bookbridge.devsafe.cm/'**
   String get inviteMessage;
 
   /// No description provided for @inviteSubject.
@@ -1739,7 +1736,7 @@ abstract class AppLocalizations {
   /// No description provided for @termsPaymentsContent.
   ///
   /// In en, this message translates to:
-  /// **'Payments for books are generally handled in cash upon delivery or via direct mobile money transfer between the buyer and seller. BookBridge may offer integrated payment solutions (like Fapshi) for specific services or donations.'**
+  /// **'Payments for books are generally handled in cash upon delivery or via direct mobile money transfer between the buyer and seller. BookBridge may offer integrated payment solutions (like Fapshi) for specific services or donations. Free sellers may have up to 3 active listings at a time. The optional Power Seller subscription (500 FCFA for 30 days, paid via Fapshi) removes this limit; it does not renew automatically and is non-refundable once activated.'**
   String get termsPaymentsContent;
 
   /// No description provided for @termsLiabilityTitle.
@@ -1865,7 +1862,7 @@ abstract class AppLocalizations {
   /// No description provided for @faqSellingFeesA.
   ///
   /// In en, this message translates to:
-  /// **'Currently, listing books on BookBridge is free for individual students. We want to make it as easy as possible for you to recycle your educational resources.'**
+  /// **'Listing books on BookBridge is free, and sellers receive the full sale price. Buyers pay a 6% service fee on top of the book price at checkout, which covers mobile money processing and keeps BookBridge running.'**
   String get faqSellingFeesA;
 
   /// No description provided for @faqBuyBackEligibleQ.
@@ -1927,6 +1924,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'e.g. 677777777'**
   String get phoneNumberHint;
+
+  /// No description provided for @bookPriceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Book price: {amount} FCFA'**
+  String bookPriceLabel(Object amount);
+
+  /// No description provided for @serviceFeeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Service fee ({percent}%): {amount} FCFA'**
+  String serviceFeeLabel(Object percent, Object amount);
 
   /// No description provided for @fieldRequired.
   ///
@@ -2377,10 +2386,297 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Tap to view listing'**
   String get tapToViewListing;
+
+  /// No description provided for @classLevelLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Class level'**
+  String get classLevelLabel;
+
+  /// No description provided for @subjectLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Subject'**
+  String get subjectLabel;
+
+  /// No description provided for @schoolLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'School'**
+  String get schoolLabel;
+
+  /// No description provided for @selectClassLevelHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Select class level'**
+  String get selectClassLevelHint;
+
+  /// No description provided for @selectSubjectHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Select subject'**
+  String get selectSubjectHint;
+
+  /// No description provided for @selectSchoolOptionalHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Select school (optional)'**
+  String get selectSchoolOptionalHint;
+
+  /// No description provided for @searchSchoolsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search schools'**
+  String get searchSchoolsHint;
+
+  /// No description provided for @noSchoolsFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No schools found'**
+  String get noSchoolsFound;
+
+  /// No description provided for @anyClassLevel.
+  ///
+  /// In en, this message translates to:
+  /// **'Any class level'**
+  String get anyClassLevel;
+
+  /// No description provided for @anySubject.
+  ///
+  /// In en, this message translates to:
+  /// **'Any subject'**
+  String get anySubject;
+
+  /// No description provided for @anySchool.
+  ///
+  /// In en, this message translates to:
+  /// **'Any school'**
+  String get anySchool;
+
+  /// No description provided for @noSchool.
+  ///
+  /// In en, this message translates to:
+  /// **'No school'**
+  String get noSchool;
+
+  /// No description provided for @mySchoolLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'My school'**
+  String get mySchoolLabel;
+
+  /// No description provided for @classLevelRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please select a class level'**
+  String get classLevelRequired;
+
+  /// No description provided for @subjectRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please select a subject'**
+  String get subjectRequired;
+
+  /// No description provided for @noListingsMatchFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'No books match these filters'**
+  String get noListingsMatchFilters;
+
+  /// No description provided for @radiusAny.
+  ///
+  /// In en, this message translates to:
+  /// **'Any distance'**
+  String get radiusAny;
+
+  /// No description provided for @withinKm.
+  ///
+  /// In en, this message translates to:
+  /// **'Within {km} km'**
+  String withinKm(String km);
+
+  /// No description provided for @mapViewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Books near you'**
+  String get mapViewTitle;
+
+  /// No description provided for @showOnMap.
+  ///
+  /// In en, this message translates to:
+  /// **'Map'**
+  String get showOnMap;
+
+  /// No description provided for @yourLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Your location'**
+  String get yourLocation;
+
+  /// No description provided for @noBooksWithinRadius.
+  ///
+  /// In en, this message translates to:
+  /// **'No books with a pickup location in this area'**
+  String get noBooksWithinRadius;
+
+  /// No description provided for @mapNeedsLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on location in Settings to see books near you on the map.'**
+  String get mapNeedsLocation;
+
+  /// No description provided for @coverPhotoLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cover'**
+  String get coverPhotoLabel;
+
+  /// No description provided for @addPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Add photo'**
+  String get addPhoto;
+
+  /// No description provided for @removePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove photo'**
+  String get removePhoto;
+
+  /// No description provided for @photoCountHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Up to {max} photos. Tap a photo to make it the cover.'**
+  String photoCountHint(int max);
+
+  /// No description provided for @photoOfTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo {index} of {total}'**
+  String photoOfTotal(int index, int total);
+
+  /// No description provided for @meetupSpotFieldLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Meetup spot (optional)'**
+  String get meetupSpotFieldLabel;
+
+  /// No description provided for @meetupSpotFieldHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Main gate, Amphi 700, library entrance'**
+  String get meetupSpotFieldHint;
+
+  /// No description provided for @meetupSuggestionsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggested safe spots'**
+  String get meetupSuggestionsLabel;
+
+  /// No description provided for @meetupPinDrop.
+  ///
+  /// In en, this message translates to:
+  /// **'Drop a map pin'**
+  String get meetupPinDrop;
+
+  /// No description provided for @meetupPinChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Change pin'**
+  String get meetupPinChange;
+
+  /// No description provided for @meetupPinRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove pin'**
+  String get meetupPinRemove;
+
+  /// No description provided for @meetupSafetyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a busy public place on campus. Never share your home address. Agree on changes in chat.'**
+  String get meetupSafetyHint;
+
+  /// No description provided for @meetupPinPickerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose meetup spot'**
+  String get meetupPinPickerTitle;
+
+  /// No description provided for @meetupPinPickerHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap the map to place the pin, then tap Confirm.'**
+  String get meetupPinPickerHint;
+
+  /// No description provided for @meetupPinConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get meetupPinConfirm;
+
+  /// No description provided for @meetupSpotLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Meetup spot'**
+  String get meetupSpotLabel;
+
+  /// No description provided for @meetupPinOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Pinned on map'**
+  String get meetupPinOnly;
+
+  /// No description provided for @meetupOpenMapsFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open maps'**
+  String get meetupOpenMapsFailed;
+
+  /// No description provided for @shareTextSchool.
+  ///
+  /// In en, this message translates to:
+  /// **'School'**
+  String get shareTextSchool;
+
+  /// No description provided for @shareTextViewListing.
+  ///
+  /// In en, this message translates to:
+  /// **'See photos and buy safely on BookBridge:'**
+  String get shareTextViewListing;
+
+  /// No description provided for @powerSellerBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Power Seller'**
+  String get powerSellerBadge;
+
+  /// No description provided for @powerSellerCardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Become a Power Seller'**
+  String get powerSellerCardTitle;
+
+  /// No description provided for @powerSellerCardSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlimited listings · 500 FCFA / 30 days'**
+  String get powerSellerCardSubtitle;
+
+  /// No description provided for @powerSellerUpgradeError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not start the upgrade. Please try again.'**
+  String get powerSellerUpgradeError;
+
+  /// No description provided for @freeTierLimitReached.
+  ///
+  /// In en, this message translates to:
+  /// **'Free sellers can have up to 3 active listings. Upgrade to Power Seller on your Profile for unlimited listings.'**
+  String get freeTierLimitReached;
 }
 
-class _AppLocalizationsDelegate
-    extends LocalizationsDelegate<AppLocalizations> {
+class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
   const _AppLocalizationsDelegate();
 
   @override
@@ -2389,26 +2685,25 @@ class _AppLocalizationsDelegate
   }
 
   @override
-  bool isSupported(Locale locale) =>
-      <String>['en', 'fr'].contains(locale.languageCode);
+  bool isSupported(Locale locale) => <String>['en', 'fr'].contains(locale.languageCode);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
 }
 
 AppLocalizations lookupAppLocalizations(Locale locale) {
+
+
   // Lookup logic when only language code is specified.
   switch (locale.languageCode) {
-    case 'en':
-      return AppLocalizationsEn();
-    case 'fr':
-      return AppLocalizationsFr();
+    case 'en': return AppLocalizationsEn();
+    case 'fr': return AppLocalizationsFr();
   }
 
   throw FlutterError(
     'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
     'an issue with the localizations generation tool. Please file an issue '
     'on GitHub with a reproducible sample app and the gen-l10n configuration '
-    'that was used.',
+    'that was used.'
   );
 }

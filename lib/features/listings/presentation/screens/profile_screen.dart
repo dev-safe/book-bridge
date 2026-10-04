@@ -12,9 +12,12 @@ import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:book_bridge/l10n/app_localizations.dart';
+import 'package:book_bridge/features/payments/domain/entities/payment_purpose.dart';
 import 'package:book_bridge/features/payments/presentation/widgets/payment_bottom_sheet.dart';
 import 'package:book_bridge/features/payments/presentation/viewmodels/payment_viewmodel.dart';
 import 'package:book_bridge/injection_container.dart';
+import 'package:book_bridge/features/subscriptions/data/datasources/rust_subscription_data_source.dart';
+import 'package:book_bridge/features/subscriptions/presentation/widgets/power_seller_widgets.dart';
 import 'package:book_bridge/features/notifications/presentation/viewmodels/notifications_viewmodel.dart';
 
 /// User profile screen displaying user information and their listings.
@@ -29,6 +32,28 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
+  bool _upgrading = false;
+
+  Future<void> _startPowerSellerUpgrade() async {
+    setState(() => _upgrading = true);
+    try {
+      final url = await getIt<RustSubscriptionDataSource>().upgradeUrl();
+      await _launchUrl(url.toString());
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context)!.powerSellerUpgradeError,
+            ),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _upgrading = false);
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -139,6 +164,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 _buildHeader(context, user),
                 _buildStatsSection(context, profileViewModel),
                 _buildDonationCard(context, user),
+                if (!user.isPowerSeller)
+                  PowerSellerUpgradeCard(
+                    onTap: _startPowerSellerUpgrade,
+                    loading: _upgrading,
+                  ),
                 const Divider(height: 1),
                 _buildMenuSection(
                   context,
@@ -274,6 +304,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     icon: Icons.info_outline_rounded,
                     title: AppLocalizations.of(context)!.aboutBookBridge,
                     onTap: () => context.push('/about'),
+                    // Hidden admin entry; the server rejects non-admins.
+                    onLongPress: () => context.push('/admin'),
                   ),
                   _buildMenuItem(
                     context,
@@ -328,6 +360,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
             user.fullName.isNotEmpty ? user.fullName : user.email,
             style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
           ),
+          if (user.isPowerSeller == true) ...[
+            const SizedBox(height: 8),
+            const PowerSellerBadge(),
+          ],
           const SizedBox(height: 4),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -441,6 +477,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     required IconData icon,
     required String title,
     required VoidCallback onTap,
+    VoidCallback? onLongPress,
     Color? textColor,
     bool isLast = false,
     bool indent = false,
@@ -464,6 +501,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           ),
           onTap: onTap,
+          onLongPress: onLongPress,
           trailing: Icon(
             Icons.chevron_right,
             size: 18,
@@ -639,7 +677,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildSocialIcon(
-    IconData icon,
+    FaIconData icon,
     Color color,
     String label,
     VoidCallback onTap,
@@ -900,9 +938,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       onPressed: () {
         Navigator.pop(context); // close amount picker
 
-        final userId = user?.id ?? 'anonymous';
-        final timestamp = DateTime.now().millisecondsSinceEpoch;
-
         showModalBottomSheet(
           context: context,
           isScrollControlled: true,
@@ -914,7 +949,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             child: PaymentBottomSheet(
               amount: amount,
               title: AppLocalizations.of(context)!.supportBookBridge,
-              externalReference: 'donation_${userId}_$timestamp',
+              purpose: DonationPayment(amount),
               onSuccess: () {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(

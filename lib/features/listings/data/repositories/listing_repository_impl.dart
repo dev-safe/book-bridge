@@ -7,6 +7,7 @@ import 'package:book_bridge/features/listings/data/datasources/supabase_listings
 import 'package:book_bridge/features/listings/data/datasources/local_listings_datasource.dart';
 import 'package:book_bridge/features/listings/domain/entities/listing.dart';
 import 'package:book_bridge/features/listings/domain/entities/category.dart';
+import 'package:book_bridge/features/listings/domain/entities/academic_lookups.dart';
 import 'package:book_bridge/features/listings/domain/entities/book_condition.dart';
 import 'package:book_bridge/features/listings/domain/repositories/listing_repository.dart';
 
@@ -79,6 +80,7 @@ class ListingRepositoryImpl implements ListingRepository {
   Future<Either<Failure, List<Listing>>> getListings({
     String status = 'available',
     String? category,
+    AcademicFilters filters = AcademicFilters.none,
     int limit = 50,
     int offset = 0,
   }) async {
@@ -87,6 +89,7 @@ class ListingRepositoryImpl implements ListingRepository {
       final listingModels = await dataSource.getListings(
         status: status,
         category: category,
+        filters: filters,
         limit: limit,
         offset: offset,
       );
@@ -99,6 +102,16 @@ class ListingRepositoryImpl implements ListingRepository {
       return Right(listings);
     } catch (_) {
       // ── 3. Network / server failure → try cache ───────────────────────────
+      // The cache does not store academic fields, so it cannot honour those
+      // filters; serving unfiltered rows would be misleading.
+      if (!filters.isEmpty) {
+        _isServingFromCache = false;
+        return Left(
+          const OfflineCacheFailure(
+            message: 'No internet connection. Filters need a connection.',
+          ),
+        );
+      }
       try {
         final valid = await localDataSource.isCacheValid(category: category);
         if (valid) {
@@ -156,11 +169,13 @@ class ListingRepositoryImpl implements ListingRepository {
   @override
   Future<Either<Failure, List<Listing>>> searchListings(
     String query, {
+    AcademicFilters filters = AcademicFilters.none,
     int limit = 50,
   }) async {
     try {
       final listingModels = await dataSource.searchListings(
         query,
+        filters: filters,
         limit: limit,
       );
       final listings = listingModels.map((model) => model.toEntity()).toList();
@@ -179,6 +194,7 @@ class ListingRepositoryImpl implements ListingRepository {
     required int priceFcfa,
     required BookCondition condition,
     required String imageUrl,
+    List<String> imageUrls = const [],
     String? description,
     String? category,
     String sellerType = 'individual',
@@ -186,6 +202,12 @@ class ListingRepositoryImpl implements ListingRepository {
     int stockCount = 1,
     double? latitude,
     double? longitude,
+    String? classLevelId,
+    String? subjectId,
+    String? schoolId,
+    String? meetupSpot,
+    double? meetupLatitude,
+    double? meetupLongitude,
   }) async {
     try {
       final listingModel = await dataSource.createListing(
@@ -194,6 +216,7 @@ class ListingRepositoryImpl implements ListingRepository {
         priceFcfa: priceFcfa,
         condition: condition,
         imageUrl: imageUrl,
+        imageUrls: imageUrls,
         description: description,
         category: category,
         sellerType: sellerType,
@@ -201,6 +224,12 @@ class ListingRepositoryImpl implements ListingRepository {
         stockCount: stockCount,
         latitude: latitude,
         longitude: longitude,
+        classLevelId: classLevelId,
+        subjectId: subjectId,
+        schoolId: schoolId,
+        meetupSpot: meetupSpot,
+        meetupLatitude: meetupLatitude,
+        meetupLongitude: meetupLongitude,
       );
       return Right(listingModel.toEntity());
     } on ServerException catch (e) {
@@ -232,6 +261,7 @@ class ListingRepositoryImpl implements ListingRepository {
     int? priceFcfa,
     BookCondition? condition,
     String? imageUrl,
+    List<String>? imageUrls,
     String? description,
     String? category,
     String? sellerType,
@@ -239,6 +269,14 @@ class ListingRepositoryImpl implements ListingRepository {
     int? stockCount,
     double? latitude,
     double? longitude,
+    String? classLevelId,
+    String? subjectId,
+    String? schoolId,
+    bool clearSchool = false,
+    String? meetupSpot,
+    double? meetupLatitude,
+    double? meetupLongitude,
+    bool updateMeetup = false,
   }) async {
     try {
       final listingModel = await dataSource.updateListing(
@@ -248,6 +286,7 @@ class ListingRepositoryImpl implements ListingRepository {
         priceFcfa: priceFcfa,
         condition: condition,
         imageUrl: imageUrl,
+        imageUrls: imageUrls,
         description: description,
         category: category,
         sellerType: sellerType,
@@ -255,10 +294,44 @@ class ListingRepositoryImpl implements ListingRepository {
         stockCount: stockCount,
         latitude: latitude,
         longitude: longitude,
+        classLevelId: classLevelId,
+        subjectId: subjectId,
+        schoolId: schoolId,
+        clearSchool: clearSchool,
+        meetupSpot: meetupSpot,
+        meetupLatitude: meetupLatitude,
+        meetupLongitude: meetupLongitude,
+        updateMeetup: updateMeetup,
       );
       return Right(listingModel.toEntity());
     } on NotFoundException catch (e) {
       return Left(ServerFailure(message: e.message));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message));
+    } catch (e) {
+      return Left(UnknownFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<ClassLevel>>> getClassLevels() =>
+      _guard(dataSource.getClassLevels);
+
+  @override
+  Future<Either<Failure, List<Subject>>> getSubjects() =>
+      _guard(dataSource.getSubjects);
+
+  @override
+  Future<Either<Failure, List<School>>> searchSchools(String query) =>
+      _guard(() => dataSource.searchSchools(query));
+
+  @override
+  Future<Either<Failure, School?>> getSchoolById(String id) =>
+      _guard(() => dataSource.getSchoolById(id));
+
+  Future<Either<Failure, T>> _guard<T>(Future<T> Function() call) async {
+    try {
+      return Right(await call());
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message));
     } catch (e) {

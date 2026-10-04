@@ -54,11 +54,10 @@ Additionally, there is a `landingPage` directory containing a separate web proje
     flutter run \
       --dart-define="SUPABASE_URL=$(grep SUPABASE_URL .env | cut -d'=' -f2)" \
       --dart-define="SUPABASE_ANON_KEY=$(grep SUPABASE_ANON_KEY .env | cut -d'=' -f2)" \
-      --dart-define="GOOGLE_CLIENT_ID=$(grep GOOGLE_CLIENT_ID .env | cut -d'=' -f2)" \
-      --dart-define="FAPSHI_API_USER=$(grep FAPSHI_API_USER .env | cut -d'=' -f2)" \
-      --dart-define="FAPSHI_API_KEY=$(grep FAPSHI_API_KEY .env | cut -d'=' -f2)" \
-      --dart-define="FAPSHI_BASE_URL=$(grep FAPSHI_BASE_URL .env | cut -d'=' -f2)"
+      --dart-define="GOOGLE_CLIENT_ID=$(grep GOOGLE_CLIENT_ID .env | cut -d'=' -f2)"
     ```
+
+    Fapshi credentials are not passed to the app; payments go through the Rust core service.
 
 ### SvelteKit Landing Page
 

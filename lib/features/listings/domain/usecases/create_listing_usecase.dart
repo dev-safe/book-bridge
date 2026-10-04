@@ -19,6 +19,7 @@ class CreateListingUseCase implements UseCase<Listing, CreateListingParams> {
       priceFcfa: params.priceFcfa,
       condition: params.condition,
       imageUrl: params.imageUrl,
+      imageUrls: params.imageUrls,
       description: params.description,
       category: params.category,
       sellerType: params.sellerType,
@@ -26,6 +27,12 @@ class CreateListingUseCase implements UseCase<Listing, CreateListingParams> {
       stockCount: params.stockCount,
       latitude: params.latitude,
       longitude: params.longitude,
+      classLevelId: params.classLevelId,
+      subjectId: params.subjectId,
+      schoolId: params.schoolId,
+      meetupSpot: params.meetupSpot,
+      meetupLatitude: params.meetupLatitude,
+      meetupLongitude: params.meetupLongitude,
     );
   }
 }
@@ -37,6 +44,9 @@ class CreateListingParams {
   final int priceFcfa;
   final BookCondition condition;
   final String imageUrl;
+
+  /// All photos, cover first. Empty means just [imageUrl].
+  final List<String> imageUrls;
   final String? description;
   final String? category;
   final String sellerType;
@@ -44,6 +54,12 @@ class CreateListingParams {
   final int stockCount;
   final double? latitude;
   final double? longitude;
+  final String? classLevelId;
+  final String? subjectId;
+  final String? schoolId;
+  final String? meetupSpot;
+  final double? meetupLatitude;
+  final double? meetupLongitude;
 
   CreateListingParams({
     required this.title,
@@ -51,6 +67,7 @@ class CreateListingParams {
     required this.priceFcfa,
     required this.condition,
     required this.imageUrl,
+    this.imageUrls = const [],
     this.description,
     this.category,
     this.sellerType = 'individual',
@@ -58,5 +75,11 @@ class CreateListingParams {
     this.stockCount = 1,
     this.latitude,
     this.longitude,
+    this.classLevelId,
+    this.subjectId,
+    this.schoolId,
+    this.meetupSpot,
+    this.meetupLatitude,
+    this.meetupLongitude,
   });
 }

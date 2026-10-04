@@ -1,9 +1,13 @@
+import 'package:dartz/dartz.dart' hide Order;
 import 'package:flutter/foundation.dart' hide Category;
+import 'package:book_bridge/core/error/failures.dart';
+import 'package:book_bridge/core/utils/geo_radius.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:book_bridge/features/listings/domain/entities/listing.dart';
 import 'package:book_bridge/features/listings/domain/entities/category.dart';
 import 'package:book_bridge/features/listings/domain/repositories/listing_repository.dart';
 import 'package:book_bridge/features/listings/domain/usecases/search_listings_usecase.dart';
+import 'package:book_bridge/features/listings/presentation/viewmodels/academic_filters_mixin.dart';
 
 /// State enum for the Search screen.
 enum SearchState { initial, loading, success, error, empty }
@@ -12,7 +16,7 @@ enum SearchState { initial, loading, success, error, empty }
 ///
 /// This ViewModel handles searching listings by query and managing
 /// search results with debouncing.
-class SearchViewModel extends ChangeNotifier {
+class SearchViewModel extends ChangeNotifier with AcademicFiltersMixin {
   final SearchListingsUseCase searchListingsUseCase;
   final ListingRepository repository;
   static const String _recentSearchesKey = 'recent_searches';
@@ -25,6 +29,10 @@ class SearchViewModel extends ChangeNotifier {
   String _currentQuery = '';
   Category? _selectedCategory;
   bool _isSearching = false;
+  double? _radiusKm;
+
+  /// Incremented per request so stale responses are dropped.
+  int _requestSeq = 0;
 
   SearchViewModel({
     required this.searchListingsUseCase,
@@ -32,6 +40,73 @@ class SearchViewModel extends ChangeNotifier {
   }) {
     loadRecentSearches();
     loadCategories();
+    loadAcademicLookups();
+  }
+
+  @override
+  ListingRepository get academicRepository => repository;
+
+  /// Re-runs the active query or category with the new filters. With no
+  /// query or category, filters alone browse matching listings.
+  @override
+  Future<void> onAcademicFiltersChanged() async {
+    final category = _selectedCategory;
+    if (category != null) {
+      await searchByCategory(category);
+    } else if (_currentQuery.isNotEmpty) {
+      await search(_currentQuery);
+    } else if (_hasBrowseCriteria) {
+      await _browseByFilters();
+    } else {
+      _resetResults();
+      notifyListeners();
+    }
+  }
+
+  /// Filters or a distance radius alone are enough to browse listings.
+  bool get _hasBrowseCriteria => hasAcademicFilters || _radiusKm != null;
+
+  /// Selected distance radius in km, or null for "any distance".
+  double? get radiusKm => _radiusKm;
+
+  /// Sets the distance radius. Results are filtered on the device, so a
+  /// refetch only happens when the radius is the sole browse criterion.
+  Future<void> setRadiusKm(double? km) async {
+    if (km == _radiusKm) return;
+    _radiusKm = km;
+    final hasOtherCriteria =
+        _selectedCategory != null ||
+        _currentQuery.isNotEmpty ||
+        hasAcademicFilters;
+    if (hasOtherCriteria) {
+      notifyListeners();
+    } else if (km == null) {
+      _resetResults();
+      notifyListeners();
+    } else if (_searchState == SearchState.initial ||
+        _searchState == SearchState.error) {
+      await _browseByFilters();
+    } else {
+      notifyListeners();
+    }
+  }
+
+  /// Current results limited to [_radiusKm] around the given origin.
+  ///
+  /// Returns [searchResults] unchanged when no radius is set or the origin
+  /// is unknown.
+  List<Listing> resultsWithin({
+    required double? originLat,
+    required double? originLng,
+  }) {
+    return filterWithinRadius<Listing>(
+      items: _searchResults,
+      originLat: originLat,
+      originLng: originLng,
+      radiusKm: _radiusKm,
+      latOf: (l) => l.latitude,
+      lngOf: (l) => l.longitude,
+    );
   }
 
   // Getters
@@ -106,28 +181,54 @@ class SearchViewModel extends ChangeNotifier {
   /// Returns empty list if query is empty.
   Future<void> search(String query) async {
     _currentQuery = query.trim();
+    _selectedCategory = null;
 
-    // Clear results if query is empty
+    // With no query, fall back to filter-only browsing (or idle).
     if (_currentQuery.isEmpty) {
-      _searchState = SearchState.initial;
-      _searchResults = [];
-      _isSearching = false;
-      _errorMessage = null;
-      notifyListeners();
+      if (_hasBrowseCriteria) {
+        await _browseByFilters();
+      } else {
+        _resetResults();
+        notifyListeners();
+      }
       return;
     }
 
     // Add to recent searches
     addRecentSearch(_currentQuery);
 
+    final seq = _beginRequest();
+    final params = SearchListingsParams(
+      query: _currentQuery,
+      filters: academicFilters,
+    );
+    final result = await searchListingsUseCase(params);
+    _applyResult(seq, result);
+  }
+
+  int _beginRequest() {
     _isSearching = true;
     _searchState = SearchState.loading;
     _errorMessage = null;
     notifyListeners();
+    return ++_requestSeq;
+  }
 
-    final params = SearchListingsParams(query: _currentQuery);
-    final result = await searchListingsUseCase(params);
+  void _resetResults() {
+    _requestSeq++;
+    _searchState = SearchState.initial;
+    _searchResults = [];
+    _isSearching = false;
+    _errorMessage = null;
+  }
 
+  Future<void> _browseByFilters() async {
+    final seq = _beginRequest();
+    _applyResult(seq, await repository.getListings(filters: academicFilters));
+  }
+
+  void _applyResult(int seq, Either<Failure, List<Listing>> result) {
+    if (seq != _requestSeq) return;
     result.fold(
       (failure) {
         _searchState = SearchState.error;
@@ -151,13 +252,17 @@ class SearchViewModel extends ChangeNotifier {
   }
 
   /// Clears the current search and results.
+  ///
+  /// Active academic filters are kept, so results fall back to
+  /// filter-only browsing.
   void clearSearch() {
     _currentQuery = '';
     _selectedCategory = null;
-    _searchResults = [];
-    _searchState = SearchState.initial;
-    _errorMessage = null;
-    _isSearching = false;
+    if (_hasBrowseCriteria) {
+      _browseByFilters();
+      return;
+    }
+    _resetResults();
     notifyListeners();
   }
 
@@ -165,32 +270,13 @@ class SearchViewModel extends ChangeNotifier {
   Future<void> searchByCategory(Category category) async {
     _selectedCategory = category;
     _currentQuery = category.name;
-    _isSearching = true;
-    _searchState = SearchState.loading;
-    _errorMessage = null;
-    notifyListeners();
-
-    final result = await repository.getListings(category: category.name);
-
-    result.fold(
-      (failure) {
-        _searchState = SearchState.error;
-        _errorMessage = failure.message;
-        _searchResults = [];
-        _isSearching = false;
-        notifyListeners();
-      },
-      (listings) {
-        if (listings.isEmpty) {
-          _searchState = SearchState.empty;
-        } else {
-          _searchState = SearchState.success;
-        }
-        _searchResults = listings;
-        _isSearching = false;
-        _errorMessage = null;
-        notifyListeners();
-      },
+    final seq = _beginRequest();
+    _applyResult(
+      seq,
+      await repository.getListings(
+        category: category.name,
+        filters: academicFilters,
+      ),
     );
   }
 

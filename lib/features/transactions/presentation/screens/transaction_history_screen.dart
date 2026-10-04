@@ -1,3 +1,4 @@
+import 'package:book_bridge/features/listings/presentation/widgets/meetup_info_card.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:book_bridge/features/transactions/presentation/viewmodels/transaction_history_viewmodel.dart';
@@ -152,9 +153,14 @@ class _TransactionItem extends StatelessWidget {
     BuildContext context,
     TransactionHistoryViewModel viewModel,
   ) {
+    // Captured up front: the dialog's own context is gone once it closes,
+    // so it can't be used to dismiss the loading overlay afterwards.
+    final navigator = Navigator.of(context, rootNavigator: true);
+    final messenger = ScaffoldMessenger.of(context);
+
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Row(
           children: [
             Icon(Icons.verified, color: Colors.green),
@@ -168,39 +174,33 @@ class _TransactionItem extends StatelessWidget {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: const Text("Cancel"),
           ),
           FilledButton.icon(
             onPressed: () async {
-              Navigator.pop(context);
+              navigator.pop();
               _showLoadingOverlay(context);
               final success = await viewModel.confirmReceipt(
                 transaction.id,
                 transaction.buyerId,
               );
-              if (context.mounted) {
-                Navigator.pop(context); // Close loading overlay
-                if (success) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                        "Receipt confirmed. Payout released to seller!",
+              navigator.pop(); // Close loading overlay
+              messenger.showSnackBar(
+                success
+                    ? const SnackBar(
+                        content: Text(
+                          "Receipt confirmed. Payout released to seller!",
+                        ),
+                        backgroundColor: Colors.green,
+                      )
+                    : SnackBar(
+                        content: Text(
+                          viewModel.error ?? "Failed to confirm receipt",
+                        ),
+                        backgroundColor: Colors.red,
                       ),
-                      backgroundColor: Colors.green,
-                    ),
-                  );
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        viewModel.error ?? "Failed to confirm receipt",
-                      ),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                }
-              }
+              );
             },
             icon: const Icon(Icons.check),
             label: const Text("Confirm"),
@@ -217,10 +217,12 @@ class _TransactionItem extends StatelessWidget {
   ) {
     final reasonController = TextEditingController();
     final formKey = GlobalKey<FormState>();
+    final navigator = Navigator.of(context, rootNavigator: true);
+    final messenger = ScaffoldMessenger.of(context);
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Row(
           children: [
             Icon(Icons.warning_amber_rounded, color: Colors.red),
@@ -261,41 +263,35 @@ class _TransactionItem extends StatelessWidget {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: const Text("Cancel"),
           ),
           FilledButton(
             onPressed: () async {
               if (formKey.currentState?.validate() ?? false) {
-                Navigator.pop(context);
+                navigator.pop();
                 _showLoadingOverlay(context);
                 final success = await viewModel.disputeTransaction(
                   transaction.id,
                   reasonController.text.trim(),
                   transaction.buyerId,
                 );
-                if (context.mounted) {
-                  Navigator.pop(context); // Close loading overlay
-                  if (success) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text(
-                          "Dispute submitted. Admin will review within 48h.",
+                navigator.pop(); // Close loading overlay
+                messenger.showSnackBar(
+                  success
+                      ? const SnackBar(
+                          content: Text(
+                            "Dispute submitted. Admin will review within 48h.",
+                          ),
+                          backgroundColor: Colors.orange,
+                        )
+                      : SnackBar(
+                          content: Text(
+                            viewModel.error ?? "Failed to submit dispute",
+                          ),
+                          backgroundColor: Colors.red,
                         ),
-                        backgroundColor: Colors.orange,
-                      ),
-                    );
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          viewModel.error ?? "Failed to submit dispute",
-                        ),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
-                  }
-                }
+                );
               }
             },
             style: FilledButton.styleFrom(backgroundColor: Colors.red),
@@ -393,6 +389,16 @@ class _TransactionItem extends StatelessWidget {
               const SizedBox(height: 12),
               const Divider(),
               const SizedBox(height: 8),
+              if ((transaction.meetupSpot?.trim().isNotEmpty ?? false) ||
+                  (transaction.meetupLatitude != null &&
+                      transaction.meetupLongitude != null)) ...[
+                MeetupInfoCard(
+                  spot: transaction.meetupSpot,
+                  latitude: transaction.meetupLatitude,
+                  longitude: transaction.meetupLongitude,
+                ),
+                const SizedBox(height: 12),
+              ],
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [

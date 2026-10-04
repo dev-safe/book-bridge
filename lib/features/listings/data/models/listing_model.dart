@@ -13,6 +13,7 @@ class ListingModel extends Listing {
     required super.priceFcfa,
     required super.condition,
     required super.imageUrl,
+    super.imageUrls = const [],
     required super.description,
     required super.sellerId,
     required super.status,
@@ -26,13 +27,24 @@ class ListingModel extends Listing {
     super.expiresAt,
     super.sellerName,
     super.sellerLocality,
-    super.sellerWhatsapp,
     super.sellerAvatarUrl,
     super.sellerRating,
     super.sellerReviewCount,
     super.latitude,
     super.longitude,
+    super.classLevelId,
+    super.classLevelLabel,
+    super.subjectId,
+    super.subjectName,
+    super.schoolId,
+    super.schoolName,
+    super.meetupSpot,
+    super.meetupLatitude,
+    super.meetupLongitude,
   });
+
+  static String? _embeddedField(Object? embed, String key) =>
+      embed is Map<String, dynamic> ? embed[key] as String? : null;
 
   /// Creates a [ListingModel] from a [cached_listings] SQLite row.
   ///
@@ -69,6 +81,12 @@ class ListingModel extends Listing {
         json['condition'] as String? ?? 'good',
       ),
       imageUrl: json['image_url'] as String? ?? '',
+      imageUrls: List.unmodifiable(
+        (json['image_urls'] as List?)?.whereType<String>().where(
+              (url) => url.isNotEmpty,
+            ) ??
+            const <String>[],
+      ),
       description: json['description'] as String? ?? '',
       sellerId: json['seller_id'] as String? ?? '',
       status: json['status'] as String? ?? 'available',
@@ -90,9 +108,6 @@ class ListingModel extends Listing {
           (json['profiles'] as Map<String, dynamic>?)?['full_name'] as String?,
       sellerLocality:
           (json['profiles'] as Map<String, dynamic>?)?['locality'] as String?,
-      sellerWhatsapp:
-          (json['profiles'] as Map<String, dynamic>?)?['whatsapp_number']
-              as String?,
       sellerAvatarUrl:
           (json['profiles'] as Map<String, dynamic>?)?['avatar_url'] as String?,
       sellerRating:
@@ -104,6 +119,15 @@ class ListingModel extends Listing {
           (json['profiles'] as Map<String, dynamic>?)?['review_count'] as int?,
       latitude: (json['latitude'] as num?)?.toDouble(),
       longitude: (json['longitude'] as num?)?.toDouble(),
+      classLevelId: json['class_level_id'] as String?,
+      classLevelLabel: _embeddedField(json['class_level'], 'label'),
+      subjectId: json['subject_id'] as String?,
+      subjectName: _embeddedField(json['subject'], 'name'),
+      schoolId: json['school_id'] as String?,
+      schoolName: _embeddedField(json['school'], 'name'),
+      meetupSpot: json['meetup_spot'] as String?,
+      meetupLatitude: (json['meetup_latitude'] as num?)?.toDouble(),
+      meetupLongitude: (json['meetup_longitude'] as num?)?.toDouble(),
     );
   }
 
@@ -118,6 +142,7 @@ class ListingModel extends Listing {
       'price_fcfa': priceFcfa,
       'condition': condition.value,
       'image_url': imageUrl,
+      'image_urls': imageUrls,
       'description': description,
       'seller_id': sellerId,
       'status': status,
@@ -131,6 +156,12 @@ class ListingModel extends Listing {
       'expires_at': expiresAt?.toIso8601String(),
       'latitude': latitude,
       'longitude': longitude,
+      'class_level_id': classLevelId,
+      'subject_id': subjectId,
+      'school_id': schoolId,
+      'meetup_spot': meetupSpot,
+      'meetup_latitude': meetupLatitude,
+      'meetup_longitude': meetupLongitude,
     };
   }
 
@@ -143,6 +174,7 @@ class ListingModel extends Listing {
       priceFcfa: listing.priceFcfa,
       condition: listing.condition,
       imageUrl: listing.imageUrl,
+      imageUrls: listing.imageUrls,
       description: listing.description,
       sellerId: listing.sellerId,
       status: listing.status,
@@ -156,12 +188,20 @@ class ListingModel extends Listing {
       expiresAt: listing.expiresAt,
       sellerName: listing.sellerName,
       sellerLocality: listing.sellerLocality,
-      sellerWhatsapp: listing.sellerWhatsapp,
       sellerAvatarUrl: listing.sellerAvatarUrl,
       sellerRating: listing.sellerRating,
       sellerReviewCount: listing.sellerReviewCount,
       latitude: listing.latitude,
       longitude: listing.longitude,
+      classLevelId: listing.classLevelId,
+      classLevelLabel: listing.classLevelLabel,
+      subjectId: listing.subjectId,
+      subjectName: listing.subjectName,
+      schoolId: listing.schoolId,
+      schoolName: listing.schoolName,
+      meetupSpot: listing.meetupSpot,
+      meetupLatitude: listing.meetupLatitude,
+      meetupLongitude: listing.meetupLongitude,
     );
   }
 
@@ -174,6 +214,7 @@ class ListingModel extends Listing {
       priceFcfa: priceFcfa,
       condition: condition,
       imageUrl: imageUrl,
+      imageUrls: imageUrls,
       description: description,
       sellerId: sellerId,
       status: status,
@@ -186,12 +227,20 @@ class ListingModel extends Listing {
       expiresAt: expiresAt,
       sellerName: sellerName,
       sellerLocality: sellerLocality,
-      sellerWhatsapp: sellerWhatsapp,
       sellerAvatarUrl: sellerAvatarUrl,
       sellerRating: sellerRating,
       sellerReviewCount: sellerReviewCount,
       latitude: latitude,
       longitude: longitude,
+      classLevelId: classLevelId,
+      classLevelLabel: classLevelLabel,
+      subjectId: subjectId,
+      subjectName: subjectName,
+      schoolId: schoolId,
+      schoolName: schoolName,
+      meetupSpot: meetupSpot,
+      meetupLatitude: meetupLatitude,
+      meetupLongitude: meetupLongitude,
     );
   }
 }

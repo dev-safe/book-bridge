@@ -8,6 +8,12 @@ import 'package:book_bridge/features/listings/presentation/viewmodels/sell_viewm
 import 'package:book_bridge/features/listings/domain/entities/listing.dart';
 import 'package:book_bridge/features/listings/domain/entities/book_condition.dart';
 import 'package:book_bridge/core/constants/categories.dart';
+import 'package:book_bridge/features/auth/presentation/viewmodels/auth_viewmodel.dart';
+import 'package:book_bridge/features/listings/presentation/widgets/academic_filter_bar.dart';
+import 'package:book_bridge/features/listings/presentation/widgets/listing_photos_picker.dart';
+import 'package:book_bridge/features/listings/presentation/widgets/meetup_pin_picker.dart';
+import 'package:book_bridge/features/subscriptions/domain/subscription_constants.dart';
+import 'package:latlong2/latlong.dart' show LatLng;
 
 /// Screen for creating and selling a new book listing.
 ///
@@ -28,6 +34,7 @@ class _SellScreenState extends State<SellScreen> {
   final _authorController = TextEditingController();
   final _priceController = TextEditingController();
   final _descriptionController = TextEditingController();
+  final _meetupSpotController = TextEditingController();
 
   // Save reference to avoid accessing context in dispose()
   late SellViewModel _sellViewModel;
@@ -47,11 +54,199 @@ class _SellScreenState extends State<SellScreen> {
         _authorController.text = widget.listing!.author;
         _priceController.text = widget.listing!.priceFcfa.toString();
         _descriptionController.text = widget.listing!.description;
+        _meetupSpotController.text = widget.listing!.meetupSpot ?? '';
       } else {
         // Otherwise reset the form to start fresh
         _sellViewModel.resetForm();
+        _sellViewModel.applyDefaultSchool(
+          context.read<AuthViewModel>().currentUser?.schoolId,
+        );
       }
+      _sellViewModel.loadAcademicLookups();
+      _sellViewModel.loadMeetupSuggestionsIfNeeded();
     });
+  }
+
+  Future<void> _pickMeetupPin(SellViewModel viewModel) async {
+    final existing = viewModel.hasMeetupPin
+        ? LatLng(viewModel.meetupLatitude!, viewModel.meetupLongitude!)
+        : null;
+    final suggestions = viewModel.meetupSuggestions;
+    final center =
+        existing ??
+        (suggestions.isNotEmpty
+            ? LatLng(suggestions.first.latitude, suggestions.first.longitude)
+            : defaultMeetupCenter);
+    final picked = await MeetupPinPicker.show(
+      context,
+      initialCenter: center,
+      initialPin: existing,
+    );
+    if (picked != null) {
+      viewModel.setMeetupPin(picked.latitude, picked.longitude);
+    }
+  }
+
+  Widget _buildMeetupFields(BuildContext context, SellViewModel viewModel) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _fieldLabel(context, l10n.meetupSpotFieldLabel),
+        TextFormField(
+          key: const Key('meetupSpotField'),
+          controller: _meetupSpotController,
+          maxLength: SellViewModel.maxMeetupSpotLength,
+          decoration: InputDecoration(
+            hintText: l10n.meetupSpotFieldHint,
+            prefixIcon: const Icon(Icons.place_outlined),
+            filled: true,
+            fillColor: theme.colorScheme.surface,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide.none,
+            ),
+          ),
+          onChanged: viewModel.setMeetupSpot,
+        ),
+        if (viewModel.meetupSuggestions.isNotEmpty) ...[
+          Text(l10n.meetupSuggestionsLabel, style: theme.textTheme.bodySmall),
+          const SizedBox(height: 4),
+          Wrap(
+            spacing: 8,
+            runSpacing: 4,
+            children: viewModel.meetupSuggestions
+                .map(
+                  (zone) => ActionChip(
+                    avatar: const Icon(Icons.verified_outlined, size: 16),
+                    label: Text(zone.name),
+                    onPressed: () {
+                      viewModel.applyMeetupSuggestion(zone);
+                      _meetupSpotController.text = viewModel.meetupSpot ?? '';
+                    },
+                  ),
+                )
+                .toList(),
+          ),
+          const SizedBox(height: 8),
+        ],
+        Row(
+          children: [
+            OutlinedButton.icon(
+              key: const Key('meetupPinButton'),
+              onPressed: () => _pickMeetupPin(viewModel),
+              icon: Icon(
+                viewModel.hasMeetupPin
+                    ? Icons.edit_location_alt_outlined
+                    : Icons.add_location_alt_outlined,
+              ),
+              label: Text(
+                viewModel.hasMeetupPin
+                    ? l10n.meetupPinChange
+                    : l10n.meetupPinDrop,
+              ),
+            ),
+            if (viewModel.hasMeetupPin) ...[
+              const SizedBox(width: 8),
+              TextButton(
+                onPressed: viewModel.clearMeetupPin,
+                child: Text(l10n.meetupPinRemove),
+              ),
+            ],
+          ],
+        ),
+        const SizedBox(height: 8),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(
+              Icons.shield_outlined,
+              size: 16,
+              color: theme.colorScheme.primary,
+            ),
+            const SizedBox(width: 6),
+            Expanded(
+              child: Text(
+                l10n.meetupSafetyHint,
+                style: theme.textTheme.bodySmall,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _fieldLabel(BuildContext context, String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w500,
+          color: Theme.of(context).textTheme.bodyLarge?.color,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAcademicFields(BuildContext context, SellViewModel viewModel) {
+    final l10n = AppLocalizations.of(context)!;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _fieldLabel(context, '${l10n.classLevelLabel} *'),
+        PickerFormField(
+          value: viewModel.selectedClassLevel?.label,
+          hint: l10n.selectClassLevelHint,
+          onTap: () async {
+            await viewModel.loadAcademicLookups();
+            if (!context.mounted) return;
+            final pick = await showClassLevelPicker(
+              context,
+              levels: viewModel.classLevels,
+              selectedId: viewModel.selectedClassLevelId,
+              clearLabel: l10n.none,
+            );
+            if (pick != null) await viewModel.setClassLevel(pick.value);
+          },
+        ),
+        const SizedBox(height: 24),
+        _fieldLabel(context, '${l10n.subjectLabel} *'),
+        PickerFormField(
+          value: viewModel.selectedSubject?.name,
+          hint: l10n.selectSubjectHint,
+          onTap: () async {
+            await viewModel.loadAcademicLookups();
+            if (!context.mounted) return;
+            final pick = await showSubjectPicker(
+              context,
+              subjects: viewModel.subjects,
+              selectedId: viewModel.selectedSubjectId,
+              clearLabel: l10n.none,
+            );
+            if (pick != null) await viewModel.setSubject(pick.value);
+          },
+        ),
+        const SizedBox(height: 24),
+        _fieldLabel(context, l10n.schoolLabel),
+        PickerFormField(
+          value: viewModel.selectedSchool?.displayName,
+          hint: l10n.selectSchoolOptionalHint,
+          onTap: () async {
+            final pick = await showSchoolPicker(
+              context,
+              searchSchools: viewModel.searchSchools,
+              selected: viewModel.selectedSchool,
+              clearLabel: l10n.noSchool,
+            );
+            if (pick != null) await viewModel.setSchool(pick.value);
+          },
+        ),
+      ],
+    );
   }
 
   @override
@@ -62,6 +257,7 @@ class _SellScreenState extends State<SellScreen> {
     _authorController.dispose();
     _priceController.dispose();
     _descriptionController.dispose();
+    _meetupSpotController.dispose();
     super.dispose();
   }
 
@@ -99,7 +295,11 @@ class _SellScreenState extends State<SellScreen> {
         ..hideCurrentSnackBar()
         ..showSnackBar(
           SnackBar(
-            content: Text(sellViewModel.errorMessage!),
+            content: Text(
+              isFreeTierLimitError(sellViewModel.errorMessage)
+                  ? AppLocalizations.of(context)!.freeTierLimitReached
+                  : sellViewModel.errorMessage!,
+            ),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
@@ -202,43 +402,13 @@ class _SellScreenState extends State<SellScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  GestureDetector(
-                    onTap: () {
-                      _showImageSelectionDialog(context, viewModel);
-                    },
-                    child: Container(
-                      width: double.infinity,
-                      height:
-                          MediaQuery.of(context).size.height *
-                          0.25, // Responsive height
-                      decoration: BoxDecoration(
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.surfaceContainerHighest,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.outlineVariant.withValues(alpha: 0.2),
-                          width: 2,
-                        ),
-                      ),
-                      child: viewModel.isLoading && viewModel.imageUrl == null
-                          ? const Center(child: CircularProgressIndicator())
-                          : viewModel.imageUrl != null &&
-                                viewModel.imageUrl!.isNotEmpty
-                          ? ClipRRect(
-                              borderRadius: BorderRadius.circular(12),
-                              child: Image.network(
-                                viewModel.imageUrl!,
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) {
-                                  return _buildImagePlaceholder();
-                                },
-                              ),
-                            )
-                          : _buildImagePlaceholder(),
-                    ),
+                  ListingPhotosPicker(
+                    imageUrls: viewModel.imageUrls,
+                    maxImages: Listing.maxImages,
+                    isUploading: viewModel.isLoading,
+                    onAdd: () => _showImageSelectionDialog(context, viewModel),
+                    onRemove: viewModel.removeImageAt,
+                    onSetCover: viewModel.setCoverAt,
                   ),
                   const SizedBox(height: 24),
 
@@ -523,6 +693,10 @@ class _SellScreenState extends State<SellScreen> {
                     ),
                   ),
                   const SizedBox(height: 24),
+                  _buildAcademicFields(context, viewModel),
+                  const SizedBox(height: 24),
+                  _buildMeetupFields(context, viewModel),
+                  const SizedBox(height: 24),
                   // Social Venture Section
                   Text(
                     AppLocalizations.of(context)!.socialVentureFeatures,
@@ -721,30 +895,6 @@ class _SellScreenState extends State<SellScreen> {
           );
         },
       ),
-    );
-  }
-
-  Widget _buildImagePlaceholder() {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Icon(
-          Icons.add_a_photo,
-          size: MediaQuery.of(context).size.width * 0.15, // Responsive size
-          color: Theme.of(context).colorScheme.primary,
-        ),
-        const SizedBox(height: 8),
-        Text(
-          AppLocalizations.of(context)!.addBookPhotos,
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-            color: Theme.of(
-              context,
-            ).textTheme.bodyLarge?.color?.withValues(alpha: 0.7),
-          ),
-        ),
-      ],
     );
   }
 }

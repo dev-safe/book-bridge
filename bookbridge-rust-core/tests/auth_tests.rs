@@ -18,6 +18,9 @@ async fn test_auth_middleware() {
         database_url: "postgres://dummy".to_string(),
         internal_api_secret: "super_secret_key_12345".to_string(),
         fapshi_base_url: "https://sandbox.fapshi.com".to_string(),
+        rate_limits: Default::default(),
+        supabase_url: "http://127.0.0.1:1".to_string(),
+        supabase_anon_key: "test-anon-key".to_string(),
         port: 8080,
     });
 

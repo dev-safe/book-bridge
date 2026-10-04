@@ -13,6 +13,11 @@ class TransactionEntity extends Equatable {
   final String externalRef;
   final DateTime createdAt;
 
+  /// Seller's meetup spot from the listing, if any.
+  final String? meetupSpot;
+  final double? meetupLatitude;
+  final double? meetupLongitude;
+
   const TransactionEntity({
     required this.id,
     required this.listingId,
@@ -24,6 +29,9 @@ class TransactionEntity extends Equatable {
     required this.status,
     required this.externalRef,
     required this.createdAt,
+    this.meetupSpot,
+    this.meetupLatitude,
+    this.meetupLongitude,
   });
 
   @override
@@ -38,5 +46,8 @@ class TransactionEntity extends Equatable {
     status,
     externalRef,
     createdAt,
+    meetupSpot,
+    meetupLatitude,
+    meetupLongitude,
   ];
 }

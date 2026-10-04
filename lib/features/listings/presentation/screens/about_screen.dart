@@ -116,7 +116,7 @@ class AboutScreen extends StatelessWidget {
               icon: Icons.language,
               title: AppLocalizations.of(context)!.officialWebsite,
               subtitle: AppLocalizations.of(context)!.visitWebPlatform,
-              onTap: () => _launchUrl('https://book-bridge-three.vercel.app/'),
+              onTap: () => _launchUrl('https://bookbridge.devsafe.cm/'),
             ),
             const SizedBox(height: 16),
             _buildLinkTile(

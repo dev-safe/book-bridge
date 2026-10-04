@@ -3,6 +3,7 @@ import 'package:dartz/dartz.dart';
 import 'package:book_bridge/core/error/failures.dart';
 import 'package:book_bridge/features/listings/domain/entities/listing.dart';
 import 'package:book_bridge/features/listings/domain/entities/category.dart';
+import 'package:book_bridge/features/listings/domain/entities/academic_lookups.dart';
 import 'package:book_bridge/features/listings/domain/entities/book_condition.dart';
 
 /// Abstract repository for listing operations.
@@ -22,11 +23,13 @@ abstract class ListingRepository {
 
   /// Fetches all available listings.
   ///
-  /// Optionally filters by [status] (defaults to 'available') and [category].
+  /// Optionally filters by [status] (defaults to 'available'), [category]
+  /// and academic [filters] (class level, subject, school).
   /// Returns either a [Failure] or a list of [Listing] entities.
   Future<Either<Failure, List<Listing>>> getListings({
     String status = 'available',
     String? category,
+    AcademicFilters filters = AcademicFilters.none,
     int limit = 50,
     int offset = 0,
   });
@@ -47,6 +50,7 @@ abstract class ListingRepository {
   /// Returns either a [Failure] or a list of matching [Listing] entities.
   Future<Either<Failure, List<Listing>>> searchListings(
     String query, {
+    AcademicFilters filters = AcademicFilters.none,
     int limit = 50,
   });
 
@@ -59,6 +63,7 @@ abstract class ListingRepository {
     required int priceFcfa,
     required BookCondition condition,
     required String imageUrl,
+    List<String> imageUrls = const [],
     String? description,
     String? category,
     String sellerType = 'individual',
@@ -66,6 +71,12 @@ abstract class ListingRepository {
     int stockCount = 1,
     double? latitude,
     double? longitude,
+    String? classLevelId,
+    String? subjectId,
+    String? schoolId,
+    String? meetupSpot,
+    double? meetupLatitude,
+    double? meetupLongitude,
   });
 
   /// Deletes a listing.
@@ -83,6 +94,7 @@ abstract class ListingRepository {
     int? priceFcfa,
     BookCondition? condition,
     String? imageUrl,
+    List<String>? imageUrls,
     String? description,
     String? category,
     String? sellerType,
@@ -90,7 +102,29 @@ abstract class ListingRepository {
     int? stockCount,
     double? latitude,
     double? longitude,
+    String? classLevelId,
+    String? subjectId,
+    String? schoolId,
+    bool clearSchool = false,
+    String? meetupSpot,
+    double? meetupLatitude,
+    double? meetupLongitude,
+
+    /// When true, the meetup columns are written as given (nulls clear them).
+    bool updateMeetup = false,
   });
+
+  /// Fetches all class levels, ordered for display.
+  Future<Either<Failure, List<ClassLevel>>> getClassLevels();
+
+  /// Fetches all subjects, ordered for display.
+  Future<Either<Failure, List<Subject>>> getSubjects();
+
+  /// Searches schools by name.
+  Future<Either<Failure, List<School>>> searchSchools(String query);
+
+  /// Fetches a school by ID; returns `Right(null)` if not found.
+  Future<Either<Failure, School?>> getSchoolById(String id);
 
   /// Uploads a book image to storage.
   ///

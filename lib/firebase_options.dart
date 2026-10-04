@@ -63,6 +63,6 @@ class DefaultFirebaseOptions {
     messagingSenderId: '243422993063',
     projectId: 'bookbridge-c12fa',
     storageBucket: 'bookbridge-c12fa.firebasestorage.app',
-    iosBundleId: 'com.example.book_bridge',
+    iosBundleId: 'com.bookbridge.app',
   );
 }

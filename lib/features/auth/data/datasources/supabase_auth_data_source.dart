@@ -230,7 +230,7 @@ class SupabaseAuthDataSource {
       final user = supabaseClient.auth.currentUser;
 
       // Combine auth user data with profile data
-      final profileData = response;
+      final profileData = await _mergePrivateProfile(response, userId);
       profileData['id'] = userId;
       profileData['email'] = user?.email ?? response['email'] ?? '';
       profileData['created_at'] = user?.createdAt is DateTime
@@ -247,6 +247,27 @@ class SupabaseAuthDataSource {
     } catch (e) {
       throw ServerException(message: e.toString());
     }
+  }
+
+  /// Overlays owner-only contact fields from `profiles_private`.
+  ///
+  /// Falls back to the legacy `profiles` values if the private row is missing.
+  Future<Map<String, dynamic>> _mergePrivateProfile(
+    Map<String, dynamic> profile,
+    String userId,
+  ) async {
+    final merged = Map<String, dynamic>.from(profile);
+    final private = await supabaseClient
+        .from('profiles_private')
+        .select('whatsapp_number, fcm_token')
+        .eq('id', userId)
+        .maybeSingle();
+    if (private != null) {
+      merged['whatsapp_number'] =
+          private['whatsapp_number'] ?? merged['whatsapp_number'];
+      merged['fcm_token'] = private['fcm_token'] ?? merged['fcm_token'];
+    }
+    return merged;
   }
 
   /// Polls for the user profile creation (waits for DB trigger).
@@ -279,14 +300,21 @@ class SupabaseAuthDataSource {
           .update({
             'full_name': userToUpdate.fullName,
             'locality': userToUpdate.locality,
-            'whatsapp_number': userToUpdate.whatsappNumber,
             'avatar_url': userToUpdate.avatarUrl,
+            'school_id': userToUpdate.schoolId,
           })
           .eq('id', userToUpdate.id)
           .select()
           .single();
 
-      return UserModel.fromJson(response);
+      await supabaseClient.from('profiles_private').upsert({
+        'id': userToUpdate.id,
+        'whatsapp_number': userToUpdate.whatsappNumber,
+      });
+
+      return UserModel.fromJson(
+        await _mergePrivateProfile(response, userToUpdate.id),
+      );
     } on PostgrestException catch (e) {
       throw ServerException(message: e.message);
     } catch (e) {
@@ -297,10 +325,10 @@ class SupabaseAuthDataSource {
   /// Updates the FCM token for a user.
   Future<void> updateFcmToken(String userId, String token) async {
     try {
-      await supabaseClient
-          .from('profiles')
-          .update({'fcm_token': token})
-          .eq('id', userId);
+      await supabaseClient.from('profiles_private').upsert({
+        'id': userId,
+        'fcm_token': token,
+      });
     } on PostgrestException catch (e) {
       throw ServerException(message: e.message);
     } catch (e) {

@@ -3,12 +3,22 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:book_bridge/core/error/exceptions.dart';
 import 'package:book_bridge/features/listings/data/models/listing_model.dart';
 import 'package:book_bridge/features/listings/data/datasources/supabase_storage_data_source.dart';
+import 'package:book_bridge/features/listings/domain/entities/academic_lookups.dart';
 import 'package:book_bridge/features/listings/domain/entities/book_condition.dart';
+import 'package:book_bridge/features/subscriptions/domain/subscription_constants.dart';
 
 /// Data source for listing operations using Supabase PostgreSQL and Storage.
 ///
 /// This class handles all listing-related queries to the Supabase database and storage.
 class SupabaseListingsDataSource {
+  static const String _listingSelect =
+      '*, profiles:public_profiles!seller_id(id, full_name, locality, avatar_url, rating, review_count), '
+      'class_level:class_levels!class_level_id(id, label), '
+      'subject:subjects!subject_id(id, name), '
+      'school:schools!school_id(id, name)';
+
+  static const int _filteredSearchWindow = 500;
+
   final SupabaseClient supabaseClient;
   final SupabaseStorageDataSource storageDataSource;
 
@@ -67,17 +77,27 @@ class SupabaseListingsDataSource {
   Future<List<ListingModel>> getListings({
     String status = 'available',
     String? category,
+    AcademicFilters filters = AcademicFilters.none,
     int limit = 50,
     int offset = 0,
   }) async {
     try {
       var query = supabaseClient
           .from('listings')
-          .select('*, profiles:seller_id(*)')
+          .select(_listingSelect)
           .eq('status', status);
 
       if (category != null && category.isNotEmpty) {
         query = query.eq('category', category);
+      }
+      if (filters.classLevelId != null) {
+        query = query.eq('class_level_id', filters.classLevelId!);
+      }
+      if (filters.subjectId != null) {
+        query = query.eq('subject_id', filters.subjectId!);
+      }
+      if (filters.schoolId != null) {
+        query = query.eq('school_id', filters.schoolId!);
       }
 
       final response = await query
@@ -106,7 +126,7 @@ class SupabaseListingsDataSource {
     try {
       final response = await supabaseClient
           .from('listings')
-          .select('*, profiles:seller_id(*)')
+          .select(_listingSelect)
           .eq('id', listingId)
           .single();
 
@@ -128,7 +148,7 @@ class SupabaseListingsDataSource {
     try {
       final response = await supabaseClient
           .from('listings')
-          .select('*, profiles:seller_id(*)')
+          .select(_listingSelect)
           .eq('seller_id', sellerId)
           .order('created_at', ascending: false);
 
@@ -149,20 +169,33 @@ class SupabaseListingsDataSource {
   /// Throws [ServerException] if the query fails.
   Future<List<ListingModel>> searchListings(
     String query, {
+    AcademicFilters filters = AcademicFilters.none,
     int limit = 50,
   }) async {
     try {
-      final response = await supabaseClient
-          .rpc(
-            'search_listings',
-            params: {
-              'query': query,
-              '_limit': limit,
-              '_offset':
-                  0, // Assuming offset will be handled by the RPC if needed
-            },
-          )
-          .select('*, profiles:seller_id(*)')
+      // search_listings applies _limit internally, before PostgREST filters
+      // run. Widen the RPC window when filtering so matches aren't cut off,
+      // then apply the caller's limit after filtering.
+      var request = supabaseClient.rpc(
+        'search_listings',
+        params: {
+          'query': query,
+          '_limit': filters.isEmpty ? limit : _filteredSearchWindow,
+          '_offset': 0,
+        },
+      );
+      if (filters.classLevelId != null) {
+        request = request.eq('class_level_id', filters.classLevelId!);
+      }
+      if (filters.subjectId != null) {
+        request = request.eq('subject_id', filters.subjectId!);
+      }
+      if (filters.schoolId != null) {
+        request = request.eq('school_id', filters.schoolId!);
+      }
+
+      final response = await request
+          .select(_listingSelect)
           .order('is_boosted', ascending: false)
           .order('boost_expires_at', ascending: false)
           .order('created_at', ascending: false)
@@ -189,6 +222,7 @@ class SupabaseListingsDataSource {
     required int priceFcfa,
     required BookCondition condition,
     required String imageUrl,
+    List<String> imageUrls = const [],
     String? description,
     String? category,
     String sellerType = 'individual',
@@ -196,6 +230,12 @@ class SupabaseListingsDataSource {
     int stockCount = 1,
     double? latitude,
     double? longitude,
+    String? classLevelId,
+    String? subjectId,
+    String? schoolId,
+    String? meetupSpot,
+    double? meetupLatitude,
+    double? meetupLongitude,
   }) async {
     try {
       final userId = supabaseClient.auth.currentUser?.id;
@@ -210,7 +250,8 @@ class SupabaseListingsDataSource {
             'author': author,
             'price_fcfa': priceFcfa,
             'condition': condition.value,
-            'image_url': imageUrl,
+            'image_url': imageUrls.isEmpty ? imageUrl : imageUrls.first,
+            'image_urls': imageUrls.isEmpty ? [imageUrl] : imageUrls,
             'description': description,
             'category': category,
             'seller_id': userId,
@@ -221,12 +262,21 @@ class SupabaseListingsDataSource {
             'stock_count': stockCount,
             'latitude': latitude,
             'longitude': longitude,
+            'class_level_id': classLevelId,
+            'subject_id': subjectId,
+            'school_id': schoolId,
+            'meetup_spot': meetupSpot,
+            'meetup_latitude': meetupLatitude,
+            'meetup_longitude': meetupLongitude,
           })
-          .select()
+          .select(_listingSelect)
           .single();
 
       return ListingModel.fromJson(response);
     } on PostgrestException catch (e) {
+      if (e.code == 'P0001' && isFreeTierLimitError(e.message)) {
+        throw ServerException(message: kFreeTierLimitError);
+      }
       throw ServerException(message: e.message);
     } catch (e) {
       throw ServerException(message: e.toString());
@@ -261,6 +311,7 @@ class SupabaseListingsDataSource {
     int? priceFcfa,
     BookCondition? condition,
     String? imageUrl,
+    List<String>? imageUrls,
     String? description,
     String? category,
     String? sellerType,
@@ -268,6 +319,14 @@ class SupabaseListingsDataSource {
     int? stockCount,
     double? latitude,
     double? longitude,
+    String? classLevelId,
+    String? subjectId,
+    String? schoolId,
+    bool clearSchool = false,
+    String? meetupSpot,
+    double? meetupLatitude,
+    double? meetupLongitude,
+    bool updateMeetup = false,
   }) async {
     try {
       final updates = <String, dynamic>{};
@@ -275,7 +334,12 @@ class SupabaseListingsDataSource {
       if (author != null) updates['author'] = author;
       if (priceFcfa != null) updates['price_fcfa'] = priceFcfa;
       if (condition != null) updates['condition'] = condition.value;
-      if (imageUrl != null) updates['image_url'] = imageUrl;
+      if (imageUrls != null && imageUrls.isNotEmpty) {
+        updates['image_urls'] = imageUrls;
+        updates['image_url'] = imageUrls.first;
+      } else if (imageUrl != null) {
+        updates['image_url'] = imageUrl;
+      }
       if (description != null) updates['description'] = description;
       if (category != null) updates['category'] = category;
       if (sellerType != null) updates['seller_type'] = sellerType;
@@ -285,12 +349,24 @@ class SupabaseListingsDataSource {
       if (stockCount != null) updates['stock_count'] = stockCount;
       if (latitude != null) updates['latitude'] = latitude;
       if (longitude != null) updates['longitude'] = longitude;
+      if (classLevelId != null) updates['class_level_id'] = classLevelId;
+      if (subjectId != null) updates['subject_id'] = subjectId;
+      if (schoolId != null) {
+        updates['school_id'] = schoolId;
+      } else if (clearSchool) {
+        updates['school_id'] = null;
+      }
+      if (updateMeetup) {
+        updates['meetup_spot'] = meetupSpot;
+        updates['meetup_latitude'] = meetupLatitude;
+        updates['meetup_longitude'] = meetupLongitude;
+      }
 
       final response = await supabaseClient
           .from('listings')
           .update(updates)
           .eq('id', id)
-          .select('*, profiles:seller_id(*)')
+          .select(_listingSelect)
           .single();
 
       return ListingModel.fromJson(response);
@@ -298,6 +374,90 @@ class SupabaseListingsDataSource {
       if (e.code == 'PGRST116') {
         throw NotFoundException(message: 'Listing not found');
       }
+      throw ServerException(message: e.message);
+    } catch (e) {
+      throw ServerException(message: e.toString());
+    }
+  }
+
+  /// Fetches all class levels ordered for display.
+  ///
+  /// Throws [ServerException] if the query fails.
+  Future<List<ClassLevel>> getClassLevels() async {
+    try {
+      final response = await supabaseClient
+          .from('class_levels')
+          .select('id, system, code, label')
+          .order('sort_order');
+      return (response as List<dynamic>)
+          .map((e) => ClassLevel.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } on PostgrestException catch (e) {
+      throw ServerException(message: e.message);
+    } catch (e) {
+      throw ServerException(message: e.toString());
+    }
+  }
+
+  /// Fetches all subjects ordered for display.
+  ///
+  /// Throws [ServerException] if the query fails.
+  Future<List<Subject>> getSubjects() async {
+    try {
+      final response = await supabaseClient
+          .from('subjects')
+          .select('id, code, name')
+          .order('sort_order');
+      return (response as List<dynamic>)
+          .map((e) => Subject.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } on PostgrestException catch (e) {
+      throw ServerException(message: e.message);
+    } catch (e) {
+      throw ServerException(message: e.toString());
+    }
+  }
+
+  /// Searches schools by name (case-insensitive substring match).
+  ///
+  /// Throws [ServerException] if the query fails.
+  Future<List<School>> searchSchools(String query, {int limit = 20}) async {
+    try {
+      var request = supabaseClient
+          .from('schools')
+          .select('id, name, town, region');
+      final trimmed = query.trim();
+      if (trimmed.isNotEmpty) {
+        // Escape LIKE wildcards so user input is matched literally.
+        final escaped = trimmed
+            .replaceAll(r'\', r'\\')
+            .replaceAll('%', r'\%')
+            .replaceAll('_', r'\_');
+        request = request.ilike('name', '%$escaped%');
+      }
+      final response = await request.order('name').limit(limit);
+      return (response as List<dynamic>)
+          .map((e) => School.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } on PostgrestException catch (e) {
+      throw ServerException(message: e.message);
+    } catch (e) {
+      throw ServerException(message: e.toString());
+    }
+  }
+
+  /// Fetches a single school by ID, or null if it does not exist.
+  ///
+  /// Throws [ServerException] if the query fails.
+  Future<School?> getSchoolById(String id) async {
+    try {
+      final response = await supabaseClient
+          .from('schools')
+          .select('id, name, town, region')
+          .eq('id', id)
+          .maybeSingle();
+      return response == null ? null : School.fromJson(response);
+    } on PostgrestException catch (e) {
       throw ServerException(message: e.message);
     } catch (e) {
       throw ServerException(message: e.toString());

@@ -9,10 +9,13 @@ import 'package:flutter/material.dart';
 import 'package:book_bridge/l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
 import 'package:book_bridge/features/listings/presentation/widgets/listing_card.dart';
+import 'package:book_bridge/features/listings/presentation/widgets/academic_filter_bar.dart';
+import 'package:book_bridge/features/listings/presentation/widgets/radius_filter_bar.dart';
 import 'package:book_bridge/injection_container.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:book_bridge/features/listings/presentation/viewmodels/locale_viewmodel.dart';
 import 'package:provider/provider.dart';
+import 'package:book_bridge/features/payments/domain/entities/payment_purpose.dart';
 import 'package:book_bridge/features/payments/presentation/widgets/payment_bottom_sheet.dart';
 import 'package:book_bridge/features/payments/presentation/viewmodels/payment_viewmodel.dart';
 import 'package:book_bridge/core/theme/app_theme.dart';
@@ -106,6 +109,20 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         _buildSectionHeader(AppLocalizations.of(context)!.categories),
         _buildCategoriesSection(),
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: AcademicFilterBar(viewModel: viewModel),
+          ),
+        ),
+        if (viewModel.currentPosition != null)
+          SliverToBoxAdapter(
+            child: RadiusFilterBar(
+              selectedKm: viewModel.radiusKm,
+              onChanged: viewModel.setRadiusKm,
+              onOpenMap: () => context.push('/map'),
+            ),
+          ),
         if (viewModel.homeState == HomeState.error &&
             viewModel.filteredListings.isEmpty)
           SliverFillRemaining(
@@ -191,6 +208,9 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildEmptyState(HomeViewModel viewModel) {
+    if (viewModel.hasAcademicFilters) {
+      return _buildAcademicEmptyState(viewModel);
+    }
     final isFiltered = viewModel.selectedCategory != null;
     return Padding(
       padding: const EdgeInsets.all(24.0),
@@ -229,6 +249,35 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAcademicEmptyState(HomeViewModel viewModel) {
+    final l10n = AppLocalizations.of(context)!;
+    return Padding(
+      padding: const EdgeInsets.all(24.0),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(
+            Icons.filter_alt_off_rounded,
+            size: 80,
+            color: Colors.grey,
+          ),
+          const SizedBox(height: 24),
+          Text(
+            l10n.noListingsMatchFilters,
+            textAlign: TextAlign.center,
+            style: GoogleFonts.lato(fontSize: 20, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 24),
+          ElevatedButton.icon(
+            onPressed: viewModel.clearAcademicFilters,
+            icon: const Icon(Icons.clear_all_rounded),
+            label: Text(l10n.clearAll),
+          ),
         ],
       ),
     );
@@ -1111,9 +1160,6 @@ class _HomeScreenState extends State<HomeScreen> {
       onPressed: () {
         Navigator.pop(context); // close amount picker
 
-        final userId = user?.id ?? 'anonymous';
-        final timestamp = DateTime.now().millisecondsSinceEpoch;
-
         showModalBottomSheet(
           context: context,
           isScrollControlled: true,
@@ -1125,7 +1171,7 @@ class _HomeScreenState extends State<HomeScreen> {
             child: PaymentBottomSheet(
               amount: amount,
               title: AppLocalizations.of(context)!.supportBookBridge,
-              externalReference: 'donation_${userId}_$timestamp',
+              purpose: DonationPayment(amount),
               onSuccess: () {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(

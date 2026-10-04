@@ -2,6 +2,7 @@ use axum::{extract::State, Json, response::IntoResponse};
 use serde::Serialize;
 use crate::error::AppError;
 use crate::fapshi::FapshiClient;
+use crate::routes::payments::{seller_payout, MIN_AMOUNT_XAF};
 use crate::AppState;
 use sqlx::Row;
 use sqlx::PgConnection;
@@ -37,6 +38,16 @@ pub struct PollResult {
     pub error: Option<String>,
 }
 
+/// Whether a successful payment got the book.
+#[derive(Debug, PartialEq, Eq)]
+pub enum PurchaseOutcome {
+    /// The listing was marked sold and the money is held in escrow.
+    Held,
+    /// Another buyer already bought the listing. Nothing was written; the
+    /// caller must roll back and refund this buyer.
+    AlreadySold,
+}
+
 /// Shared helper function to process all database side effects for a successful book purchase.
 /// This includes marking the listing as sold, setting the transaction to 'held', upserting the escrow row,
 /// and creating the initial buyer/seller chat message.
@@ -47,9 +58,21 @@ pub async fn handle_purchase_success_db(
     seller_id: Uuid,
     tx_id: Uuid,
     now: chrono::DateTime<chrono::Utc>,
-) -> Result<(), AppError> {
-    // 1. Update listing status to 'sold'
-    sqlx::query("UPDATE listings SET status = 'sold' WHERE id = $1")
+) -> Result<PurchaseOutcome, AppError> {
+    // 1. Mark the listing sold. The row lock makes this the single point where
+    // two concurrent successful payments are ordered; only the first wins.
+    let marked = sqlx::query(
+        "UPDATE listings SET status = 'sold' \
+         WHERE id = $1 AND status IS DISTINCT FROM 'sold' RETURNING id",
+    )
+    .bind(listing_id)
+    .fetch_optional(&mut *conn)
+    .await?;
+    if marked.is_none() {
+        return Ok(PurchaseOutcome::AlreadySold);
+    }
+
+    sqlx::query("DELETE FROM listing_reservations WHERE listing_id = $1")
         .bind(listing_id)
         .execute(&mut *conn)
         .await?;
@@ -84,46 +107,93 @@ pub async fn handle_purchase_success_db(
     .execute(&mut *conn)
     .await?;
 
+    Ok(PurchaseOutcome::Held)
+}
+
+/// Marks a transaction as busy (payout or dispute) in this process; released on drop.
+/// The lock is per process, so it assumes a single service instance.
+pub(crate) struct InProgressGuard {
+    tx_id: Uuid,
+    in_progress: std::sync::Arc<std::sync::Mutex<std::collections::HashSet<Uuid>>>,
+}
+
+impl InProgressGuard {
+    pub(crate) fn claim(state: &AppState, tx_id: Uuid) -> Result<Self, AppError> {
+        let mut in_progress = state.in_progress_payouts.lock().map_err(|_| {
+            AppError::Internal("Failed to acquire in-progress lock".to_string())
+        })?;
+        if !in_progress.insert(tx_id) {
+            return Err(AppError::BadRequest(format!("Payout for transaction {} is already in progress", tx_id)));
+        }
+        Ok(Self {
+            tx_id,
+            in_progress: state.in_progress_payouts.clone(),
+        })
+    }
+}
+
+impl Drop for InProgressGuard {
+    fn drop(&mut self) {
+        if let Ok(mut lock) = self.in_progress.lock() {
+            lock.remove(&self.tx_id);
+        }
+    }
+}
+
+/// An admin's decision, recorded in `admin_actions` in the same database
+/// transaction as the status change it causes.
+pub(crate) struct AdminDecision<'a> {
+    pub admin_id: Uuid,
+    pub action: &'a str,
+    pub note: &'a str,
+}
+
+pub(crate) async fn record_admin_action(
+    conn: &mut PgConnection,
+    decision: &AdminDecision<'_>,
+    transaction_id: Option<Uuid>,
+    audit_log_id: Option<Uuid>,
+    payout_reference: Option<&str>,
+) -> Result<(), AppError> {
+    sqlx::query(
+        "INSERT INTO admin_actions (admin_id, action, transaction_id, audit_log_id, payout_reference, note) \
+         VALUES ($1, $2, $3, $4, $5, $6)",
+    )
+    .bind(decision.admin_id)
+    .bind(decision.action)
+    .bind(transaction_id)
+    .bind(audit_log_id)
+    .bind(payout_reference)
+    .bind(decision.note)
+    .execute(&mut *conn)
+    .await?;
     Ok(())
 }
 
+/// Pays the seller for a `held` escrow (buyer confirmation or deadline).
 pub async fn release_escrow(
     state: &AppState,
     tx_id: Uuid,
 ) -> Result<(), AppError> {
     // 1. Claim in-progress lock to mitigate concurrent execution / double payout risk
-    {
-        let mut in_progress = state.in_progress_payouts.lock().map_err(|_| {
-            AppError::Internal("Failed to acquire in-progress lock".to_string())
-        })?;
-        if in_progress.contains(&tx_id) {
-            return Err(AppError::BadRequest(format!("Payout for transaction {} is already in progress", tx_id)));
-        }
-        in_progress.insert(tx_id);
-    }
+    let _guard = InProgressGuard::claim(state, tx_id)?;
+    release_escrow_locked(state, tx_id, "held", None).await
+}
 
-    // Ensure we release lock on exit
-    struct LockGuard<'a> {
-        tx_id: Uuid,
-        in_progress: &'a std::sync::Mutex<std::collections::HashSet<Uuid>>,
-    }
-    impl<'a> Drop for LockGuard<'a> {
-        fn drop(&mut self) {
-            if let Ok(mut lock) = self.in_progress.lock() {
-                lock.remove(&self.tx_id);
-            }
-        }
-    }
-    let _guard = LockGuard {
-        tx_id,
-        in_progress: &state.in_progress_payouts,
-    };
-
+/// Pays the seller for an escrow whose transaction and escrow rows are both
+/// `from_status`. The caller must hold the transaction's `InProgressGuard`.
+pub(crate) async fn release_escrow_locked(
+    state: &AppState,
+    tx_id: Uuid,
+    from_status: &str,
+    admin: Option<&AdminDecision<'_>>,
+) -> Result<(), AppError> {
     let fapshi = FapshiClient::new(state.fapshi_base_url.clone());
 
-    // 2. Fetch transaction and escrow status to ensure both are in 'held' status
+    // 2. Fetch transaction and escrow status to ensure both are in `from_status`
     let tx_row = sqlx::query(
-        "SELECT t.listing_id, t.seller_id, t.amount, t.commission_amount, t.payment_reference, \
+        "SELECT t.listing_id, t.seller_id, t.amount::float8 AS amount, \
+         t.commission_amount::float8 AS commission_amount, t.payment_reference, \
          t.status as tx_status, e.status as escrow_status \
          FROM transactions t \
          JOIN escrow_transactions e ON t.id = e.transaction_id \
@@ -137,10 +207,10 @@ pub async fn release_escrow(
         Some(row) => {
             let tx_status: String = row.get("tx_status");
             let escrow_status: String = row.get("escrow_status");
-            if tx_status != "held" || escrow_status != "held" {
+            if tx_status != from_status || escrow_status != from_status {
                 return Err(AppError::BadRequest(format!(
-                    "Transaction or Escrow {} is not in 'held' status (tx: {}, escrow: {})",
-                    tx_id, tx_status, escrow_status
+                    "Transaction or Escrow {} is not in '{}' status (tx: {}, escrow: {})",
+                    tx_id, from_status, tx_status, escrow_status
                 )));
             }
             row
@@ -154,9 +224,12 @@ pub async fn release_escrow(
     let commission_amount: Option<f64> = tx.get("commission_amount");
     let payment_reference: String = tx.get("payment_reference");
 
-    // 3. Fetch seller profile
+    // 3. Fetch seller profile; the payout number lives in owner-only profiles_private
     let seller_row = sqlx::query(
-        "SELECT whatsapp_number, full_name FROM profiles WHERE id = $1"
+        "SELECT ppr.whatsapp_number, pr.full_name \
+         FROM profiles pr \
+         LEFT JOIN profiles_private ppr ON ppr.id = pr.id \
+         WHERE pr.id = $1"
     )
     .bind(seller_id)
     .fetch_optional(&state.pool)
@@ -175,7 +248,12 @@ pub async fn release_escrow(
         _ => return Err(AppError::BadRequest("Seller has no payout number configured".to_string())),
     };
 
-    let payout_amount = amount - commission_amount.unwrap_or(0.0);
+    let payout_amount = seller_payout(amount, commission_amount.unwrap_or(0.0)).ok_or_else(|| {
+        AppError::BadRequest(format!(
+            "Transaction {} is below Fapshi's {} XAF payout minimum",
+            tx_id, MIN_AMOUNT_XAF
+        ))
+    })?;
     let external_id = format!("escrow_payout_{}", payment_reference);
     let seller_name_str = full_name.unwrap_or_else(|| "BookBridge Seller".to_string());
 
@@ -196,12 +274,12 @@ pub async fn release_escrow(
     if trans_id.is_none() {
         let tid = fapshi.execute_payout(
             &state.pool,
-            tx_id,
+            Some(tx_id),
             payout_amount,
             &phone,
             &seller_name_str,
             &external_id,
-            listing_id,
+            &format!("BookBridge escrow payout for listing {}", listing_id),
         )
         .await?;
         trans_id = Some(tid);
@@ -215,21 +293,28 @@ pub async fn release_escrow(
 
     sqlx::query(
         "UPDATE escrow_transactions SET status = 'released', updated_at = $1 \
-         WHERE transaction_id = $2 AND status = 'held'"
+         WHERE transaction_id = $2 AND status = $3"
     )
     .bind(now)
     .bind(tx_id)
+    .bind(from_status)
     .execute(&mut *transaction)
     .await?;
 
     sqlx::query(
-        "UPDATE transactions SET status = 'successful', payout_status = 'successful', payout_reference = $1 \
+        "UPDATE transactions SET status = 'successful', payout_status = 'successful', payout_reference = $1, \
+         commission_amount = $3 \
          WHERE id = $2"
     )
     .bind(&trans_id_str)
     .bind(tx_id)
+    .bind(amount - payout_amount)
     .execute(&mut *transaction)
     .await?;
+
+    if let Some(decision) = admin {
+        record_admin_action(&mut transaction, decision, Some(tx_id), None, Some(&trans_id_str)).await?;
+    }
 
     transaction.commit().await?;
 
@@ -295,7 +380,8 @@ pub async fn poll_pending_handler(
     let ten_minutes_ago = Utc::now() - chrono::Duration::minutes(10);
     
     let txs = sqlx::query(
-        "SELECT id, payment_reference, listing_id, buyer_id, seller_id, amount \
+        "SELECT id, payment_reference, listing_id, buyer_id, seller_id, \
+         (amount + buyer_fee)::float8 AS amount_paid \
          FROM transactions \
          WHERE status = 'pending_payment' AND created_at <= $1"
     )
@@ -311,6 +397,7 @@ pub async fn poll_pending_handler(
         let listing_id: Uuid = row.get("listing_id");
         let buyer_id: Uuid = row.get("buyer_id");
         let seller_id: Uuid = row.get("seller_id");
+        let amount: f64 = row.try_get::<Option<f64>, _>("amount_paid")?.unwrap_or(0.0);
 
         tracing::info!("Checking Fapshi status for transaction ref: {}", reference);
 
@@ -322,39 +409,83 @@ pub async fn poll_pending_handler(
                     let now = Utc::now();
                     let mut transaction = state.pool.begin().await?;
 
-                    if let Err(e) = handle_purchase_success_db(
+                    // Claim the row so a webhook that settled it meanwhile
+                    // (or an overlapping poll) isn't processed twice.
+                    let claimed = sqlx::query(
+                        "UPDATE transactions SET status = 'held' \
+                         WHERE id = $1 AND status = 'pending_payment' RETURNING id",
+                    )
+                    .bind(tx_id)
+                    .fetch_optional(&mut *transaction)
+                    .await?;
+                    if claimed.is_none() {
+                        transaction.rollback().await?;
+                        results.push(PollResult {
+                            id: tx_id,
+                            reference: reference.clone(),
+                            status: "already_settled".to_string(),
+                            error: None,
+                        });
+                        continue;
+                    }
+
+                    let outcome = handle_purchase_success_db(
                         &mut transaction,
                         listing_id,
                         buyer_id,
                         seller_id,
                         tx_id,
                         now,
-                    ).await {
-                        tracing::error!("Error writing successful purchase updates to DB during poll: {:?}", e);
-                        transaction.rollback().await?;
-                        results.push(PollResult {
-                            id: tx_id,
-                            reference: reference.clone(),
-                            status: "error".to_string(),
-                            error: Some(e.to_string()),
-                        });
-                        continue;
-                    }
+                    ).await;
+                    let outcome = match outcome {
+                        Ok(PurchaseOutcome::AlreadySold) => {
+                            // The poller doesn't see Fapshi's externalId; this
+                            // identifies the same listing and buyer for the admin.
+                            let external_ref = format!("purchase_{listing_id}_{buyer_id}");
+                            crate::routes::webhook::fail_purchase_as_unmatched(
+                                &mut transaction, tx_id, listing_id, buyer_id, &reference, amount, &external_ref,
+                            )
+                            .await
+                            .map(|_| PurchaseOutcome::AlreadySold)
+                        }
+                        other => other,
+                    };
+                    let outcome = match outcome {
+                        Ok(outcome) => outcome,
+                        Err(e) => {
+                            tracing::error!("Error writing successful purchase updates to DB during poll: {:?}", e);
+                            transaction.rollback().await?;
+                            results.push(PollResult {
+                                id: tx_id,
+                                reference: reference.clone(),
+                                status: "error".to_string(),
+                                error: Some(e.to_string()),
+                            });
+                            continue;
+                        }
+                    };
 
                     transaction.commit().await?;
 
+                    let status = match outcome {
+                        PurchaseOutcome::Held => "held",
+                        PurchaseOutcome::AlreadySold => "already_sold",
+                    };
                     results.push(PollResult {
                         id: tx_id,
                         reference: reference.clone(),
-                        status: "held".to_string(),
+                        status: status.to_string(),
                         error: None,
                     });
                 } else if status_upper == "FAILED" || status_upper == "EXPIRED" {
                     // Mark transaction as failed
-                    sqlx::query("UPDATE transactions SET status = 'failed' WHERE id = $1")
+                    let failed = sqlx::query("UPDATE transactions SET status = 'failed' WHERE id = $1 AND status = 'pending_payment'")
                         .bind(tx_id)
                         .execute(&state.pool)
                         .await?;
+                    if failed.rows_affected() > 0 {
+                        crate::routes::payments::release_reservation(&state.pool, listing_id, buyer_id).await?;
+                    }
 
                     results.push(PollResult {
                         id: tx_id,

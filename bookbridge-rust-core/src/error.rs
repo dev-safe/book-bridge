@@ -1,5 +1,5 @@
 use axum::{
-    http::StatusCode,
+    http::{header::RETRY_AFTER, HeaderValue, StatusCode},
     response::{IntoResponse, Response},
     Json,
 };
@@ -26,8 +26,23 @@ pub enum AppError {
     #[error("Bad Request: {0}")]
     BadRequest(String),
 
+    #[error("Forbidden: {0}")]
+    Forbidden(String),
+
+    #[error("Not found: {0}")]
+    NotFound(String),
+
+    #[error("Conflict: {0}")]
+    Conflict(String),
+
+    #[error("Auth service error: {0}")]
+    AuthService(String),
+
     #[error("Internal server error: {0}")]
     Internal(String),
+
+    #[error("Too many requests; retry after {retry_after_secs}s")]
+    TooManyRequests { retry_after_secs: u64 },
 }
 
 impl IntoResponse for AppError {
@@ -35,7 +50,10 @@ impl IntoResponse for AppError {
         let (status, error_message) = match &self {
             AppError::Database(e) => {
                 tracing::error!("Database error: {:?}", e);
-                (StatusCode::INTERNAL_SERVER_ERROR, "Database error".to_string())
+                (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    "Database error".to_string(),
+                )
             }
             AppError::Reqwest(e) => {
                 tracing::error!("Reqwest error: {:?}", e);
@@ -43,7 +61,10 @@ impl IntoResponse for AppError {
             }
             AppError::Json(e) => {
                 tracing::error!("JSON serialization error: {:?}", e);
-                (StatusCode::BAD_REQUEST, "Malformed JSON request".to_string())
+                (
+                    StatusCode::BAD_REQUEST,
+                    "Malformed JSON request".to_string(),
+                )
             }
             AppError::Unauthorized(msg) => {
                 tracing::warn!("Unauthorized access: {}", msg);
@@ -57,16 +78,45 @@ impl IntoResponse for AppError {
                 tracing::warn!("Bad request: {}", msg);
                 (StatusCode::BAD_REQUEST, msg.clone())
             }
+            AppError::Forbidden(msg) => {
+                tracing::warn!("Forbidden: {}", msg);
+                (StatusCode::FORBIDDEN, msg.clone())
+            }
+            AppError::NotFound(msg) => {
+                tracing::warn!("Not found: {}", msg);
+                (StatusCode::NOT_FOUND, msg.clone())
+            }
+            AppError::Conflict(msg) => {
+                tracing::warn!("Conflict: {}", msg);
+                (StatusCode::CONFLICT, msg.clone())
+            }
+            AppError::AuthService(msg) => {
+                tracing::error!("Auth service error: {}", msg);
+                (
+                    StatusCode::BAD_GATEWAY,
+                    "Authentication service unavailable".to_string(),
+                )
+            }
             AppError::Internal(msg) => {
                 tracing::error!("Internal error: {}", msg);
                 (StatusCode::INTERNAL_SERVER_ERROR, msg.clone())
             }
+            AppError::TooManyRequests { retry_after_secs } => (
+                StatusCode::TOO_MANY_REQUESTS,
+                format!("Too many requests. Please wait {retry_after_secs} seconds and try again."),
+            ),
         };
 
         let body = Json(json!({
             "error": error_message,
         }));
 
-        (status, body).into_response()
+        let mut response = (status, body).into_response();
+        if let AppError::TooManyRequests { retry_after_secs } = self {
+            response
+                .headers_mut()
+                .insert(RETRY_AFTER, HeaderValue::from(retry_after_secs));
+        }
+        response
     }
 }

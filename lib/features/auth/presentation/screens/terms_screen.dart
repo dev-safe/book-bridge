@@ -125,10 +125,10 @@ class TermsScreen extends StatelessWidget {
                   _buildTermCard(
                     context: context,
                     icon: Icons.monetization_on_outlined,
-                    title: '3. Payments & Commission Disclosure',
+                    title: '3. Payments & Fee Disclosure',
                     color: Colors.green.shade700,
                     content:
-                        'Payments are handled securely via our Fapshi payment integration using MTN Mobile Money or Orange Money. To keep BookBridge running and free of intrusive ads, a small success fee/commission of 5% to 15% is deducted from the seller\'s payout at transaction clearance. Refunds are available if a listing is verified as fraudulent before handover.',
+                        'Payments are handled securely via our Fapshi payment integration using MTN Mobile Money or Orange Money. Buyers pay a 6% service fee on top of the book price at checkout, which covers mobile money processing and keeps BookBridge running free of intrusive ads. Sellers receive the full sale price; nothing is deducted from their payout. Refunds are available if a listing is verified as fraudulent before handover.',
                   ),
 
                   // Section 4: Safety & Meetups

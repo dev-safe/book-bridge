@@ -7,10 +7,11 @@ import 'package:book_bridge/features/auth/presentation/screens/complete_profile_
 import 'package:book_bridge/features/auth/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:book_bridge/features/listings/presentation/screens/home_screen.dart';
 import 'package:book_bridge/features/listings/presentation/screens/listing_details_screen.dart';
+import 'package:book_bridge/features/listings/presentation/screens/map_screen.dart';
 import 'package:book_bridge/features/listings/presentation/screens/sell_screen.dart';
 import 'package:book_bridge/features/listings/presentation/screens/profile_screen.dart';
 import 'package:book_bridge/features/listings/presentation/screens/my_books_screen.dart';
-import 'package:book_bridge/features/listings/presentation/screens/categories_screen.dart';
+import 'package:book_bridge/features/listings/presentation/screens/discover_screen.dart';
 import 'package:book_bridge/core/presentation/widgets/scaffold_with_navbar.dart';
 import 'package:book_bridge/features/auth/presentation/screens/edit_profile_screen.dart';
 import 'package:book_bridge/features/notifications/presentation/screens/notifications_screen.dart';
@@ -29,9 +30,21 @@ import 'package:book_bridge/features/chat/presentation/screens/chat_screen.dart'
 import 'package:book_bridge/features/chat/presentation/viewmodels/chat_viewmodel.dart';
 import 'package:book_bridge/features/transactions/presentation/screens/transaction_history_screen.dart';
 import 'package:book_bridge/features/transactions/presentation/viewmodels/transaction_history_viewmodel.dart';
+import 'package:book_bridge/features/admin/presentation/screens/admin_screen.dart';
+import 'package:book_bridge/features/admin/presentation/viewmodels/admin_viewmodel.dart';
 import 'package:book_bridge/injection_container.dart' as di;
 
 final routerKey = GlobalKey<NavigatorState>();
+
+/// Shared listing link opened before sign-in / profile completion; resumed
+/// once the user lands in the app instead of dropping them on /home.
+String? _pendingDeepLink;
+
+void _rememberDeepLink(String location) {
+  if (location.startsWith('/listing/') || location.startsWith('/l/')) {
+    _pendingDeepLink = location;
+  }
+}
 
 /// App router configuration using go_router.
 ///
@@ -62,6 +75,7 @@ final appRouter = GoRouter(
 
     // If not authenticated and not going to auth screen, redirect to sign-in
     if (!isAuthenticated && !isGoingToAuth) {
+      _rememberDeepLink(location);
       debugPrint('Router: Redirecting unauthenticated user to /sign-in');
       return '/sign-in';
     }
@@ -70,6 +84,7 @@ final appRouter = GoRouter(
     if (isAuthenticated) {
       // 1. Check if profile is incomplete
       if (!authViewModel.isProfileComplete && location != '/complete-profile') {
+        _rememberDeepLink(location);
         debugPrint('Router: Redirecting to /complete-profile');
         return '/complete-profile';
       }
@@ -79,8 +94,10 @@ final appRouter = GoRouter(
           (isGoingToAuth ||
               location == '/' ||
               location == '/complete-profile')) {
-        debugPrint('Router: Redirecting to /home');
-        return '/home';
+        final pending = _pendingDeepLink;
+        _pendingDeepLink = null;
+        debugPrint('Router: Redirecting to ${pending ?? '/home'}');
+        return pending ?? '/home';
       }
     }
 
@@ -133,13 +150,13 @@ final appRouter = GoRouter(
           ],
         ),
 
-        // Categories Branch (index 1)
+        // Discover Branch (index 1)
         StatefulShellBranch(
           routes: [
             GoRoute(
-              path: '/categories',
-              name: 'categories',
-              builder: (context, state) => const CategoriesScreen(),
+              path: '/discover',
+              name: 'discover',
+              builder: (context, state) => const DiscoverScreen(),
             ),
           ],
         ),
@@ -183,6 +200,13 @@ final appRouter = GoRouter(
       ],
     ),
 
+    // Nearby map (Full Screen, outside shell)
+    GoRoute(
+      path: '/map',
+      name: 'map',
+      builder: (context, state) => const MapScreen(),
+    ),
+
     // Listing Details Route (Full Screen, outside shell)
     GoRoute(
       path: '/listing/:id',
@@ -191,6 +215,12 @@ final appRouter = GoRouter(
         final listingId = state.pathParameters['id']!;
         return ListingDetailsScreen(listingId: listingId);
       },
+    ),
+
+    // Public share link (#35): https://bookbridge.devsafe.cm/l/<id>
+    GoRoute(
+      path: '/l/:id',
+      redirect: (context, state) => '/listing/${state.pathParameters['id']}',
     ),
 
     // My Books Route (Full Screen, outside shell — accessible from Profile)
@@ -287,6 +317,15 @@ final appRouter = GoRouter(
           child: const TransactionHistoryScreen(),
         );
       },
+    ),
+    // Admin dispute resolution (entry: long-press About on Profile)
+    GoRoute(
+      path: '/admin',
+      name: 'admin',
+      builder: (context, state) => ChangeNotifierProvider(
+        create: (_) => di.getIt<AdminViewModel>()..open(),
+        child: const AdminScreen(),
+      ),
     ),
     // Seller Public Profile Route
     GoRoute(

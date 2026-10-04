@@ -12,7 +12,15 @@ class Listing extends Equatable {
   final int priceFcfa;
   final BookCondition condition;
 
+  /// Maximum number of photos per listing.
+  static const int maxImages = 3;
+
+  /// Cover photo; always equals the first entry of [imageUrls] when set.
   final String imageUrl;
+
+  /// All photos, cover first (up to [maxImages]). Empty for legacy rows
+  /// and the offline cache; use [gallery] for display.
+  final List<String> imageUrls;
   final String sellerId;
   final String description;
   final String status; // 'available', 'sold'
@@ -31,7 +39,6 @@ class Listing extends Equatable {
   // Seller info (populated from join)
   final String? sellerName;
   final String? sellerLocality;
-  final String? sellerWhatsapp;
   final String? sellerAvatarUrl;
   final double? sellerRating;
   final int? sellerReviewCount;
@@ -40,6 +47,19 @@ class Listing extends Equatable {
   final double? latitude;
   final double? longitude;
 
+  // Academic classification (labels populated from lookup-table joins)
+  final String? classLevelId;
+  final String? classLevelLabel;
+  final String? subjectId;
+  final String? subjectName;
+  final String? schoolId;
+  final String? schoolName;
+
+  // Seller-chosen meetup spot (#33); the pin is optional and pre-rounded.
+  final String? meetupSpot;
+  final double? meetupLatitude;
+  final double? meetupLongitude;
+
   const Listing({
     required this.id,
     required this.title,
@@ -47,6 +67,7 @@ class Listing extends Equatable {
     required this.priceFcfa,
     required this.condition,
     required this.imageUrl,
+    this.imageUrls = const [],
     required this.description,
     required this.sellerId,
     required this.status,
@@ -61,13 +82,31 @@ class Listing extends Equatable {
     this.expiresAt,
     this.sellerName,
     this.sellerLocality,
-    this.sellerWhatsapp,
     this.sellerAvatarUrl,
     this.sellerRating,
     this.sellerReviewCount,
     this.latitude,
     this.longitude,
+    this.classLevelId,
+    this.classLevelLabel,
+    this.subjectId,
+    this.subjectName,
+    this.schoolId,
+    this.schoolName,
+    this.meetupSpot,
+    this.meetupLatitude,
+    this.meetupLongitude,
   });
+
+  /// Whether the seller dropped a map pin for the meetup spot.
+  bool get hasMeetupPin => meetupLatitude != null && meetupLongitude != null;
+
+  /// Photos to display, cover first, falling back to the cover alone.
+  List<String> get gallery {
+    if (imageUrls.isNotEmpty) return imageUrls;
+    if (imageUrl.isNotEmpty) return [imageUrl];
+    return const [];
+  }
 
   @override
   List<Object?> get props => [
@@ -77,6 +116,7 @@ class Listing extends Equatable {
     priceFcfa,
     condition,
     imageUrl,
+    imageUrls,
     description,
     sellerId,
     status,
@@ -91,11 +131,19 @@ class Listing extends Equatable {
     expiresAt,
     sellerName,
     sellerLocality,
-    sellerWhatsapp,
     sellerAvatarUrl,
     sellerRating,
     sellerReviewCount,
     latitude,
     longitude,
+    classLevelId,
+    classLevelLabel,
+    subjectId,
+    subjectName,
+    schoolId,
+    schoolName,
+    meetupSpot,
+    meetupLatitude,
+    meetupLongitude,
   ];
 }

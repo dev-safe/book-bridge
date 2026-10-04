@@ -198,7 +198,7 @@
   "feedback": "Feedback",
   "contactUs": "Contact Us",
   "inviteFriends": "Invite friends",
-  "inviteMessage": "Join me on BookBridge, the peer-to-peer marketplace for used books in Cameroon! 📚✨\n\nDownload or visit us at: https://book-bridge-three.vercel.app/",
+  "inviteMessage": "Join me on BookBridge, the peer-to-peer marketplace for used books in Cameroon! 📚✨\n\nDownload or visit us at: https://bookbridge.devsafe.cm/",
   "inviteSubject": "Invite to BookBridge",
   "aboutBookBridge": "About BookBridge",
   "unknownLocation": "Unknown Location",
@@ -286,7 +286,7 @@
   "termsResponsibilitiesTitle": "3. User Responsibilities",
   "termsResponsibilitiesContent": "You must provide accurate information when creating an account and listing books. You are prohibited from posting content that is illegal, offensive, or infringing on the rights of others.",
   "termsPaymentsTitle": "4. Payments",
-  "termsPaymentsContent": "Payments for books are generally handled in cash upon delivery or via direct mobile money transfer between the buyer and seller. BookBridge may offer integrated payment solutions (like Fapshi) for specific services or donations.",
+  "termsPaymentsContent": "Payments for books are generally handled in cash upon delivery or via direct mobile money transfer between the buyer and seller. BookBridge may offer integrated payment solutions (like Fapshi) for specific services or donations. Free sellers may have up to 3 active listings at a time. The optional Power Seller subscription (500 FCFA for 30 days, paid via Fapshi) removes this limit; it does not renew automatically and is non-refundable once activated.",
   "termsLiabilityTitle": "5. Limitation of Liability",
   "termsLiabilityContent": "BookBridge is provided \"as is\" without any warranties. We are not liable for any disputes, losses, or damages arising from your use of the application or transactions with other users.",
   "termsChangesTitle": "6. Changes to Terms",
@@ -307,7 +307,7 @@
   "faqHowToListQ": "How do I list a book for sale?",
   "faqHowToListA": "Tap the \"Sell\" button in the bottom navigation bar. Upload a clear photo of the book, enter the title, author, price, and condition, then submit the listing.",
   "faqSellingFeesQ": "Is there a fee for selling?",
-  "faqSellingFeesA": "Currently, listing books on BookBridge is free for individual students. We want to make it as easy as possible for you to recycle your educational resources.",
+  "faqSellingFeesA": "Listing books on BookBridge is free, and sellers receive the full sale price. Buyers pay a 6% service fee on top of the book price at checkout, which covers mobile money processing and keeps BookBridge running.",
   "faqBuyBackEligibleQ": "What is \"Buy-Back Eligible\"?",
   "faqBuyBackEligibleA": "Some listings from verified bookshops or the platform itself may be eligible for buy-back. This means you can sell the book back to the source at a pre-determined price once you're finished with it.",
   "faqSafetyCategory": "Safety & Trust",
@@ -325,6 +325,25 @@
   },
   "phoneNumberLabel": "Phone Number (6xx...)",
   "phoneNumberHint": "e.g. 677777777",
+  "bookPriceLabel": "Book price: {amount} FCFA",
+  "@bookPriceLabel": {
+    "placeholders": {
+      "amount": {
+        "type": "Object"
+      }
+    }
+  },
+  "serviceFeeLabel": "Service fee ({percent}%): {amount} FCFA",
+  "@serviceFeeLabel": {
+    "placeholders": {
+      "percent": {
+        "type": "Object"
+      },
+      "amount": {
+        "type": "Object"
+      }
+    }
+  },
   "fieldRequired": "Required",
   "invalidNumber": "Invalid number",
   "payNow": "Pay Now",
@@ -412,5 +431,75 @@
   "notifNewInquiryLabel": "New Message",
   "notifImpactMilestoneLabel": "Milestone Reached",
   "notifWelcomeLabel": "Welcome",
-  "tapToViewListing": "Tap to view listing"
+  "tapToViewListing": "Tap to view listing",
+  "classLevelLabel": "Class level",
+  "subjectLabel": "Subject",
+  "schoolLabel": "School",
+  "selectClassLevelHint": "Select class level",
+  "selectSubjectHint": "Select subject",
+  "selectSchoolOptionalHint": "Select school (optional)",
+  "searchSchoolsHint": "Search schools",
+  "noSchoolsFound": "No schools found",
+  "anyClassLevel": "Any class level",
+  "anySubject": "Any subject",
+  "anySchool": "Any school",
+  "noSchool": "No school",
+  "mySchoolLabel": "My school",
+  "classLevelRequired": "Please select a class level",
+  "subjectRequired": "Please select a subject",
+  "noListingsMatchFilters": "No books match these filters",
+  "radiusAny": "Any distance",
+  "withinKm": "Within {km} km",
+  "@withinKm": {
+    "placeholders": {
+      "km": {"type": "String"}
+    }
+  },
+  "mapViewTitle": "Books near you",
+  "showOnMap": "Map",
+  "yourLocation": "Your location",
+  "noBooksWithinRadius": "No books with a pickup location in this area",
+  "mapNeedsLocation": "Turn on location in Settings to see books near you on the map.",
+  "coverPhotoLabel": "Cover",
+  "addPhoto": "Add photo",
+  "removePhoto": "Remove photo",
+  "photoCountHint": "Up to {max} photos. Tap a photo to make it the cover.",
+  "@photoCountHint": {
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "photoOfTotal": "Photo {index} of {total}",
+  "@photoOfTotal": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "meetupSpotFieldLabel": "Meetup spot (optional)",
+  "meetupSpotFieldHint": "e.g. Main gate, Amphi 700, library entrance",
+  "meetupSuggestionsLabel": "Suggested safe spots",
+  "meetupPinDrop": "Drop a map pin",
+  "meetupPinChange": "Change pin",
+  "meetupPinRemove": "Remove pin",
+  "meetupSafetyHint": "Pick a busy public place on campus. Never share your home address. Agree on changes in chat.",
+  "meetupPinPickerTitle": "Choose meetup spot",
+  "meetupPinPickerHint": "Tap the map to place the pin, then tap Confirm.",
+  "meetupPinConfirm": "Confirm",
+  "meetupSpotLabel": "Meetup spot",
+  "meetupPinOnly": "Pinned on map",
+  "meetupOpenMapsFailed": "Could not open maps",
+  "shareTextSchool": "School",
+  "shareTextViewListing": "See photos and buy safely on BookBridge:",
+  "powerSellerBadge": "Power Seller",
+  "powerSellerCardTitle": "Become a Power Seller",
+  "powerSellerCardSubtitle": "Unlimited listings · 500 FCFA / 30 days",
+  "powerSellerUpgradeError": "Could not start the upgrade. Please try again.",
+  "freeTierLimitReached": "Free sellers can have up to 3 active listings. Upgrade to Power Seller on your Profile for unlimited listings."
 }

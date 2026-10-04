@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:book_bridge/core/utils/geo_radius.dart';
 import 'package:book_bridge/features/listings/domain/entities/listing.dart';
 import 'package:book_bridge/features/listings/domain/repositories/listing_repository.dart';
 import 'package:book_bridge/features/listings/domain/usecases/get_listings_usecase.dart';
+import 'package:book_bridge/features/listings/presentation/viewmodels/academic_filters_mixin.dart';
 import 'package:book_bridge/features/listings/presentation/viewmodels/location_viewmodel.dart';
 import 'package:book_bridge/features/impact/domain/entities/platform_stats.dart';
 import 'package:book_bridge/features/impact/domain/usecases/get_platform_stats_usecase.dart';
@@ -13,7 +15,7 @@ enum HomeState { initial, loading, loaded, error }
 /// ViewModel for managing the home feed state and operations.
 ///
 /// This ChangeNotifier manages fetching and displaying listings.
-class HomeViewModel extends ChangeNotifier {
+class HomeViewModel extends ChangeNotifier with AcademicFiltersMixin {
   final GetListingsUseCase getListingsUseCase;
   final LocationViewModel locationViewModel;
   final ListingRepository listingRepository;
@@ -29,6 +31,7 @@ class HomeViewModel extends ChangeNotifier {
   String? _selectedCategory;
   String _searchQuery = '';
   Position? _currentPosition;
+  double? _radiusKm;
   bool _shouldScrollToResults = false;
   bool _isOffline = false;
   PlatformStats? _platformStats;
@@ -49,14 +52,21 @@ class HomeViewModel extends ChangeNotifier {
   /// cache because the device is offline or the remote fetch failed.
   bool get isOffline => _isOffline;
 
-  /// Returns filtered listings based on search query
+  /// Selected search radius in km; null means "Any" (no distance filter).
+  double? get radiusKm => _radiusKm;
+
+  /// Whether a distance filter is currently narrowing the results.
+  bool get isRadiusActive => _radiusKm != null && _currentPosition != null;
+
+  /// Returns filtered listings based on search query and distance radius.
   List<Listing> get filteredListings {
+    final withinRadius = _applyRadius(_listings);
     if (_searchQuery.isEmpty) {
-      return _listings;
+      return withinRadius;
     }
 
     final query = _searchQuery.toLowerCase();
-    return _listings.where((listing) {
+    return withinRadius.where((listing) {
       return listing.title.toLowerCase().contains(query) ||
           listing.author.toLowerCase().contains(query);
     }).toList();
@@ -69,7 +79,7 @@ class HomeViewModel extends ChangeNotifier {
       return [];
     }
 
-    final List<Listing> sortedListings = List.from(_listings);
+    final List<Listing> sortedListings = List.from(_applyRadius(_listings));
     sortedListings.sort((a, b) {
       if (a.latitude == null || a.longitude == null) return 1;
       if (b.latitude == null || b.longitude == null) return -1;
@@ -91,6 +101,15 @@ class HomeViewModel extends ChangeNotifier {
     return sortedListings;
   }
 
+  @override
+  ListingRepository get academicRepository => listingRepository;
+
+  @override
+  Future<void> onAcademicFiltersChanged() async {
+    if (hasAcademicFilters) _shouldScrollToResults = true;
+    await _loadInitialListings();
+  }
+
   HomeViewModel({
     required this.getListingsUseCase,
     required this.locationViewModel,
@@ -98,6 +117,7 @@ class HomeViewModel extends ChangeNotifier {
     required this.getPlatformStatsUseCase,
   }) {
     _loadInitialListings();
+    loadAcademicLookups();
     if (locationViewModel.locationEnabled) _fetchLocation();
     // Re-fetch (or clear) location whenever the toggle changes.
     locationViewModel.addListener(_onLocationPreferenceChanged);
@@ -108,8 +128,33 @@ class HomeViewModel extends ChangeNotifier {
       _fetchLocation();
     } else {
       _currentPosition = null;
+      _radiusKm = null;
       notifyListeners();
     }
+  }
+
+  /// Sets the distance radius in km; pass null for "Any".
+  void setRadiusKm(double? km) {
+    if (_radiusKm == km) return;
+    _radiusKm = km;
+    notifyListeners();
+  }
+
+  @visibleForTesting
+  void setCurrentPositionForTesting(Position? position) {
+    _currentPosition = position;
+    notifyListeners();
+  }
+
+  List<Listing> _applyRadius(List<Listing> listings) {
+    return filterWithinRadius<Listing>(
+      items: listings,
+      originLat: _currentPosition?.latitude,
+      originLng: _currentPosition?.longitude,
+      radiusKm: _radiusKm,
+      latOf: (l) => l.latitude,
+      lngOf: (l) => l.longitude,
+    );
   }
 
   /// Public method to manually refresh GPS (e.g., pull-to-refresh).
@@ -152,6 +197,7 @@ class HomeViewModel extends ChangeNotifier {
     final params = GetListingsParams(
       status: 'available',
       category: _selectedCategory,
+      filters: academicFilters,
       limit: _pageSize,
       offset: offset,
     );

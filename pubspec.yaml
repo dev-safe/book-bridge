@@ -29,10 +29,12 @@ dependencies:
   timeago: ^3.7.1
   http: ^1.6.0
   geolocator: ^14.0.2
-  font_awesome_flutter: ^10.12.0
+  font_awesome_flutter: ^11.0.0
   firebase_core: ^4.5.0
   firebase_messaging: ^16.1.2
   flutter_local_notifications: ^21.0.0
+  flutter_map: ^8.3.2
+  latlong2: ^0.10.1
 
 dev_dependencies:
   flutter_test:

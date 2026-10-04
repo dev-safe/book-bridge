@@ -5,6 +5,10 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:book_bridge/features/listings/presentation/viewmodels/profile_viewmodel.dart';
 import 'package:book_bridge/l10n/app_localizations.dart';
+import 'package:book_bridge/features/listings/domain/entities/academic_lookups.dart';
+import 'package:book_bridge/features/listings/domain/repositories/listing_repository.dart';
+import 'package:book_bridge/features/listings/presentation/widgets/academic_filter_bar.dart';
+import 'package:book_bridge/injection_container.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -22,6 +26,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   // Save reference to avoid accessing context in dispose()
   late ProfileViewModel _profileViewModel;
 
+  final ListingRepository _listingRepository = getIt<ListingRepository>();
+  School? _school;
+  bool _schoolChanged = false;
+
   @override
   void initState() {
     super.initState();
@@ -38,6 +46,32 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
     // Add a listener to handle UI feedback after profile update
     _profileViewModel.addListener(_onProfileStateChanged);
+    _loadCurrentSchool();
+  }
+
+  Future<void> _loadCurrentSchool() async {
+    final schoolId = _profileViewModel.currentUser?.schoolId;
+    if (schoolId == null) return;
+    final result = await _listingRepository.getSchoolById(schoolId);
+    if (!mounted || _schoolChanged) return;
+    result.fold((_) {}, (school) => setState(() => _school = school));
+  }
+
+  Future<void> _pickSchool() async {
+    final l10n = AppLocalizations.of(context)!;
+    final pick = await showSchoolPicker(
+      context,
+      searchSchools: (query) async => (await _listingRepository.searchSchools(
+        query,
+      )).getOrElse(() => const []),
+      selected: _school,
+      clearLabel: l10n.noSchool,
+    );
+    if (pick == null || !mounted) return;
+    setState(() {
+      _school = pick.value;
+      _schoolChanged = true;
+    });
   }
 
   @override
@@ -245,6 +279,19 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     ),
                     keyboardType: TextInputType.phone,
                   ),
+                  const SizedBox(height: 16),
+                  Text(
+                    AppLocalizations.of(context)!.mySchoolLabel,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                  const SizedBox(height: 4),
+                  PickerFormField(
+                    value: _school?.displayName,
+                    hint: AppLocalizations.of(
+                      context,
+                    )!.selectSchoolOptionalHint,
+                    onTap: profileViewModel.isLoading ? null : _pickSchool,
+                  ),
                   const SizedBox(height: 32),
                   ElevatedButton(
                     onPressed: profileViewModel.isLoading
@@ -255,6 +302,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                 fullName: _fullNameController.text.trim(),
                                 locality: _localityController.text.trim(),
                                 whatsappNumber: _whatsappController.text.trim(),
+                                schoolId: _schoolChanged ? _school?.id : null,
+                                clearSchool: _schoolChanged && _school == null,
                               );
                             }
                           },
