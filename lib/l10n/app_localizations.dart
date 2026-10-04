@@ -2524,6 +2524,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Turn on location in Settings to see books near you on the map.'**
   String get mapNeedsLocation;
+
+  /// No description provided for @coverPhotoLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cover'**
+  String get coverPhotoLabel;
+
+  /// No description provided for @addPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Add photo'**
+  String get addPhoto;
+
+  /// No description provided for @removePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove photo'**
+  String get removePhoto;
+
+  /// No description provided for @photoCountHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Up to {max} photos. Tap a photo to make it the cover.'**
+  String photoCountHint(int max);
+
+  /// No description provided for @photoOfTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo {index} of {total}'**
+  String photoOfTotal(int index, int total);
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

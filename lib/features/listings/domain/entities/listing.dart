@@ -12,7 +12,15 @@ class Listing extends Equatable {
   final int priceFcfa;
   final BookCondition condition;
 
+  /// Maximum number of photos per listing.
+  static const int maxImages = 3;
+
+  /// Cover photo; always equals the first entry of [imageUrls] when set.
   final String imageUrl;
+
+  /// All photos, cover first (up to [maxImages]). Empty for legacy rows
+  /// and the offline cache; use [gallery] for display.
+  final List<String> imageUrls;
   final String sellerId;
   final String description;
   final String status; // 'available', 'sold'
@@ -54,6 +62,7 @@ class Listing extends Equatable {
     required this.priceFcfa,
     required this.condition,
     required this.imageUrl,
+    this.imageUrls = const [],
     required this.description,
     required this.sellerId,
     required this.status,
@@ -81,6 +90,13 @@ class Listing extends Equatable {
     this.schoolName,
   });
 
+  /// Photos to display, cover first, falling back to the cover alone.
+  List<String> get gallery {
+    if (imageUrls.isNotEmpty) return imageUrls;
+    if (imageUrl.isNotEmpty) return [imageUrl];
+    return const [];
+  }
+
   @override
   List<Object?> get props => [
     id,
@@ -89,6 +105,7 @@ class Listing extends Equatable {
     priceFcfa,
     condition,
     imageUrl,
+    imageUrls,
     description,
     sellerId,
     status,

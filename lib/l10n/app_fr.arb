@@ -451,5 +451,10 @@
   "showOnMap": "Carte",
   "yourLocation": "Votre position",
   "noBooksWithinRadius": "Aucun livre avec un lieu de retrait dans cette zone",
-  "mapNeedsLocation": "Activez la localisation dans les Paramètres pour voir les livres proches sur la carte."
+  "mapNeedsLocation": "Activez la localisation dans les Paramètres pour voir les livres proches sur la carte.",
+  "coverPhotoLabel": "Couverture",
+  "addPhoto": "Ajouter une photo",
+  "removePhoto": "Retirer la photo",
+  "photoCountHint": "Jusqu'à {max} photos. Touchez une photo pour en faire la couverture.",
+  "photoOfTotal": "Photo {index} sur {total}"
 }

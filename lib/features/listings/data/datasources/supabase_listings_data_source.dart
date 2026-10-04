@@ -221,6 +221,7 @@ class SupabaseListingsDataSource {
     required int priceFcfa,
     required BookCondition condition,
     required String imageUrl,
+    List<String> imageUrls = const [],
     String? description,
     String? category,
     String sellerType = 'individual',
@@ -245,7 +246,8 @@ class SupabaseListingsDataSource {
             'author': author,
             'price_fcfa': priceFcfa,
             'condition': condition.value,
-            'image_url': imageUrl,
+            'image_url': imageUrls.isEmpty ? imageUrl : imageUrls.first,
+            'image_urls': imageUrls.isEmpty ? [imageUrl] : imageUrls,
             'description': description,
             'category': category,
             'seller_id': userId,
@@ -299,6 +301,7 @@ class SupabaseListingsDataSource {
     int? priceFcfa,
     BookCondition? condition,
     String? imageUrl,
+    List<String>? imageUrls,
     String? description,
     String? category,
     String? sellerType,
@@ -317,7 +320,12 @@ class SupabaseListingsDataSource {
       if (author != null) updates['author'] = author;
       if (priceFcfa != null) updates['price_fcfa'] = priceFcfa;
       if (condition != null) updates['condition'] = condition.value;
-      if (imageUrl != null) updates['image_url'] = imageUrl;
+      if (imageUrls != null && imageUrls.isNotEmpty) {
+        updates['image_urls'] = imageUrls;
+        updates['image_url'] = imageUrls.first;
+      } else if (imageUrl != null) {
+        updates['image_url'] = imageUrl;
+      }
       if (description != null) updates['description'] = description;
       if (category != null) updates['category'] = category;
       if (sellerType != null) updates['seller_type'] = sellerType;

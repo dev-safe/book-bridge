@@ -19,6 +19,7 @@ class CreateListingUseCase implements UseCase<Listing, CreateListingParams> {
       priceFcfa: params.priceFcfa,
       condition: params.condition,
       imageUrl: params.imageUrl,
+      imageUrls: params.imageUrls,
       description: params.description,
       category: params.category,
       sellerType: params.sellerType,
@@ -40,6 +41,9 @@ class CreateListingParams {
   final int priceFcfa;
   final BookCondition condition;
   final String imageUrl;
+
+  /// All photos, cover first. Empty means just [imageUrl].
+  final List<String> imageUrls;
   final String? description;
   final String? category;
   final String sellerType;
@@ -57,6 +61,7 @@ class CreateListingParams {
     required this.priceFcfa,
     required this.condition,
     required this.imageUrl,
+    this.imageUrls = const [],
     this.description,
     this.category,
     this.sellerType = 'individual',

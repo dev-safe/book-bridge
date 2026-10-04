@@ -35,7 +35,7 @@ class SellViewModel extends ChangeNotifier with AcademicFiltersMixin {
   String? _author;
   int? _priceFcfa;
   BookCondition _condition = BookCondition.good;
-  String? _imageUrl;
+  List<String> _imageUrls = const [];
   String? _description;
   String? _category;
   String _sellerType = 'individual';
@@ -90,7 +90,15 @@ class SellViewModel extends ChangeNotifier with AcademicFiltersMixin {
   String? get author => _author;
   int? get priceFcfa => _priceFcfa;
   BookCondition get condition => _condition;
-  String? get imageUrl => _imageUrl;
+
+  /// The cover photo (first image), or null when none has been added.
+  String? get imageUrl => _imageUrls.isEmpty ? null : _imageUrls.first;
+
+  /// All photos, cover first.
+  List<String> get imageUrls => _imageUrls;
+
+  /// Whether another photo can be added (cap: [Listing.maxImages]).
+  bool get canAddImage => _imageUrls.length < Listing.maxImages;
   String? get description => _description;
   String? get category => _category;
   String get sellerType => _sellerType;
@@ -121,9 +129,37 @@ class SellViewModel extends ChangeNotifier with AcademicFiltersMixin {
     notifyListeners();
   }
 
-  /// Updates the image URL field.
+  /// Sets the cover photo, replacing the current cover if there is one.
   void setImageUrl(String imageUrl) {
-    _imageUrl = imageUrl;
+    _imageUrls = List.unmodifiable([imageUrl, ..._imageUrls.skip(1)]);
+    notifyListeners();
+  }
+
+  /// Appends a photo; ignored once [Listing.maxImages] is reached.
+  void addImageUrl(String imageUrl) {
+    if (!canAddImage) return;
+    _imageUrls = List.unmodifiable([..._imageUrls, imageUrl]);
+    notifyListeners();
+  }
+
+  /// Removes the photo at [index]; the next photo becomes the cover.
+  void removeImageAt(int index) {
+    if (index < 0 || index >= _imageUrls.length) return;
+    _imageUrls = List.unmodifiable([
+      for (var i = 0; i < _imageUrls.length; i++)
+        if (i != index) _imageUrls[i],
+    ]);
+    notifyListeners();
+  }
+
+  /// Moves the photo at [index] to the front so it becomes the cover.
+  void setCoverAt(int index) {
+    if (index <= 0 || index >= _imageUrls.length) return;
+    _imageUrls = List.unmodifiable([
+      _imageUrls[index],
+      for (var i = 0; i < _imageUrls.length; i++)
+        if (i != index) _imageUrls[i],
+    ]);
     notifyListeners();
   }
 
@@ -164,7 +200,7 @@ class SellViewModel extends ChangeNotifier with AcademicFiltersMixin {
     _author = listing.author;
     _priceFcfa = listing.priceFcfa;
     _condition = listing.condition;
-    _imageUrl = listing.imageUrl;
+    _imageUrls = List.unmodifiable(listing.gallery.take(Listing.maxImages));
     _description = listing.description;
     _category = listing.category;
     _sellerType = listing.sellerType;
@@ -195,7 +231,7 @@ class SellViewModel extends ChangeNotifier with AcademicFiltersMixin {
     _author = null;
     _priceFcfa = null;
     _condition = BookCondition.good;
-    _imageUrl = null;
+    _imageUrls = const [];
     _description = null;
     _category = null;
     _sellerType = 'individual';
@@ -233,7 +269,7 @@ class SellViewModel extends ChangeNotifier with AcademicFiltersMixin {
       return false;
     }
 
-    if (_imageUrl == null || _imageUrl!.isEmpty) {
+    if (_imageUrls.isEmpty || _imageUrls.any((url) => url.isEmpty)) {
       _errorMessage = 'Book image is required';
       _sellState = SellState.error;
       notifyListeners();
@@ -254,8 +290,8 @@ class SellViewModel extends ChangeNotifier with AcademicFiltersMixin {
       return false;
     }
 
-    // Check if the image URL is a local file path (not yet uploaded)
-    if (_imageUrl!.startsWith('/')) {
+    // Check if any image URL is a local file path (not yet uploaded)
+    if (_imageUrls.any((url) => url.startsWith('/'))) {
       _errorMessage = 'Please wait for image to upload';
       _sellState = SellState.error;
       notifyListeners();
@@ -281,7 +317,8 @@ class SellViewModel extends ChangeNotifier with AcademicFiltersMixin {
       author: _author!,
       priceFcfa: _priceFcfa!,
       condition: _condition,
-      imageUrl: _imageUrl!,
+      imageUrl: _imageUrls.first,
+      imageUrls: _imageUrls,
       description: _description,
       category: _category,
       sellerType: _sellerType,
@@ -328,7 +365,8 @@ class SellViewModel extends ChangeNotifier with AcademicFiltersMixin {
       author: _author,
       priceFcfa: _priceFcfa,
       condition: _condition,
-      imageUrl: _imageUrl,
+      imageUrl: _imageUrls.first,
+      imageUrls: _imageUrls,
       description: _description,
       category: _category,
       sellerType: _sellerType,
@@ -359,23 +397,25 @@ class SellViewModel extends ChangeNotifier with AcademicFiltersMixin {
     );
   }
 
-  /// Picks an image from the gallery.
+  /// Picks an image from the gallery and appends it.
   Future<void> pickImageFromGallery() async {
+    if (!canAddImage) return;
     final picker = ImagePicker();
     final pickedFile = await picker.pickImage(source: ImageSource.gallery);
 
     if (pickedFile != null) {
-      await _processAndUploadImage(File(pickedFile.path));
+      await addImageFile(File(pickedFile.path));
     }
   }
 
-  /// Takes a photo using the camera.
+  /// Takes a photo using the camera and appends it.
   Future<void> pickImageFromCamera() async {
+    if (!canAddImage) return;
     final picker = ImagePicker();
     final pickedFile = await picker.pickImage(source: ImageSource.camera);
 
     if (pickedFile != null) {
-      await _processAndUploadImage(File(pickedFile.path));
+      await addImageFile(File(pickedFile.path));
     }
   }
 
@@ -400,8 +440,9 @@ class SellViewModel extends ChangeNotifier with AcademicFiltersMixin {
     return await Geolocator.getCurrentPosition();
   }
 
-  /// Processes and uploads the selected image to Supabase Storage.
-  Future<void> _processAndUploadImage(File imageFile) async {
+  /// Uploads [imageFile] to Supabase Storage and appends its URL.
+  Future<void> addImageFile(File imageFile) async {
+    if (!canAddImage) return;
     _sellState = SellState.loading;
     _errorMessage = null;
     notifyListeners();
@@ -415,9 +456,10 @@ class SellViewModel extends ChangeNotifier with AcademicFiltersMixin {
           notifyListeners();
         },
         (imageUrl) {
-          _imageUrl = imageUrl;
-          _sellState = SellState
-              .initial; // Reset to initial since we're just setting the image
+          _sellState = SellState.initial;
+          if (canAddImage) {
+            _imageUrls = List.unmodifiable([..._imageUrls, imageUrl]);
+          }
           notifyListeners();
         },
       );

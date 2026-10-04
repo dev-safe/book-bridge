@@ -459,5 +459,27 @@
   "showOnMap": "Map",
   "yourLocation": "Your location",
   "noBooksWithinRadius": "No books with a pickup location in this area",
-  "mapNeedsLocation": "Turn on location in Settings to see books near you on the map."
+  "mapNeedsLocation": "Turn on location in Settings to see books near you on the map.",
+  "coverPhotoLabel": "Cover",
+  "addPhoto": "Add photo",
+  "removePhoto": "Remove photo",
+  "photoCountHint": "Up to {max} photos. Tap a photo to make it the cover.",
+  "@photoCountHint": {
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "photoOfTotal": "Photo {index} of {total}",
+  "@photoOfTotal": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  }
 }
