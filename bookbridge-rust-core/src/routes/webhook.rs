@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use crate::error::AppError;
 use crate::auth::constant_time_compare;
 use crate::routes::escrow::{handle_purchase_success_db, PurchaseOutcome};
-use crate::routes::payments::{covers_expected, BOOST_DAYS, BOOST_PRICE_XAF};
+use crate::routes::payments::{buyer_fee_for, covers_expected, BOOST_DAYS, BOOST_PRICE_XAF};
 use crate::AppState;
 use sqlx::{PgPool, Row};
 use uuid::Uuid;
@@ -273,17 +273,18 @@ async fn handle_purchase_success(
     let listing_price: Option<i64> = listing.try_get("price")?;
     let listing_status: Option<String> = listing.try_get("status")?;
 
-    // The amount a purchase must cover: the server-set amount recorded when
-    // the payment was initiated, or the listing's current price if there is
-    // no such row (payments initiated outside /payments/initiate).
+    // The amount a purchase must cover: the server-set price plus buyer fee
+    // recorded when the payment was initiated, or the listing's current
+    // price plus fee if there is no such row (the pending insert failed).
     let existing = sqlx::query(
-        "SELECT amount::float8 AS amount, listing_id, buyer_id FROM transactions WHERE payment_reference = $1",
+        "SELECT amount::bigint AS price, buyer_fee::bigint AS buyer_fee, listing_id, buyer_id \
+         FROM transactions WHERE payment_reference = $1",
     )
     .bind(reference)
     .fetch_optional(&state.pool)
     .await?;
 
-    let expected = match existing {
+    let (price, buyer_fee) = match existing {
         Some(row) => {
             let row_listing: Uuid = row.try_get("listing_id")?;
             let row_buyer: Uuid = row.try_get("buyer_id")?;
@@ -297,7 +298,9 @@ async fn handle_purchase_success(
                 )
                 .await;
             }
-            row.try_get::<Option<f64>, _>("amount")?.unwrap_or(f64::MAX)
+            let price: i64 = row.try_get("price")?;
+            let buyer_fee: i64 = row.try_get("buyer_fee")?;
+            (price, buyer_fee)
         }
         None => {
             if buyer_id == seller_id || listing_status.as_deref() != Some("available") {
@@ -311,7 +314,7 @@ async fn handle_purchase_success(
                 .await;
             }
             match listing_price {
-                Some(price) => price as f64,
+                Some(price) => (price, buyer_fee_for(price)),
                 None => {
                     return record_unmatched_payment(
                         &state.pool,
@@ -326,14 +329,12 @@ async fn handle_purchase_success(
         }
     };
 
+    let expected = (price + buyer_fee) as f64;
     if !covers_expected(amount, expected) {
         let reason = format!("purchase underpaid: expected {expected} XAF");
         return record_unmatched_payment(&state.pool, reference, amount, external_ref, &reason)
             .await;
     }
-
-    let payout_amount = (amount * 0.95).floor();
-    let commission_amount = amount - payout_amount;
 
     let now = Utc::now();
     // The claim and the escrow writes share one DB transaction, so a failed
@@ -345,10 +346,10 @@ async fn handle_purchase_success(
     // and return 0 rows.
     let tx_row = sqlx::query(
         "INSERT INTO transactions ( \
-            payment_reference, listing_id, buyer_id, seller_id, amount, status, \
+            payment_reference, listing_id, buyer_id, seller_id, amount, buyer_fee, status, \
             payout_status, payout_reference, commission_amount, created_at \
          ) \
-         VALUES ($1, $2, $3, $4, $5, 'held', 'pending', NULL, $6, $7) \
+         VALUES ($1, $2, $3, $4, $5, $6, 'held', 'pending', NULL, 0, $7) \
          ON CONFLICT (payment_reference) \
          DO UPDATE SET \
              status = 'held' \
@@ -359,8 +360,8 @@ async fn handle_purchase_success(
     .bind(listing_id)
     .bind(buyer_id)
     .bind(seller_id)
-    .bind(amount)
-    .bind(commission_amount)
+    .bind(price as i32)
+    .bind(buyer_fee as i32)
     .bind(now)
     .fetch_optional(&mut *transaction)
     .await?;

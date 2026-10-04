@@ -304,7 +304,7 @@
   "faqHowToListQ": "Comment mettre un livre en vente ?",
   "faqHowToListA": "Appuyez sur le bouton « Vendre » dans la barre de navigation inférieure. Téléchargez une photo claire du livre, entrez le titre, l'auteur, le prix et l'état, puis soumettez l'annonce.",
   "faqSellingFeesQ": "Y a-t-il des frais de vente ?",
-  "faqSellingFeesA": "Actuellement, la mise en vente de livres sur BookBridge est gratuite pour les étudiants individuels. Nous voulons vous faciliter au maximum le recyclage de vos ressources éducatives.",
+  "faqSellingFeesA": "La mise en vente de livres sur BookBridge est gratuite, et les vendeurs reçoivent le prix de vente complet. Les acheteurs paient des frais de service de 6 % en plus du prix du livre au moment du paiement, ce qui couvre les frais de mobile money et permet à BookBridge de fonctionner.",
   "faqBuyBackEligibleQ": "Qu'est-ce que le « Rachat éligible » ?",
   "faqBuyBackEligibleA": "Certaines annonces provenant de librairies vérifiées ou de la plateforme elle-même peuvent être éligibles au rachat. Cela signifie que vous pouvez revendre le livre à la source à un prix prédéterminé une fois que vous en avez terminé avec lui.",
   "faqSafetyCategory": "Sécurité et confiance",
@@ -322,6 +322,25 @@
   },
   "phoneNumberLabel": "Numéro de téléphone (6xx...)",
   "phoneNumberHint": "ex. 677777777",
+  "bookPriceLabel": "Prix du livre : {amount} FCFA",
+  "@bookPriceLabel": {
+    "placeholders": {
+      "amount": {
+        "type": "Object"
+      }
+    }
+  },
+  "serviceFeeLabel": "Frais de service ({percent} %) : {amount} FCFA",
+  "@serviceFeeLabel": {
+    "placeholders": {
+      "percent": {
+        "type": "Object"
+      },
+      "amount": {
+        "type": "Object"
+      }
+    }
+  },
   "fieldRequired": "Requis",
   "invalidNumber": "Numéro invalide",
   "payNow": "Payer maintenant",

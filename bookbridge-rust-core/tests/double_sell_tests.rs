@@ -31,6 +31,8 @@ const ANON_KEY: &str = "test-anon-key";
 const WEBHOOK_SECRET: &str = "wh_test_key_xyz";
 const ALREADY_SOLD_REASON: &str = "listing already sold to another buyer";
 const PRICE: i64 = 500;
+/// 6% buyer fee on `PRICE`, rounded up (#30).
+const FEE: i64 = 30;
 
 // ---------------------------------------------------------------- mocks
 
@@ -71,14 +73,16 @@ async fn spawn_mock_auth(tokens: HashMap<String, Uuid>) -> String {
 struct MockFapshi {
     fail_direct_pay: bool,
     direct_pays: usize,
+    last_amount: Option<i64>,
     statuses: HashMap<String, String>,
 }
 
 type Fapshi = Arc<Mutex<MockFapshi>>;
 
 async fn spawn_mock_fapshi(fapshi: Fapshi) -> String {
-    async fn direct_pay(State(f): State<Fapshi>) -> impl IntoResponse {
+    async fn direct_pay(State(f): State<Fapshi>, Json(body): Json<Value>) -> impl IntoResponse {
         let mut f = f.lock().unwrap();
+        f.last_amount = body["amount"].as_i64();
         if f.fail_direct_pay {
             return (
                 StatusCode::BAD_REQUEST,
@@ -232,10 +236,21 @@ impl World {
     }
 
     async fn webhook(&self, status: &str, reference: &str, buyer: Uuid) -> StatusCode {
+        self.webhook_paying(status, reference, buyer, PRICE + FEE)
+            .await
+    }
+
+    async fn webhook_paying(
+        &self,
+        status: &str,
+        reference: &str,
+        buyer: Uuid,
+        amount: i64,
+    ) -> StatusCode {
         let body = json!({
             "status": status,
             "transId": reference,
-            "amount": PRICE,
+            "amount": amount,
             "externalId": format!("purchase_{}_{}_1", self.listing, buyer),
         });
         let req = Request::builder()
@@ -300,6 +315,17 @@ impl World {
             .fetch_one(&self.pool)
             .await
             .unwrap()
+    }
+
+    async fn reference_of(&self, buyer: Uuid) -> String {
+        sqlx::query_scalar(
+            "SELECT payment_reference FROM transactions WHERE listing_id = $1 AND buyer_id = $2",
+        )
+        .bind(self.listing)
+        .bind(buyer)
+        .fetch_one(&self.pool)
+        .await
+        .unwrap()
     }
 
     async fn tx_status(&self, id: Uuid) -> String {
@@ -502,4 +528,56 @@ async fn poller_fails_a_successful_payment_for_a_sold_listing() {
     let unmatched = w.unmatched(&loser_ref).await;
     assert_eq!(unmatched.len(), 1);
     assert_eq!(unmatched[0]["reason"], ALREADY_SOLD_REASON);
+}
+
+// ---------------------------------------------------------------- buyer fee (#30)
+
+#[tokio::test]
+async fn initiate_charges_price_plus_fee_and_records_both() {
+    let Some(w) = world().await else { return };
+
+    let (status, body) = w.initiate(BUYER_A).await;
+    assert_eq!(status, StatusCode::OK, "{body}");
+    assert_eq!(w.fapshi.lock().unwrap().last_amount, Some(PRICE + FEE));
+
+    let row = sqlx::query(
+        "SELECT amount::bigint AS amount, buyer_fee::bigint AS buyer_fee, \
+                commission_amount::float8 AS commission \
+         FROM transactions WHERE listing_id = $1 AND buyer_id = $2",
+    )
+    .bind(w.listing)
+    .bind(w.buyer_a)
+    .fetch_one(&w.pool)
+    .await
+    .unwrap();
+    assert_eq!(row.get::<i64, _>("amount"), PRICE);
+    assert_eq!(row.get::<i64, _>("buyer_fee"), FEE);
+    assert_eq!(row.get::<f64, _>("commission"), 0.0);
+}
+
+#[tokio::test]
+async fn webhook_paying_only_the_price_is_queued_as_underpaid() {
+    let Some(w) = world().await else { return };
+    assert_eq!(w.initiate(BUYER_A).await.0, StatusCode::OK);
+    let reference = w.reference_of(w.buyer_a).await;
+
+    assert_eq!(
+        w.webhook_paying("SUCCESSFUL", &reference, w.buyer_a, PRICE)
+            .await,
+        StatusCode::OK
+    );
+    assert_eq!(w.held_escrows().await, 0);
+    let unmatched = w.unmatched(&reference).await;
+    assert_eq!(unmatched.len(), 1);
+    assert!(unmatched[0]["reason"]
+        .as_str()
+        .unwrap()
+        .contains(&format!("expected {}", PRICE + FEE)));
+
+    assert_eq!(
+        w.webhook("SUCCESSFUL", &reference, w.buyer_a).await,
+        StatusCode::OK
+    );
+    assert_eq!(w.held_escrows().await, 1);
+    assert_eq!(w.listing_status().await, "sold");
 }

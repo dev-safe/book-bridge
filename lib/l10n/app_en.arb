@@ -307,7 +307,7 @@
   "faqHowToListQ": "How do I list a book for sale?",
   "faqHowToListA": "Tap the \"Sell\" button in the bottom navigation bar. Upload a clear photo of the book, enter the title, author, price, and condition, then submit the listing.",
   "faqSellingFeesQ": "Is there a fee for selling?",
-  "faqSellingFeesA": "Currently, listing books on BookBridge is free for individual students. We want to make it as easy as possible for you to recycle your educational resources.",
+  "faqSellingFeesA": "Listing books on BookBridge is free, and sellers receive the full sale price. Buyers pay a 6% service fee on top of the book price at checkout, which covers mobile money processing and keeps BookBridge running.",
   "faqBuyBackEligibleQ": "What is \"Buy-Back Eligible\"?",
   "faqBuyBackEligibleA": "Some listings from verified bookshops or the platform itself may be eligible for buy-back. This means you can sell the book back to the source at a pre-determined price once you're finished with it.",
   "faqSafetyCategory": "Safety & Trust",
@@ -325,6 +325,25 @@
   },
   "phoneNumberLabel": "Phone Number (6xx...)",
   "phoneNumberHint": "e.g. 677777777",
+  "bookPriceLabel": "Book price: {amount} FCFA",
+  "@bookPriceLabel": {
+    "placeholders": {
+      "amount": {
+        "type": "Object"
+      }
+    }
+  },
+  "serviceFeeLabel": "Service fee ({percent}%): {amount} FCFA",
+  "@serviceFeeLabel": {
+    "placeholders": {
+      "percent": {
+        "type": "Object"
+      },
+      "amount": {
+        "type": "Object"
+      }
+    }
+  },
   "fieldRequired": "Required",
   "invalidNumber": "Invalid number",
   "payNow": "Pay Now",

@@ -123,13 +123,13 @@ class _MarketplaceAgreementSheetState
                       ),
                       _buildSection(
                         icon: Icons.percent_rounded,
-                        title: '2. Commission & Seller Payouts',
+                        title: '2. Service Fee & Seller Payouts',
                         color: const Color(0xFF2E7D32),
                         content:
-                            'BookBridge charges a 5% platform commission on every successful sale to sustain the service for students across Cameroon.\n\n'
-                            '✅ Seller receives: 95% of the sale price\n'
-                            '📊 BookBridge commission: 5% of the sale price\n\n'
-                            'Payouts are processed automatically to the seller\'s registered Mobile Money number within minutes of a confirmed payment.',
+                            'Buyers pay a 6% service fee on top of the book price at checkout. It covers mobile money processing and sustains the service for students across Cameroon.\n\n'
+                            '✅ Seller receives: 100% of the sale price\n'
+                            '🧾 Buyer pays: the sale price + 6% service fee\n\n'
+                            'Payment is held securely until the buyer confirms receipt of the book, then paid out to the seller\'s registered Mobile Money number.',
                         highlight: true,
                       ),
                       _buildSection(
@@ -248,7 +248,7 @@ class _MarketplaceAgreementSheetState
                           const SizedBox(width: 12),
                           const Expanded(
                             child: Text(
-                              'I have read and agree to the BookBridge Marketplace Agreement and understand how commissions and payouts work.',
+                              'I have read and agree to the BookBridge Marketplace Agreement and understand how the service fee and payouts work.',
                               style: TextStyle(
                                 fontSize: 13,
                                 color: Colors.black87,

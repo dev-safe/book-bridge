@@ -961,7 +961,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get faqSellingFeesA =>
-      'Currently, listing books on BookBridge is free for individual students. We want to make it as easy as possible for you to recycle your educational resources.';
+      'Listing books on BookBridge is free, and sellers receive the full sale price. Buyers pay a 6% service fee on top of the book price at checkout, which covers mobile money processing and keeps BookBridge running.';
 
   @override
   String get faqBuyBackEligibleQ => 'What is \"Buy-Back Eligible\"?';
@@ -997,6 +997,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get phoneNumberHint => 'e.g. 677777777';
+
+  @override
+  String bookPriceLabel(Object amount) {
+    return 'Book price: $amount FCFA';
+  }
+
+  @override
+  String serviceFeeLabel(Object percent, Object amount) {
+    return 'Service fee ($percent%): $amount FCFA';
+  }
 
   @override
   String get fieldRequired => 'Required';

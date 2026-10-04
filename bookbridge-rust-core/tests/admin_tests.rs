@@ -465,6 +465,16 @@ async fn seed_sale(w: &World, status: &str, payer_phone: Option<&str>) -> Sale {
     Sale { tx_id, reference }
 }
 
+/// Turns a seeded legacy sale into one made under the buyer-fee model (#30):
+/// the buyer paid 500 + 30 and the seller is owed the full 500.
+async fn with_buyer_fee(w: &World, sale: &Sale) {
+    sqlx::query("UPDATE transactions SET buyer_fee = 30, commission_amount = 0 WHERE id = $1")
+        .bind(sale.tx_id)
+        .execute(&w.pool)
+        .await
+        .unwrap();
+}
+
 async fn record_payer(w: &World, reference: &str, phone: &str) {
     sqlx::query("INSERT INTO payment_payers (payment_reference, phone) VALUES ($1, $2)")
         .bind(reference)
@@ -870,4 +880,45 @@ async fn unmatched_payment_dismiss() {
     let (status, _) = send(&w.state, Method::POST, &missing, Some(ADMIN_TOKEN), note()).await;
     assert_eq!(status, StatusCode::NOT_FOUND);
     assert!(w.fapshi.lock().unwrap().payouts.is_empty());
+}
+
+#[tokio::test]
+async fn buyer_fee_is_refunded_and_seller_is_paid_in_full() {
+    let Some(w) = world().await else { return };
+    let refunded = seed_sale(&w, "disputed", Some(PAYER_PHONE)).await;
+    with_buyer_fee(&w, &refunded).await;
+    let released = seed_sale(&w, "disputed", Some(PAYER_PHONE)).await;
+    with_buyer_fee(&w, &released).await;
+
+    let (status, body) = send(
+        &w.state,
+        Method::GET,
+        "/admin/disputes",
+        Some(ADMIN_TOKEN),
+        None,
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    let listed = body["disputes"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|d| d["transaction_id"] == json!(refunded.tx_id))
+        .expect("seeded dispute is listed")
+        .clone();
+    assert_eq!(listed["amount"], 530);
+
+    let path = format!("/admin/disputes/{}/refund", refunded.tx_id);
+    let (status, body) = send(&w.state, Method::POST, &path, Some(ADMIN_TOKEN), note()).await;
+    assert_eq!(status, StatusCode::OK, "{body}");
+    let path = format!("/admin/disputes/{}/release", released.tx_id);
+    let (status, body) = send(&w.state, Method::POST, &path, Some(ADMIN_TOKEN), note()).await;
+    assert_eq!(status, StatusCode::OK, "{body}");
+
+    let f = w.fapshi.lock().unwrap();
+    assert_eq!(f.payouts.len(), 2);
+    assert_eq!(f.payouts[0]["phone"], PAYER_PHONE);
+    assert_eq!(f.payouts[0]["amount"], json!(530.0));
+    assert_eq!(f.payouts[1]["phone"], SELLER_PHONE);
+    assert_eq!(f.payouts[1]["amount"], json!(500.0));
 }
