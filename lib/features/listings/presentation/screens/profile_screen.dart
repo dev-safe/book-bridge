@@ -16,6 +16,8 @@ import 'package:book_bridge/features/payments/domain/entities/payment_purpose.da
 import 'package:book_bridge/features/payments/presentation/widgets/payment_bottom_sheet.dart';
 import 'package:book_bridge/features/payments/presentation/viewmodels/payment_viewmodel.dart';
 import 'package:book_bridge/injection_container.dart';
+import 'package:book_bridge/features/subscriptions/data/datasources/rust_subscription_data_source.dart';
+import 'package:book_bridge/features/subscriptions/presentation/widgets/power_seller_widgets.dart';
 import 'package:book_bridge/features/notifications/presentation/viewmodels/notifications_viewmodel.dart';
 
 /// User profile screen displaying user information and their listings.
@@ -30,6 +32,28 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
+  bool _upgrading = false;
+
+  Future<void> _startPowerSellerUpgrade() async {
+    setState(() => _upgrading = true);
+    try {
+      final url = await getIt<RustSubscriptionDataSource>().upgradeUrl();
+      await _launchUrl(url.toString());
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context)!.powerSellerUpgradeError,
+            ),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _upgrading = false);
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -140,6 +164,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 _buildHeader(context, user),
                 _buildStatsSection(context, profileViewModel),
                 _buildDonationCard(context, user),
+                if (!user.isPowerSeller)
+                  PowerSellerUpgradeCard(
+                    onTap: _startPowerSellerUpgrade,
+                    loading: _upgrading,
+                  ),
                 const Divider(height: 1),
                 _buildMenuSection(
                   context,
@@ -331,6 +360,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
             user.fullName.isNotEmpty ? user.fullName : user.email,
             style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
           ),
+          if (user.isPowerSeller == true) ...[
+            const SizedBox(height: 8),
+            const PowerSellerBadge(),
+          ],
           const SizedBox(height: 4),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,

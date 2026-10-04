@@ -857,7 +857,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get termsPaymentsTitle => '4. Payments';
 
   @override
-  String get termsPaymentsContent => 'Payments for books are generally handled in cash upon delivery or via direct mobile money transfer between the buyer and seller. BookBridge may offer integrated payment solutions (like Fapshi) for specific services or donations.';
+  String get termsPaymentsContent => 'Payments for books are generally handled in cash upon delivery or via direct mobile money transfer between the buyer and seller. BookBridge may offer integrated payment solutions (like Fapshi) for specific services or donations. Free sellers may have up to 3 active listings at a time. The optional Power Seller subscription (500 FCFA for 30 days, paid via Fapshi) removes this limit; it does not renew automatically and is non-refundable once activated.';
 
   @override
   String get termsLiabilityTitle => '5. Limitation of Liability';
@@ -1323,4 +1323,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get shareTextViewListing => 'See photos and buy safely on BookBridge:';
+
+  @override
+  String get powerSellerBadge => 'Power Seller';
+
+  @override
+  String get powerSellerCardTitle => 'Become a Power Seller';
+
+  @override
+  String get powerSellerCardSubtitle => 'Unlimited listings · 500 FCFA / 30 days';
+
+  @override
+  String get powerSellerUpgradeError => 'Could not start the upgrade. Please try again.';
+
+  @override
+  String get freeTierLimitReached => 'Free sellers can have up to 3 active listings. Upgrade to Power Seller on your Profile for unlimited listings.';
 }

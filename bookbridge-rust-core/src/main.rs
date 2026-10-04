@@ -17,6 +17,7 @@ use bookbridge_rust_core::routes::health::health_handler;
 use bookbridge_rust_core::push::PushService;
 use bookbridge_rust_core::routes::payments::payment_routes;
 use bookbridge_rust_core::routes::push::dispatch_push_handler;
+use bookbridge_rust_core::routes::subscriptions::subscription_routes;
 use bookbridge_rust_core::routes::webhook::fapshi_webhook_handler;
 use bookbridge_rust_core::user_auth::SupabaseAuth;
 use bookbridge_rust_core::AppState;
@@ -73,6 +74,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .merge(buyer_routes())
         .merge(payment_routes())
         .merge(admin_routes())
+        .merge(subscription_routes())
         .layer(middleware::from_fn_with_state(state.clone(), limit_by_ip));
 
     let app = Router::new()
