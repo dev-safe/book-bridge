@@ -70,6 +70,8 @@ class ProfileViewModel extends ChangeNotifier {
     String? fullName,
     String? locality,
     String? whatsappNumber,
+    String? schoolId,
+    bool clearSchool = false,
   }) async {
     if (_currentUser == null) {
       _errorMessage = 'No user to update.';
@@ -87,6 +89,8 @@ class ProfileViewModel extends ChangeNotifier {
       locality: locality ?? _currentUser!.locality,
       whatsappNumber: whatsappNumber ?? _currentUser!.whatsappNumber,
       avatarUrl: _currentUser!.avatarUrl,
+      schoolId: schoolId,
+      clearSchool: clearSchool,
     );
 
     final result = await updateUserUseCase(updatedUser);

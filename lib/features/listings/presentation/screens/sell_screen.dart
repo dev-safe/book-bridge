@@ -8,6 +8,8 @@ import 'package:book_bridge/features/listings/presentation/viewmodels/sell_viewm
 import 'package:book_bridge/features/listings/domain/entities/listing.dart';
 import 'package:book_bridge/features/listings/domain/entities/book_condition.dart';
 import 'package:book_bridge/core/constants/categories.dart';
+import 'package:book_bridge/features/auth/presentation/viewmodels/auth_viewmodel.dart';
+import 'package:book_bridge/features/listings/presentation/widgets/academic_filter_bar.dart';
 
 /// Screen for creating and selling a new book listing.
 ///
@@ -50,8 +52,83 @@ class _SellScreenState extends State<SellScreen> {
       } else {
         // Otherwise reset the form to start fresh
         _sellViewModel.resetForm();
+        _sellViewModel.applyDefaultSchool(
+          context.read<AuthViewModel>().currentUser?.schoolId,
+        );
       }
+      _sellViewModel.loadAcademicLookups();
     });
+  }
+
+  Widget _fieldLabel(BuildContext context, String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w500,
+          color: Theme.of(context).textTheme.bodyLarge?.color,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAcademicFields(BuildContext context, SellViewModel viewModel) {
+    final l10n = AppLocalizations.of(context)!;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _fieldLabel(context, '${l10n.classLevelLabel} *'),
+        PickerFormField(
+          value: viewModel.selectedClassLevel?.label,
+          hint: l10n.selectClassLevelHint,
+          onTap: () async {
+            await viewModel.loadAcademicLookups();
+            if (!context.mounted) return;
+            final pick = await showClassLevelPicker(
+              context,
+              levels: viewModel.classLevels,
+              selectedId: viewModel.selectedClassLevelId,
+              clearLabel: l10n.none,
+            );
+            if (pick != null) await viewModel.setClassLevel(pick.value);
+          },
+        ),
+        const SizedBox(height: 24),
+        _fieldLabel(context, '${l10n.subjectLabel} *'),
+        PickerFormField(
+          value: viewModel.selectedSubject?.name,
+          hint: l10n.selectSubjectHint,
+          onTap: () async {
+            await viewModel.loadAcademicLookups();
+            if (!context.mounted) return;
+            final pick = await showSubjectPicker(
+              context,
+              subjects: viewModel.subjects,
+              selectedId: viewModel.selectedSubjectId,
+              clearLabel: l10n.none,
+            );
+            if (pick != null) await viewModel.setSubject(pick.value);
+          },
+        ),
+        const SizedBox(height: 24),
+        _fieldLabel(context, l10n.schoolLabel),
+        PickerFormField(
+          value: viewModel.selectedSchool?.displayName,
+          hint: l10n.selectSchoolOptionalHint,
+          onTap: () async {
+            final pick = await showSchoolPicker(
+              context,
+              searchSchools: viewModel.searchSchools,
+              selected: viewModel.selectedSchool,
+              clearLabel: l10n.noSchool,
+            );
+            if (pick != null) await viewModel.setSchool(pick.value);
+          },
+        ),
+      ],
+    );
   }
 
   @override
@@ -522,6 +599,8 @@ class _SellScreenState extends State<SellScreen> {
                       ),
                     ),
                   ),
+                  const SizedBox(height: 24),
+                  _buildAcademicFields(context, viewModel),
                   const SizedBox(height: 24),
                   // Social Venture Section
                   Text(

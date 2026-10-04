@@ -39,6 +39,14 @@ class Listing extends Equatable {
   final double? latitude;
   final double? longitude;
 
+  // Academic classification (labels populated from lookup-table joins)
+  final String? classLevelId;
+  final String? classLevelLabel;
+  final String? subjectId;
+  final String? subjectName;
+  final String? schoolId;
+  final String? schoolName;
+
   const Listing({
     required this.id,
     required this.title,
@@ -65,6 +73,12 @@ class Listing extends Equatable {
     this.sellerReviewCount,
     this.latitude,
     this.longitude,
+    this.classLevelId,
+    this.classLevelLabel,
+    this.subjectId,
+    this.subjectName,
+    this.schoolId,
+    this.schoolName,
   });
 
   @override
@@ -94,5 +108,11 @@ class Listing extends Equatable {
     sellerReviewCount,
     latitude,
     longitude,
+    classLevelId,
+    classLevelLabel,
+    subjectId,
+    subjectName,
+    schoolId,
+    schoolName,
   ];
 }

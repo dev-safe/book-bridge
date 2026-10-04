@@ -3,6 +3,7 @@ import 'package:dartz/dartz.dart';
 import 'package:book_bridge/core/error/failures.dart';
 import 'package:book_bridge/features/listings/domain/entities/listing.dart';
 import 'package:book_bridge/features/listings/domain/entities/category.dart';
+import 'package:book_bridge/features/listings/domain/entities/academic_lookups.dart';
 import 'package:book_bridge/features/listings/domain/entities/book_condition.dart';
 
 /// Abstract repository for listing operations.
@@ -22,11 +23,13 @@ abstract class ListingRepository {
 
   /// Fetches all available listings.
   ///
-  /// Optionally filters by [status] (defaults to 'available') and [category].
+  /// Optionally filters by [status] (defaults to 'available'), [category]
+  /// and academic [filters] (class level, subject, school).
   /// Returns either a [Failure] or a list of [Listing] entities.
   Future<Either<Failure, List<Listing>>> getListings({
     String status = 'available',
     String? category,
+    AcademicFilters filters = AcademicFilters.none,
     int limit = 50,
     int offset = 0,
   });
@@ -47,6 +50,7 @@ abstract class ListingRepository {
   /// Returns either a [Failure] or a list of matching [Listing] entities.
   Future<Either<Failure, List<Listing>>> searchListings(
     String query, {
+    AcademicFilters filters = AcademicFilters.none,
     int limit = 50,
   });
 
@@ -66,6 +70,9 @@ abstract class ListingRepository {
     int stockCount = 1,
     double? latitude,
     double? longitude,
+    String? classLevelId,
+    String? subjectId,
+    String? schoolId,
   });
 
   /// Deletes a listing.
@@ -90,7 +97,23 @@ abstract class ListingRepository {
     int? stockCount,
     double? latitude,
     double? longitude,
+    String? classLevelId,
+    String? subjectId,
+    String? schoolId,
+    bool clearSchool = false,
   });
+
+  /// Fetches all class levels, ordered for display.
+  Future<Either<Failure, List<ClassLevel>>> getClassLevels();
+
+  /// Fetches all subjects, ordered for display.
+  Future<Either<Failure, List<Subject>>> getSubjects();
+
+  /// Searches schools by name.
+  Future<Either<Failure, List<School>>> searchSchools(String query);
+
+  /// Fetches a school by ID; returns `Right(null)` if not found.
+  Future<Either<Failure, School?>> getSchoolById(String id);
 
   /// Uploads a book image to storage.
   ///

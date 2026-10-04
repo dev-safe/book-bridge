@@ -1,6 +1,7 @@
 import 'package:dartz/dartz.dart';
 import 'package:book_bridge/core/error/failures.dart';
 import 'package:book_bridge/core/usecases/usecase.dart';
+import 'package:book_bridge/features/listings/domain/entities/academic_lookups.dart';
 import 'package:book_bridge/features/listings/domain/entities/listing.dart';
 import 'package:book_bridge/features/listings/domain/repositories/listing_repository.dart';
 
@@ -15,6 +16,7 @@ class GetListingsUseCase extends UseCase<List<Listing>, GetListingsParams> {
     return repository.getListings(
       status: params.status,
       category: params.category,
+      filters: params.filters,
       limit: params.limit,
       offset: params.offset,
     );
@@ -25,12 +27,14 @@ class GetListingsUseCase extends UseCase<List<Listing>, GetListingsParams> {
 class GetListingsParams {
   final String status;
   final String? category;
+  final AcademicFilters filters;
   final int limit;
   final int offset;
 
   GetListingsParams({
     this.status = 'available',
     this.category,
+    this.filters = AcademicFilters.none,
     this.limit = 50,
     this.offset = 0,
   });

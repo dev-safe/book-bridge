@@ -31,7 +31,16 @@ class ListingModel extends Listing {
     super.sellerReviewCount,
     super.latitude,
     super.longitude,
+    super.classLevelId,
+    super.classLevelLabel,
+    super.subjectId,
+    super.subjectName,
+    super.schoolId,
+    super.schoolName,
   });
+
+  static String? _embeddedField(Object? embed, String key) =>
+      embed is Map<String, dynamic> ? embed[key] as String? : null;
 
   /// Creates a [ListingModel] from a [cached_listings] SQLite row.
   ///
@@ -100,6 +109,12 @@ class ListingModel extends Listing {
           (json['profiles'] as Map<String, dynamic>?)?['review_count'] as int?,
       latitude: (json['latitude'] as num?)?.toDouble(),
       longitude: (json['longitude'] as num?)?.toDouble(),
+      classLevelId: json['class_level_id'] as String?,
+      classLevelLabel: _embeddedField(json['class_level'], 'label'),
+      subjectId: json['subject_id'] as String?,
+      subjectName: _embeddedField(json['subject'], 'name'),
+      schoolId: json['school_id'] as String?,
+      schoolName: _embeddedField(json['school'], 'name'),
     );
   }
 
@@ -127,6 +142,9 @@ class ListingModel extends Listing {
       'expires_at': expiresAt?.toIso8601String(),
       'latitude': latitude,
       'longitude': longitude,
+      'class_level_id': classLevelId,
+      'subject_id': subjectId,
+      'school_id': schoolId,
     };
   }
 
@@ -157,6 +175,12 @@ class ListingModel extends Listing {
       sellerReviewCount: listing.sellerReviewCount,
       latitude: listing.latitude,
       longitude: listing.longitude,
+      classLevelId: listing.classLevelId,
+      classLevelLabel: listing.classLevelLabel,
+      subjectId: listing.subjectId,
+      subjectName: listing.subjectName,
+      schoolId: listing.schoolId,
+      schoolName: listing.schoolName,
     );
   }
 
@@ -186,6 +210,12 @@ class ListingModel extends Listing {
       sellerReviewCount: sellerReviewCount,
       latitude: latitude,
       longitude: longitude,
+      classLevelId: classLevelId,
+      classLevelLabel: classLevelLabel,
+      subjectId: subjectId,
+      subjectName: subjectName,
+      schoolId: schoolId,
+      schoolName: schoolName,
     );
   }
 }

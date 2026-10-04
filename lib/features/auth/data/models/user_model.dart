@@ -18,6 +18,7 @@ class UserModel extends User {
     super.trustScore = 50,
     super.trustLevel = 'Seedling',
     super.fcmToken,
+    super.schoolId,
     required super.createdAt,
   });
 
@@ -39,6 +40,7 @@ class UserModel extends User {
       trustScore: json['trust_score'] as int? ?? 50,
       trustLevel: json['trust_level'] as String? ?? 'Seedling',
       fcmToken: json['fcm_token'] as String?,
+      schoolId: json['school_id'] as String?,
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'] as String)
           : DateTime.now(),
@@ -62,6 +64,7 @@ class UserModel extends User {
       'trust_score': trustScore,
       'trust_level': trustLevel,
       'fcm_token': fcmToken,
+      'school_id': schoolId,
       'created_at': createdAt.toIso8601String(),
     };
   }
@@ -81,6 +84,7 @@ class UserModel extends User {
       trustScore: user.trustScore,
       trustLevel: user.trustLevel,
       fcmToken: user.fcmToken,
+      schoolId: user.schoolId,
       createdAt: user.createdAt,
     );
   }
@@ -100,6 +104,7 @@ class UserModel extends User {
       trustScore: trustScore,
       trustLevel: trustLevel,
       fcmToken: fcmToken,
+      schoolId: schoolId,
       createdAt: createdAt,
     );
   }

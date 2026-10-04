@@ -17,6 +17,10 @@ class User extends Equatable {
   final int trustScore;
   final String trustLevel;
   final String? fcmToken;
+
+  /// Self-declared school (references `schools.id`), used as the default
+  /// school on new listings.
+  final String? schoolId;
   final DateTime createdAt;
 
   const User({
@@ -32,6 +36,7 @@ class User extends Equatable {
     this.trustScore = 50,
     this.trustLevel = 'Seedling',
     this.fcmToken,
+    this.schoolId,
     required this.createdAt,
   });
 
@@ -48,6 +53,8 @@ class User extends Equatable {
     int? trustScore,
     String? trustLevel,
     String? fcmToken,
+    String? schoolId,
+    bool clearSchool = false,
     DateTime? createdAt,
   }) {
     return User(
@@ -63,6 +70,7 @@ class User extends Equatable {
       trustScore: trustScore ?? this.trustScore,
       trustLevel: trustLevel ?? this.trustLevel,
       fcmToken: fcmToken ?? this.fcmToken,
+      schoolId: clearSchool ? null : (schoolId ?? this.schoolId),
       createdAt: createdAt ?? this.createdAt,
     );
   }
@@ -81,6 +89,7 @@ class User extends Equatable {
     trustScore,
     trustLevel,
     fcmToken,
+    schoolId,
     createdAt,
   ];
 }

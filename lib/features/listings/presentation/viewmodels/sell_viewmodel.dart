@@ -4,11 +4,13 @@ import 'package:image_picker/image_picker.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:book_bridge/features/listings/domain/entities/listing.dart';
 import 'package:book_bridge/features/listings/domain/entities/book_condition.dart';
+import 'package:book_bridge/features/listings/domain/entities/academic_lookups.dart';
 import 'package:book_bridge/features/listings/domain/repositories/listing_repository.dart';
 import 'package:book_bridge/features/listings/domain/usecases/create_listing_usecase.dart';
 import 'package:book_bridge/features/listings/domain/usecases/update_listing_usecase.dart';
 import 'package:book_bridge/core/error/exceptions.dart';
 import 'package:book_bridge/features/listings/presentation/viewmodels/location_viewmodel.dart';
+import 'package:book_bridge/features/listings/presentation/viewmodels/academic_filters_mixin.dart';
 
 /// State enum for the Sell screen.
 enum SellState { initial, loading, success, error }
@@ -17,7 +19,7 @@ enum SellState { initial, loading, success, error }
 ///
 /// This ViewModel handles the creation of new listings including
 /// form state management and API interactions.
-class SellViewModel extends ChangeNotifier {
+class SellViewModel extends ChangeNotifier with AcademicFiltersMixin {
   final CreateListingUseCase createListingUseCase;
   final UpdateListingUseCase updateListingUseCase;
   final ListingRepository repository;
@@ -40,6 +42,10 @@ class SellViewModel extends ChangeNotifier {
   bool _isBuyBackEligible = false;
   int _stockCount = 1;
 
+  // Guards async school lookups (edit prefill / profile default) against
+  // races with user selection or form resets.
+  int _schoolLookupToken = 0;
+
   SellViewModel({
     required this.createListingUseCase,
     required this.updateListingUseCase,
@@ -54,6 +60,31 @@ class SellViewModel extends ChangeNotifier {
   Listing? get editingListing => _editingListing;
   bool get isLoading => _sellState == SellState.loading;
   bool get isEditing => _editingListing != null;
+
+  @override
+  ListingRepository get academicRepository => repository;
+
+  /// Academic fields are form inputs here, not feed filters: just redraw.
+  @override
+  Future<void> onAcademicFiltersChanged() async => notifyListeners();
+
+  Future<void> setClassLevel(String? id) => setClassLevelFilter(id);
+  Future<void> setSubject(String? id) => setSubjectFilter(id);
+
+  Future<void> setSchool(School? school) {
+    _schoolLookupToken++;
+    return setSchoolFilter(school);
+  }
+
+  /// Pre-selects the seller's profile school on a fresh (non-edit) form.
+  Future<void> applyDefaultSchool(String? schoolId) async {
+    if (schoolId == null || isEditing || selectedSchool != null) return;
+    final token = ++_schoolLookupToken;
+    final result = await repository.getSchoolById(schoolId);
+    final school = result.fold((_) => null, (s) => s);
+    if (token != _schoolLookupToken || isEditing || school == null) return;
+    await setSchoolFilter(school);
+  }
 
   String? get title => _title;
   String? get author => _author;
@@ -139,7 +170,23 @@ class SellViewModel extends ChangeNotifier {
     _sellerType = listing.sellerType;
     _isBuyBackEligible = listing.isBuyBackEligible;
     _stockCount = listing.stockCount;
+    _prefillAcademicFields(listing);
     notifyListeners();
+  }
+
+  Future<void> _prefillAcademicFields(Listing listing) async {
+    final token = ++_schoolLookupToken;
+    await setClassLevelFilter(listing.classLevelId);
+    await setSubjectFilter(listing.subjectId);
+    await setSchoolFilter(null);
+    final schoolId = listing.schoolId;
+    if (schoolId == null) return;
+    final result = await repository.getSchoolById(schoolId);
+    final school = result.fold((_) => null, (s) => s);
+    if (token != _schoolLookupToken || _editingListing?.id != listing.id) {
+      return;
+    }
+    await setSchoolFilter(school);
   }
 
   /// Resets the form to initial state.
@@ -158,6 +205,8 @@ class SellViewModel extends ChangeNotifier {
     _errorMessage = null;
     _createdListing = null;
     _editingListing = null;
+    _schoolLookupToken++;
+    clearAcademicFilters();
     notifyListeners();
   }
 
@@ -186,6 +235,20 @@ class SellViewModel extends ChangeNotifier {
 
     if (_imageUrl == null || _imageUrl!.isEmpty) {
       _errorMessage = 'Book image is required';
+      _sellState = SellState.error;
+      notifyListeners();
+      return false;
+    }
+
+    if (selectedClassLevelId == null) {
+      _errorMessage = 'Class level is required';
+      _sellState = SellState.error;
+      notifyListeners();
+      return false;
+    }
+
+    if (selectedSubjectId == null) {
+      _errorMessage = 'Subject is required';
       _sellState = SellState.error;
       notifyListeners();
       return false;
@@ -226,6 +289,9 @@ class SellViewModel extends ChangeNotifier {
       stockCount: _stockCount,
       latitude: position?.latitude,
       longitude: position?.longitude,
+      classLevelId: selectedClassLevelId,
+      subjectId: selectedSubjectId,
+      schoolId: selectedSchool?.id,
     );
 
     final result = await createListingUseCase(params);
@@ -270,6 +336,10 @@ class SellViewModel extends ChangeNotifier {
       stockCount: _stockCount,
       latitude: position?.latitude,
       longitude: position?.longitude,
+      classLevelId: selectedClassLevelId,
+      subjectId: selectedSubjectId,
+      schoolId: selectedSchool?.id,
+      clearSchool: selectedSchool == null && _editingListing!.schoolId != null,
     );
 
     final result = await updateListingUseCase(params);

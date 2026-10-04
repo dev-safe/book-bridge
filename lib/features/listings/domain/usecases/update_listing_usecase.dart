@@ -28,6 +28,10 @@ class UpdateListingUseCase implements UseCase<Listing, UpdateListingParams> {
       stockCount: params.stockCount,
       latitude: params.latitude,
       longitude: params.longitude,
+      classLevelId: params.classLevelId,
+      subjectId: params.subjectId,
+      schoolId: params.schoolId,
+      clearSchool: params.clearSchool,
     );
   }
 }
@@ -46,6 +50,12 @@ class UpdateListingParams extends Equatable {
   final int? stockCount;
   final double? latitude;
   final double? longitude;
+  final String? classLevelId;
+  final String? subjectId;
+  final String? schoolId;
+
+  /// When true and [schoolId] is null, the listing's school is cleared.
+  final bool clearSchool;
 
   const UpdateListingParams({
     required this.id,
@@ -61,6 +71,10 @@ class UpdateListingParams extends Equatable {
     this.stockCount,
     this.latitude,
     this.longitude,
+    this.classLevelId,
+    this.subjectId,
+    this.schoolId,
+    this.clearSchool = false,
   });
 
   @override
@@ -78,5 +92,9 @@ class UpdateListingParams extends Equatable {
     stockCount,
     latitude,
     longitude,
+    classLevelId,
+    subjectId,
+    schoolId,
+    clearSchool,
   ];
 }

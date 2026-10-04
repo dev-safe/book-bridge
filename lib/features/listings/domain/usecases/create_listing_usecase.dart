@@ -26,6 +26,9 @@ class CreateListingUseCase implements UseCase<Listing, CreateListingParams> {
       stockCount: params.stockCount,
       latitude: params.latitude,
       longitude: params.longitude,
+      classLevelId: params.classLevelId,
+      subjectId: params.subjectId,
+      schoolId: params.schoolId,
     );
   }
 }
@@ -44,6 +47,9 @@ class CreateListingParams {
   final int stockCount;
   final double? latitude;
   final double? longitude;
+  final String? classLevelId;
+  final String? subjectId;
+  final String? schoolId;
 
   CreateListingParams({
     required this.title,
@@ -58,5 +64,8 @@ class CreateListingParams {
     this.stockCount = 1,
     this.latitude,
     this.longitude,
+    this.classLevelId,
+    this.subjectId,
+    this.schoolId,
   });
 }
