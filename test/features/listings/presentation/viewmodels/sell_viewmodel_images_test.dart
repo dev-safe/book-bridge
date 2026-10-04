@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:book_bridge/core/error/failures.dart';
 import 'package:book_bridge/features/listings/domain/entities/book_condition.dart';
 import 'package:book_bridge/features/listings/domain/entities/listing.dart';
 import 'package:book_bridge/features/listings/domain/repositories/listing_repository.dart';
@@ -44,20 +47,23 @@ Listing _listing({String imageUrl = _a, List<String> imageUrls = const []}) =>
 void main() {
   late MockCreateListingUseCase createUseCase;
   late MockUpdateListingUseCase updateUseCase;
+  late MockListingRepository repository;
   late SellViewModel viewModel;
 
   setUpAll(() {
     registerFallbackValue(_FakeCreateParams());
     registerFallbackValue(_FakeUpdateParams());
+    registerFallbackValue(File(''));
   });
 
   setUp(() {
     createUseCase = MockCreateListingUseCase();
     updateUseCase = MockUpdateListingUseCase();
+    repository = MockListingRepository();
     viewModel = SellViewModel(
       createListingUseCase: createUseCase,
       updateListingUseCase: updateUseCase,
-      repository: MockListingRepository(),
+      repository: repository,
       locationViewModel: LocationViewModel(initialValue: false),
     );
   });
@@ -225,5 +231,62 @@ void main() {
       ..resetForm();
 
     expect(viewModel.imageUrls, isEmpty);
+  });
+
+  group('addImageFiles (multi-select)', () {
+    final files = [for (final n in 'wxyz'.split('')) File('/tmp/$n.jpg')];
+
+    test('uploads selected photos in order up to the cap', () async {
+      final urls = {
+        files[0].path: _a,
+        files[1].path: _b,
+        files[2].path: _c,
+        files[3].path: _d,
+      };
+      when(() => repository.uploadBookImage(any())).thenAnswer(
+        (inv) async =>
+            Right(urls[(inv.positionalArguments.first as File).path]!),
+      );
+
+      await viewModel.addImageFiles(files);
+
+      expect(viewModel.imageUrls, [_a, _b, _c]);
+      expect(viewModel.sellState, SellState.initial);
+      verifyNever(() => repository.uploadBookImage(files[3]));
+    });
+
+    test('fills only the remaining slots', () async {
+      viewModel.addImageUrl(_a);
+      when(
+        () => repository.uploadBookImage(any()),
+      ).thenAnswer((_) async => const Right(_b));
+
+      await viewModel.addImageFiles(files);
+
+      expect(viewModel.imageUrls, [_a, _b, _b]);
+      verify(() => repository.uploadBookImage(any())).called(2);
+    });
+
+    test('stops at the first failed upload', () async {
+      when(
+        () => repository.uploadBookImage(files[0]),
+      ).thenAnswer((_) async => const Right(_a));
+      when(
+        () => repository.uploadBookImage(files[1]),
+      ).thenAnswer((_) async => const Left(ServerFailure(message: 'network')));
+
+      await viewModel.addImageFiles(files);
+
+      expect(viewModel.imageUrls, [_a]);
+      expect(viewModel.sellState, SellState.error);
+      verifyNever(() => repository.uploadBookImage(files[2]));
+    });
+
+    test('does nothing for an empty selection', () async {
+      await viewModel.addImageFiles(const []);
+
+      expect(viewModel.imageUrls, isEmpty);
+      verifyNever(() => repository.uploadBookImage(any()));
+    });
   });
 }
