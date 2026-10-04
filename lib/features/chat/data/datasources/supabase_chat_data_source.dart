@@ -122,7 +122,7 @@ class SupabaseChatDataSource {
       Map<String, Map<String, dynamic>> profileMap = {};
       if (otherUserIds.isNotEmpty) {
         final profiles = await supabaseClient
-            .from('profiles')
+            .from('public_profiles')
             .select('id, full_name, avatar_url')
             .inFilter('id', otherUserIds);
 

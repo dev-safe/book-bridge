@@ -74,7 +74,7 @@ class SupabaseListingsDataSource {
       var query = supabaseClient
           .from('listings')
           .select(
-            '*, profiles:seller_id(id, full_name, locality, avatar_url, rating, review_count)',
+            '*, profiles:public_profiles!seller_id(id, full_name, locality, avatar_url, rating, review_count)',
           )
           .eq('status', status);
 
@@ -109,7 +109,7 @@ class SupabaseListingsDataSource {
       final response = await supabaseClient
           .from('listings')
           .select(
-            '*, profiles:seller_id(id, full_name, locality, avatar_url, rating, review_count)',
+            '*, profiles:public_profiles!seller_id(id, full_name, locality, avatar_url, rating, review_count)',
           )
           .eq('id', listingId)
           .single();
@@ -133,7 +133,7 @@ class SupabaseListingsDataSource {
       final response = await supabaseClient
           .from('listings')
           .select(
-            '*, profiles:seller_id(id, full_name, locality, avatar_url, rating, review_count)',
+            '*, profiles:public_profiles!seller_id(id, full_name, locality, avatar_url, rating, review_count)',
           )
           .eq('seller_id', sellerId)
           .order('created_at', ascending: false);
@@ -169,7 +169,7 @@ class SupabaseListingsDataSource {
             },
           )
           .select(
-            '*, profiles:seller_id(id, full_name, locality, avatar_url, rating, review_count)',
+            '*, profiles:public_profiles!seller_id(id, full_name, locality, avatar_url, rating, review_count)',
           )
           .order('is_boosted', ascending: false)
           .order('boost_expires_at', ascending: false)
@@ -299,7 +299,7 @@ class SupabaseListingsDataSource {
           .update(updates)
           .eq('id', id)
           .select(
-            '*, profiles:seller_id(id, full_name, locality, avatar_url, rating, review_count)',
+            '*, profiles:public_profiles!seller_id(id, full_name, locality, avatar_url, rating, review_count)',
           )
           .single();
 
