@@ -112,14 +112,25 @@ begin
 end $$;
 
 -- 5. Duplicate cron job ------------------------------------------------------
+-- Supabase forbids direct DML on cron.job; use cron.unschedule instead.
 do $$
+declare
+  dup bigint;
 begin
   if to_regclass('cron.job') is not null then
-    delete from cron.job
-    where command ilike '%delete_old_messages()%'
-      and jobid > (
-        select min(jobid) from cron.job where command ilike '%delete_old_messages()%'
-      );
+    for dup in
+      select jobid from cron.job
+      where command ilike '%delete_old_messages()%'
+        and jobid > (
+          select min(jobid) from cron.job where command ilike '%delete_old_messages()%'
+        )
+    loop
+      begin
+        perform cron.unschedule(dup);
+      exception when others then
+        raise notice 'Could not unschedule duplicate cron job %: %', dup, sqlerrm;
+      end;
+    end loop;
   end if;
 end $$;
 
