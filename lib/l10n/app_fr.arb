@@ -456,5 +456,18 @@
   "addPhoto": "Ajouter une photo",
   "removePhoto": "Retirer la photo",
   "photoCountHint": "Jusqu'à {max} photos. Touchez une photo pour en faire la couverture.",
-  "photoOfTotal": "Photo {index} sur {total}"
+  "photoOfTotal": "Photo {index} sur {total}",
+  "meetupSpotFieldLabel": "Lieu de rencontre (facultatif)",
+  "meetupSpotFieldHint": "ex. Portail principal, Amphi 700, entrée de la bibliothèque",
+  "meetupSuggestionsLabel": "Lieux sûrs suggérés",
+  "meetupPinDrop": "Placer un repère",
+  "meetupPinChange": "Modifier le repère",
+  "meetupPinRemove": "Retirer le repère",
+  "meetupSafetyHint": "Choisissez un lieu public fréquenté du campus. Ne partagez jamais votre adresse. Convenez des changements dans le chat.",
+  "meetupPinPickerTitle": "Choisir le lieu de rencontre",
+  "meetupPinPickerHint": "Touchez la carte pour placer le repère, puis touchez Confirmer.",
+  "meetupPinConfirm": "Confirmer",
+  "meetupSpotLabel": "Lieu de rencontre",
+  "meetupPinOnly": "Repère sur la carte",
+  "meetupOpenMapsFailed": "Impossible d'ouvrir la carte"
 }

@@ -55,6 +55,11 @@ class Listing extends Equatable {
   final String? schoolId;
   final String? schoolName;
 
+  // Seller-chosen meetup spot (#33); the pin is optional and pre-rounded.
+  final String? meetupSpot;
+  final double? meetupLatitude;
+  final double? meetupLongitude;
+
   const Listing({
     required this.id,
     required this.title,
@@ -88,7 +93,13 @@ class Listing extends Equatable {
     this.subjectName,
     this.schoolId,
     this.schoolName,
+    this.meetupSpot,
+    this.meetupLatitude,
+    this.meetupLongitude,
   });
+
+  /// Whether the seller dropped a map pin for the meetup spot.
+  bool get hasMeetupPin => meetupLatitude != null && meetupLongitude != null;
 
   /// Photos to display, cover first, falling back to the cover alone.
   List<String> get gallery {
@@ -131,5 +142,8 @@ class Listing extends Equatable {
     subjectName,
     schoolId,
     schoolName,
+    meetupSpot,
+    meetupLatitude,
+    meetupLongitude,
   ];
 }

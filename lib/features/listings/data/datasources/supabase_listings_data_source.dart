@@ -232,6 +232,9 @@ class SupabaseListingsDataSource {
     String? classLevelId,
     String? subjectId,
     String? schoolId,
+    String? meetupSpot,
+    double? meetupLatitude,
+    double? meetupLongitude,
   }) async {
     try {
       final userId = supabaseClient.auth.currentUser?.id;
@@ -261,6 +264,9 @@ class SupabaseListingsDataSource {
             'class_level_id': classLevelId,
             'subject_id': subjectId,
             'school_id': schoolId,
+            'meetup_spot': meetupSpot,
+            'meetup_latitude': meetupLatitude,
+            'meetup_longitude': meetupLongitude,
           })
           .select(_listingSelect)
           .single();
@@ -313,6 +319,10 @@ class SupabaseListingsDataSource {
     String? subjectId,
     String? schoolId,
     bool clearSchool = false,
+    String? meetupSpot,
+    double? meetupLatitude,
+    double? meetupLongitude,
+    bool updateMeetup = false,
   }) async {
     try {
       final updates = <String, dynamic>{};
@@ -341,6 +351,11 @@ class SupabaseListingsDataSource {
         updates['school_id'] = schoolId;
       } else if (clearSchool) {
         updates['school_id'] = null;
+      }
+      if (updateMeetup) {
+        updates['meetup_spot'] = meetupSpot;
+        updates['meetup_latitude'] = meetupLatitude;
+        updates['meetup_longitude'] = meetupLongitude;
       }
 
       final response = await supabaseClient

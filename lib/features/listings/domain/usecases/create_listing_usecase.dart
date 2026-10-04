@@ -30,6 +30,9 @@ class CreateListingUseCase implements UseCase<Listing, CreateListingParams> {
       classLevelId: params.classLevelId,
       subjectId: params.subjectId,
       schoolId: params.schoolId,
+      meetupSpot: params.meetupSpot,
+      meetupLatitude: params.meetupLatitude,
+      meetupLongitude: params.meetupLongitude,
     );
   }
 }
@@ -54,6 +57,9 @@ class CreateListingParams {
   final String? classLevelId;
   final String? subjectId;
   final String? schoolId;
+  final String? meetupSpot;
+  final double? meetupLatitude;
+  final double? meetupLongitude;
 
   CreateListingParams({
     required this.title,
@@ -72,5 +78,8 @@ class CreateListingParams {
     this.classLevelId,
     this.subjectId,
     this.schoolId,
+    this.meetupSpot,
+    this.meetupLatitude,
+    this.meetupLongitude,
   });
 }

@@ -11,6 +11,8 @@ import 'package:book_bridge/core/constants/categories.dart';
 import 'package:book_bridge/features/auth/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:book_bridge/features/listings/presentation/widgets/academic_filter_bar.dart';
 import 'package:book_bridge/features/listings/presentation/widgets/listing_photos_picker.dart';
+import 'package:book_bridge/features/listings/presentation/widgets/meetup_pin_picker.dart';
+import 'package:latlong2/latlong.dart' show LatLng;
 
 /// Screen for creating and selling a new book listing.
 ///
@@ -31,6 +33,7 @@ class _SellScreenState extends State<SellScreen> {
   final _authorController = TextEditingController();
   final _priceController = TextEditingController();
   final _descriptionController = TextEditingController();
+  final _meetupSpotController = TextEditingController();
 
   // Save reference to avoid accessing context in dispose()
   late SellViewModel _sellViewModel;
@@ -50,6 +53,7 @@ class _SellScreenState extends State<SellScreen> {
         _authorController.text = widget.listing!.author;
         _priceController.text = widget.listing!.priceFcfa.toString();
         _descriptionController.text = widget.listing!.description;
+        _meetupSpotController.text = widget.listing!.meetupSpot ?? '';
       } else {
         // Otherwise reset the form to start fresh
         _sellViewModel.resetForm();
@@ -58,7 +62,119 @@ class _SellScreenState extends State<SellScreen> {
         );
       }
       _sellViewModel.loadAcademicLookups();
+      _sellViewModel.loadMeetupSuggestionsIfNeeded();
     });
+  }
+
+  Future<void> _pickMeetupPin(SellViewModel viewModel) async {
+    final existing = viewModel.hasMeetupPin
+        ? LatLng(viewModel.meetupLatitude!, viewModel.meetupLongitude!)
+        : null;
+    final suggestions = viewModel.meetupSuggestions;
+    final center =
+        existing ??
+        (suggestions.isNotEmpty
+            ? LatLng(suggestions.first.latitude, suggestions.first.longitude)
+            : defaultMeetupCenter);
+    final picked = await MeetupPinPicker.show(
+      context,
+      initialCenter: center,
+      initialPin: existing,
+    );
+    if (picked != null) {
+      viewModel.setMeetupPin(picked.latitude, picked.longitude);
+    }
+  }
+
+  Widget _buildMeetupFields(BuildContext context, SellViewModel viewModel) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _fieldLabel(context, l10n.meetupSpotFieldLabel),
+        TextFormField(
+          key: const Key('meetupSpotField'),
+          controller: _meetupSpotController,
+          maxLength: SellViewModel.maxMeetupSpotLength,
+          decoration: InputDecoration(
+            hintText: l10n.meetupSpotFieldHint,
+            prefixIcon: const Icon(Icons.place_outlined),
+            filled: true,
+            fillColor: theme.colorScheme.surface,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide.none,
+            ),
+          ),
+          onChanged: viewModel.setMeetupSpot,
+        ),
+        if (viewModel.meetupSuggestions.isNotEmpty) ...[
+          Text(l10n.meetupSuggestionsLabel, style: theme.textTheme.bodySmall),
+          const SizedBox(height: 4),
+          Wrap(
+            spacing: 8,
+            runSpacing: 4,
+            children: viewModel.meetupSuggestions
+                .map(
+                  (zone) => ActionChip(
+                    avatar: const Icon(Icons.verified_outlined, size: 16),
+                    label: Text(zone.name),
+                    onPressed: () {
+                      viewModel.applyMeetupSuggestion(zone);
+                      _meetupSpotController.text = viewModel.meetupSpot ?? '';
+                    },
+                  ),
+                )
+                .toList(),
+          ),
+          const SizedBox(height: 8),
+        ],
+        Row(
+          children: [
+            OutlinedButton.icon(
+              key: const Key('meetupPinButton'),
+              onPressed: () => _pickMeetupPin(viewModel),
+              icon: Icon(
+                viewModel.hasMeetupPin
+                    ? Icons.edit_location_alt_outlined
+                    : Icons.add_location_alt_outlined,
+              ),
+              label: Text(
+                viewModel.hasMeetupPin
+                    ? l10n.meetupPinChange
+                    : l10n.meetupPinDrop,
+              ),
+            ),
+            if (viewModel.hasMeetupPin) ...[
+              const SizedBox(width: 8),
+              TextButton(
+                onPressed: viewModel.clearMeetupPin,
+                child: Text(l10n.meetupPinRemove),
+              ),
+            ],
+          ],
+        ),
+        const SizedBox(height: 8),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(
+              Icons.shield_outlined,
+              size: 16,
+              color: theme.colorScheme.primary,
+            ),
+            const SizedBox(width: 6),
+            Expanded(
+              child: Text(
+                l10n.meetupSafetyHint,
+                style: theme.textTheme.bodySmall,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
   }
 
   Widget _fieldLabel(BuildContext context, String text) {
@@ -140,6 +256,7 @@ class _SellScreenState extends State<SellScreen> {
     _authorController.dispose();
     _priceController.dispose();
     _descriptionController.dispose();
+    _meetupSpotController.dispose();
     super.dispose();
   }
 
@@ -572,6 +689,8 @@ class _SellScreenState extends State<SellScreen> {
                   ),
                   const SizedBox(height: 24),
                   _buildAcademicFields(context, viewModel),
+                  const SizedBox(height: 24),
+                  _buildMeetupFields(context, viewModel),
                   const SizedBox(height: 24),
                   // Social Venture Section
                   Text(
