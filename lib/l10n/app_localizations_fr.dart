@@ -1252,4 +1252,54 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get tapToViewListing => 'Appuyez pour voir l\'annonce';
+
+  @override
+  String get classLevelLabel => 'Classe';
+
+  @override
+  String get subjectLabel => 'Matière';
+
+  @override
+  String get schoolLabel => 'Établissement';
+
+  @override
+  String get selectClassLevelHint => 'Choisir la classe';
+
+  @override
+  String get selectSubjectHint => 'Choisir la matière';
+
+  @override
+  String get selectSchoolOptionalHint =>
+      'Choisir l\'établissement (facultatif)';
+
+  @override
+  String get searchSchoolsHint => 'Rechercher un établissement';
+
+  @override
+  String get noSchoolsFound => 'Aucun établissement trouvé';
+
+  @override
+  String get anyClassLevel => 'Toutes les classes';
+
+  @override
+  String get anySubject => 'Toutes les matières';
+
+  @override
+  String get anySchool => 'Tous les établissements';
+
+  @override
+  String get noSchool => 'Aucun établissement';
+
+  @override
+  String get mySchoolLabel => 'Mon établissement';
+
+  @override
+  String get classLevelRequired => 'Veuillez choisir une classe';
+
+  @override
+  String get subjectRequired => 'Veuillez choisir une matière';
+
+  @override
+  String get noListingsMatchFilters =>
+      'Aucun livre ne correspond à ces filtres';
 }

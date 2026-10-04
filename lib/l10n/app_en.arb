@@ -431,5 +431,21 @@
   "notifNewInquiryLabel": "New Message",
   "notifImpactMilestoneLabel": "Milestone Reached",
   "notifWelcomeLabel": "Welcome",
-  "tapToViewListing": "Tap to view listing"
+  "tapToViewListing": "Tap to view listing",
+  "classLevelLabel": "Class level",
+  "subjectLabel": "Subject",
+  "schoolLabel": "School",
+  "selectClassLevelHint": "Select class level",
+  "selectSubjectHint": "Select subject",
+  "selectSchoolOptionalHint": "Select school (optional)",
+  "searchSchoolsHint": "Search schools",
+  "noSchoolsFound": "No schools found",
+  "anyClassLevel": "Any class level",
+  "anySubject": "Any subject",
+  "anySchool": "Any school",
+  "noSchool": "No school",
+  "mySchoolLabel": "My school",
+  "classLevelRequired": "Please select a class level",
+  "subjectRequired": "Please select a subject",
+  "noListingsMatchFilters": "No books match these filters"
 }

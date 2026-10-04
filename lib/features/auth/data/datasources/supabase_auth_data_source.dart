@@ -301,6 +301,7 @@ class SupabaseAuthDataSource {
             'full_name': userToUpdate.fullName,
             'locality': userToUpdate.locality,
             'avatar_url': userToUpdate.avatarUrl,
+            'school_id': userToUpdate.schoolId,
           })
           .eq('id', userToUpdate.id)
           .select()

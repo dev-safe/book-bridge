@@ -428,5 +428,21 @@
   "notifNewInquiryLabel": "Nouveau Message",
   "notifImpactMilestoneLabel": "Étape Atteinte",
   "notifWelcomeLabel": "Bienvenue",
-  "tapToViewListing": "Appuyez pour voir l'annonce"
+  "tapToViewListing": "Appuyez pour voir l'annonce",
+  "classLevelLabel": "Classe",
+  "subjectLabel": "Matière",
+  "schoolLabel": "Établissement",
+  "selectClassLevelHint": "Choisir la classe",
+  "selectSubjectHint": "Choisir la matière",
+  "selectSchoolOptionalHint": "Choisir l'établissement (facultatif)",
+  "searchSchoolsHint": "Rechercher un établissement",
+  "noSchoolsFound": "Aucun établissement trouvé",
+  "anyClassLevel": "Toutes les classes",
+  "anySubject": "Toutes les matières",
+  "anySchool": "Tous les établissements",
+  "noSchool": "Aucun établissement",
+  "mySchoolLabel": "Mon établissement",
+  "classLevelRequired": "Veuillez choisir une classe",
+  "subjectRequired": "Veuillez choisir une matière",
+  "noListingsMatchFilters": "Aucun livre ne correspond à ces filtres"
 }

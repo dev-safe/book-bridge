@@ -2389,6 +2389,102 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Tap to view listing'**
   String get tapToViewListing;
+
+  /// No description provided for @classLevelLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Class level'**
+  String get classLevelLabel;
+
+  /// No description provided for @subjectLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Subject'**
+  String get subjectLabel;
+
+  /// No description provided for @schoolLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'School'**
+  String get schoolLabel;
+
+  /// No description provided for @selectClassLevelHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Select class level'**
+  String get selectClassLevelHint;
+
+  /// No description provided for @selectSubjectHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Select subject'**
+  String get selectSubjectHint;
+
+  /// No description provided for @selectSchoolOptionalHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Select school (optional)'**
+  String get selectSchoolOptionalHint;
+
+  /// No description provided for @searchSchoolsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search schools'**
+  String get searchSchoolsHint;
+
+  /// No description provided for @noSchoolsFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No schools found'**
+  String get noSchoolsFound;
+
+  /// No description provided for @anyClassLevel.
+  ///
+  /// In en, this message translates to:
+  /// **'Any class level'**
+  String get anyClassLevel;
+
+  /// No description provided for @anySubject.
+  ///
+  /// In en, this message translates to:
+  /// **'Any subject'**
+  String get anySubject;
+
+  /// No description provided for @anySchool.
+  ///
+  /// In en, this message translates to:
+  /// **'Any school'**
+  String get anySchool;
+
+  /// No description provided for @noSchool.
+  ///
+  /// In en, this message translates to:
+  /// **'No school'**
+  String get noSchool;
+
+  /// No description provided for @mySchoolLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'My school'**
+  String get mySchoolLabel;
+
+  /// No description provided for @classLevelRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please select a class level'**
+  String get classLevelRequired;
+
+  /// No description provided for @subjectRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please select a subject'**
+  String get subjectRequired;
+
+  /// No description provided for @noListingsMatchFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'No books match these filters'**
+  String get noListingsMatchFilters;
 }
 
 class _AppLocalizationsDelegate

@@ -3,6 +3,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:book_bridge/features/listings/domain/entities/listing.dart';
 import 'package:book_bridge/features/listings/domain/repositories/listing_repository.dart';
 import 'package:book_bridge/features/listings/domain/usecases/get_listings_usecase.dart';
+import 'package:book_bridge/features/listings/presentation/viewmodels/academic_filters_mixin.dart';
 import 'package:book_bridge/features/listings/presentation/viewmodels/location_viewmodel.dart';
 import 'package:book_bridge/features/impact/domain/entities/platform_stats.dart';
 import 'package:book_bridge/features/impact/domain/usecases/get_platform_stats_usecase.dart';
@@ -13,7 +14,7 @@ enum HomeState { initial, loading, loaded, error }
 /// ViewModel for managing the home feed state and operations.
 ///
 /// This ChangeNotifier manages fetching and displaying listings.
-class HomeViewModel extends ChangeNotifier {
+class HomeViewModel extends ChangeNotifier with AcademicFiltersMixin {
   final GetListingsUseCase getListingsUseCase;
   final LocationViewModel locationViewModel;
   final ListingRepository listingRepository;
@@ -91,6 +92,15 @@ class HomeViewModel extends ChangeNotifier {
     return sortedListings;
   }
 
+  @override
+  ListingRepository get academicRepository => listingRepository;
+
+  @override
+  Future<void> onAcademicFiltersChanged() async {
+    if (hasAcademicFilters) _shouldScrollToResults = true;
+    await _loadInitialListings();
+  }
+
   HomeViewModel({
     required this.getListingsUseCase,
     required this.locationViewModel,
@@ -98,6 +108,7 @@ class HomeViewModel extends ChangeNotifier {
     required this.getPlatformStatsUseCase,
   }) {
     _loadInitialListings();
+    loadAcademicLookups();
     if (locationViewModel.locationEnabled) _fetchLocation();
     // Re-fetch (or clear) location whenever the toggle changes.
     locationViewModel.addListener(_onLocationPreferenceChanged);
@@ -152,6 +163,7 @@ class HomeViewModel extends ChangeNotifier {
     final params = GetListingsParams(
       status: 'available',
       category: _selectedCategory,
+      filters: academicFilters,
       limit: _pageSize,
       offset: offset,
     );

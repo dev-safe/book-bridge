@@ -1239,4 +1239,52 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tapToViewListing => 'Tap to view listing';
+
+  @override
+  String get classLevelLabel => 'Class level';
+
+  @override
+  String get subjectLabel => 'Subject';
+
+  @override
+  String get schoolLabel => 'School';
+
+  @override
+  String get selectClassLevelHint => 'Select class level';
+
+  @override
+  String get selectSubjectHint => 'Select subject';
+
+  @override
+  String get selectSchoolOptionalHint => 'Select school (optional)';
+
+  @override
+  String get searchSchoolsHint => 'Search schools';
+
+  @override
+  String get noSchoolsFound => 'No schools found';
+
+  @override
+  String get anyClassLevel => 'Any class level';
+
+  @override
+  String get anySubject => 'Any subject';
+
+  @override
+  String get anySchool => 'Any school';
+
+  @override
+  String get noSchool => 'No school';
+
+  @override
+  String get mySchoolLabel => 'My school';
+
+  @override
+  String get classLevelRequired => 'Please select a class level';
+
+  @override
+  String get subjectRequired => 'Please select a subject';
+
+  @override
+  String get noListingsMatchFilters => 'No books match these filters';
 }

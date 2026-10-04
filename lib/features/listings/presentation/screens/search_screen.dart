@@ -9,6 +9,7 @@ import 'package:book_bridge/features/listings/domain/entities/category.dart'
     as entity;
 import 'package:book_bridge/features/listings/presentation/viewmodels/home_viewmodel.dart';
 import 'package:book_bridge/features/listings/presentation/widgets/listing_card.dart';
+import 'package:book_bridge/features/listings/presentation/widgets/academic_filter_bar.dart';
 
 /// Search screen for finding book listings.
 ///
@@ -133,236 +134,259 @@ class _SearchScreenState extends State<SearchScreen> {
             ),
           ),
           body: SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Show Categories and Recent Searches only when NOT searching
-                  if (viewModel.searchState == SearchState.initial ||
-                      (viewModel.searchState == SearchState.success &&
-                          _searchController.text.isEmpty)) ...[
-                    // Academic Categories
-                    Text(
-                      AppLocalizations.of(context)!.academicCategories,
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    if (viewModel.categories.isEmpty)
-                      Center(
-                        child: Text(
-                          AppLocalizations.of(context)!.noCategoriesAvailable,
-                        ),
-                      )
-                    else
-                      GridView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        gridDelegate:
-                            const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 2,
-                              crossAxisSpacing: 12,
-                              mainAxisSpacing: 12,
-                              childAspectRatio: 1.8,
-                            ),
-                        itemCount: viewModel.categories.length,
-                        itemBuilder: (context, index) {
-                          final category = viewModel.categories[index];
-                          return _buildCategoryItem(
-                            context,
-                            category,
-                            viewModel,
-                          );
-                        },
-                      ),
-                    const SizedBox(height: 32),
-
-                    // Recent Searches Section
-                    if (viewModel.recentSearches.isNotEmpty) ...[
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            AppLocalizations.of(context)!.recentSearches,
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              viewModel.clearRecentSearches();
-                            },
-                            child: Text(
-                              AppLocalizations.of(context)!.clearAll,
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                                color: AppTheme.lightGray,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      // Recent search items
-                      ListView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: viewModel.recentSearches.length,
-                        itemBuilder: (context, index) {
-                          final query = viewModel.recentSearches[index];
-                          return Container(
-                            padding: const EdgeInsets.symmetric(vertical: 8),
-                            decoration: BoxDecoration(
-                              border: Border(
-                                bottom: BorderSide(
-                                  color: Theme.of(
-                                    context,
-                                  ).dividerColor.withValues(alpha: 0.1),
-                                ),
-                              ),
-                            ),
-                            child: InkWell(
-                              onTap: () {
-                                _searchController.text = query;
-                                viewModel.search(query);
-                                FocusScope.of(context).unfocus();
-                              },
-                              child: Row(
-                                children: [
-                                  const Icon(
-                                    Icons.history,
-                                    size: 18,
-                                    color: AppTheme.lightGray,
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Text(
-                                      query,
-                                      style: const TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w500,
-                                        color: Color(0xFF9DB9A6),
-                                      ),
-                                    ),
-                                  ),
-                                  IconButton(
-                                    icon: const Icon(
-                                      Icons.close,
-                                      size: 18,
-                                      color: Color(0xFF9DB9A6),
-                                    ),
-                                    onPressed: () {
-                                      viewModel.removeRecentSearch(query);
-                                    },
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    ],
-                  ],
-
-                  // Loading State
-                  if (viewModel.searchState == SearchState.loading)
-                    const Center(
-                      child: Padding(
-                        padding: EdgeInsets.all(40.0),
-                        child: CircularProgressIndicator(),
-                      ),
-                    ),
-
-                  // Error State
-                  if (viewModel.searchState == SearchState.error)
-                    Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(20.0),
-                        child: Text(
-                          viewModel.errorMessage ??
-                              AppLocalizations.of(context)!.anErrorOccurred,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: AcademicFilterBar(viewModel: viewModel),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Show Categories and Recent Searches only when NOT searching
+                      if (viewModel.searchState == SearchState.initial ||
+                          (viewModel.searchState == SearchState.success &&
+                              _searchController.text.isEmpty)) ...[
+                        // Academic Categories
+                        Text(
+                          AppLocalizations.of(context)!.academicCategories,
                           style: TextStyle(
-                            color: Theme.of(context).colorScheme.error,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
-                      ),
-                    ),
-
-                  // Empty State
-                  if (viewModel.searchState == SearchState.empty ||
-                      (viewModel.searchState == SearchState.success &&
-                          viewModel.searchResults.isEmpty &&
-                          _searchController.text.isNotEmpty))
-                    Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(40.0),
-                        child: Column(
-                          children: [
-                            Icon(
-                              Icons.search_off,
-                              size: 64,
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.onSurfaceVariant,
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
+                        const SizedBox(height: 16),
+                        if (viewModel.categories.isEmpty)
+                          Center(
+                            child: Text(
                               AppLocalizations.of(
                                 context,
-                              )!.noResultsFoundFor(_searchController.text),
-                              textAlign: TextAlign.center,
-                              style: Theme.of(context).textTheme.titleMedium,
+                              )!.noCategoriesAvailable,
+                            ),
+                          )
+                        else
+                          GridView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            gridDelegate:
+                                const SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: 2,
+                                  crossAxisSpacing: 12,
+                                  mainAxisSpacing: 12,
+                                  childAspectRatio: 1.8,
+                                ),
+                            itemCount: viewModel.categories.length,
+                            itemBuilder: (context, index) {
+                              final category = viewModel.categories[index];
+                              return _buildCategoryItem(
+                                context,
+                                category,
+                                viewModel,
+                              );
+                            },
+                          ),
+                        const SizedBox(height: 32),
+
+                        // Recent Searches Section
+                        if (viewModel.recentSearches.isNotEmpty) ...[
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                AppLocalizations.of(context)!.recentSearches,
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  viewModel.clearRecentSearches();
+                                },
+                                child: Text(
+                                  AppLocalizations.of(context)!.clearAll,
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                    color: AppTheme.lightGray,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          // Recent search items
+                          ListView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: viewModel.recentSearches.length,
+                            itemBuilder: (context, index) {
+                              final query = viewModel.recentSearches[index];
+                              return Container(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 8,
+                                ),
+                                decoration: BoxDecoration(
+                                  border: Border(
+                                    bottom: BorderSide(
+                                      color: Theme.of(
+                                        context,
+                                      ).dividerColor.withValues(alpha: 0.1),
+                                    ),
+                                  ),
+                                ),
+                                child: InkWell(
+                                  onTap: () {
+                                    _searchController.text = query;
+                                    viewModel.search(query);
+                                    FocusScope.of(context).unfocus();
+                                  },
+                                  child: Row(
+                                    children: [
+                                      const Icon(
+                                        Icons.history,
+                                        size: 18,
+                                        color: AppTheme.lightGray,
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Text(
+                                          query,
+                                          style: const TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w500,
+                                            color: Color(0xFF9DB9A6),
+                                          ),
+                                        ),
+                                      ),
+                                      IconButton(
+                                        icon: const Icon(
+                                          Icons.close,
+                                          size: 18,
+                                          color: Color(0xFF9DB9A6),
+                                        ),
+                                        onPressed: () {
+                                          viewModel.removeRecentSearch(query);
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ],
+                      ],
+
+                      // Loading State
+                      if (viewModel.searchState == SearchState.loading)
+                        const Center(
+                          child: Padding(
+                            padding: EdgeInsets.all(40.0),
+                            child: CircularProgressIndicator(),
+                          ),
+                        ),
+
+                      // Error State
+                      if (viewModel.searchState == SearchState.error)
+                        Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(20.0),
+                            child: Text(
+                              viewModel.errorMessage ??
+                                  AppLocalizations.of(context)!.anErrorOccurred,
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.error,
+                              ),
+                            ),
+                          ),
+                        ),
+
+                      // Empty State
+                      if (viewModel.searchState == SearchState.empty ||
+                          (viewModel.searchState == SearchState.success &&
+                              viewModel.searchResults.isEmpty &&
+                              _searchController.text.isNotEmpty))
+                        Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(40.0),
+                            child: Column(
+                              children: [
+                                Icon(
+                                  Icons.search_off,
+                                  size: 64,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  _searchController.text.isEmpty &&
+                                          viewModel.hasAcademicFilters
+                                      ? AppLocalizations.of(
+                                          context,
+                                        )!.noListingsMatchFilters
+                                      : AppLocalizations.of(
+                                          context,
+                                        )!.noResultsFoundFor(
+                                          _searchController.text,
+                                        ),
+                                  textAlign: TextAlign.center,
+                                  style: Theme.of(
+                                    context,
+                                  ).textTheme.titleMedium,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+
+                      // Search results
+                      if (viewModel.searchState == SearchState.success &&
+                          viewModel.searchResults.isNotEmpty)
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(height: 24),
+                            Text(
+                              AppLocalizations.of(context)!.resultsFoundCount(
+                                viewModel.searchResults.length,
+                              ),
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                            const SizedBox(height: 12),
+                            GridView.builder(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              gridDelegate:
+                                  const SliverGridDelegateWithFixedCrossAxisCount(
+                                    crossAxisCount: 2,
+                                    childAspectRatio:
+                                        0.6, // Further increased space for text
+                                    crossAxisSpacing: 16,
+                                    mainAxisSpacing: 16,
+                                  ),
+                              itemCount: viewModel.searchResults.length,
+                              itemBuilder: (context, index) {
+                                final listing = viewModel.searchResults[index];
+                                final homeViewModel = context
+                                    .watch<HomeViewModel>();
+                                return ListingCard(
+                                  listing: listing,
+                                  currentPosition:
+                                      homeViewModel.currentPosition,
+                                );
+                              },
                             ),
                           ],
                         ),
-                      ),
-                    ),
-
-                  // Search results
-                  if (viewModel.searchState == SearchState.success &&
-                      viewModel.searchResults.isNotEmpty)
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: 24),
-                        Text(
-                          AppLocalizations.of(
-                            context,
-                          )!.resultsFoundCount(viewModel.searchResults.length),
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                        const SizedBox(height: 12),
-                        GridView.builder(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          gridDelegate:
-                              const SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 2,
-                                childAspectRatio:
-                                    0.6, // Further increased space for text
-                                crossAxisSpacing: 16,
-                                mainAxisSpacing: 16,
-                              ),
-                          itemCount: viewModel.searchResults.length,
-                          itemBuilder: (context, index) {
-                            final listing = viewModel.searchResults[index];
-                            final homeViewModel = context
-                                .watch<HomeViewModel>();
-                            return ListingCard(
-                              listing: listing,
-                              currentPosition: homeViewModel.currentPosition,
-                            );
-                          },
-                        ),
-                      ],
-                    ),
-                ],
-              ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
         );
