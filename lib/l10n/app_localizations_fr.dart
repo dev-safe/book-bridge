@@ -1338,4 +1338,25 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get freeTierLimitReached => 'Les vendeurs gratuits peuvent avoir jusqu\'à 3 annonces actives. Passez Vendeur Pro depuis votre Profil pour des annonces illimitées.';
+
+  @override
+  String get ageDeclarationTitle => 'Avant de continuer';
+
+  @override
+  String get ageDeclarationSubtitle => 'BookBridge implique des achats et des ventes avec de l\'argent réel. Veuillez indiquer la déclaration qui vous correspond.';
+
+  @override
+  String get ageDeclarationAdult => 'Je déclare avoir 18 ans ou plus.';
+
+  @override
+  String get ageDeclarationGuardian => 'Je déclare qu\'un parent ou tuteur effectue les achats en mon nom.';
+
+  @override
+  String get ageDeclarationNotVerified => 'Ceci est une auto-déclaration. BookBridge ne vérifie pas votre âge ; vous êtes responsable de l\'exactitude de votre réponse.';
+
+  @override
+  String get ageDeclarationContinue => 'Confirmer et continuer';
+
+  @override
+  String get ageDeclarationError => 'Impossible d\'enregistrer votre déclaration. Veuillez réessayer.';
 }

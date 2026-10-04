@@ -152,6 +152,18 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  Future<Either<Failure, void>> declareAge(String choice) async {
+    try {
+      await dataSource.declareAge(choice);
+      return const Right(null);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message));
+    } catch (e) {
+      return Left(UnknownFailure(message: e.toString()));
+    }
+  }
+
+  @override
   Future<Either<Failure, User>> getUserById(String userId) async {
     try {
       final userModel = await dataSource.getUserById(userId);

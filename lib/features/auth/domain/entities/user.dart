@@ -24,6 +24,12 @@ class User extends Equatable {
 
   /// Seller tier: `free` or `power_seller`. Set by the server only.
   final String tier;
+
+  /// Self-declared age status: `adult` (18+) or `guardian` (a parent or
+  /// guardian completes purchases). Null until the user declares. This is a
+  /// declaration, not a verification. Set via the `declare_age` RPC only.
+  final String? ageDeclaration;
+  final DateTime? ageDeclaredAt;
   final DateTime createdAt;
 
   const User({
@@ -41,10 +47,14 @@ class User extends Equatable {
     this.fcmToken,
     this.schoolId,
     this.tier = 'free',
+    this.ageDeclaration,
+    this.ageDeclaredAt,
     required this.createdAt,
   });
 
   bool get isPowerSeller => tier == 'power_seller';
+
+  bool get hasAgeDeclaration => ageDeclaration != null;
 
   User copyWith({
     String? id,
@@ -62,6 +72,8 @@ class User extends Equatable {
     String? schoolId,
     bool clearSchool = false,
     String? tier,
+    String? ageDeclaration,
+    DateTime? ageDeclaredAt,
     DateTime? createdAt,
   }) {
     return User(
@@ -79,6 +91,8 @@ class User extends Equatable {
       fcmToken: fcmToken ?? this.fcmToken,
       schoolId: clearSchool ? null : (schoolId ?? this.schoolId),
       tier: tier ?? this.tier,
+      ageDeclaration: ageDeclaration ?? this.ageDeclaration,
+      ageDeclaredAt: ageDeclaredAt ?? this.ageDeclaredAt,
       createdAt: createdAt ?? this.createdAt,
     );
   }
@@ -99,6 +113,8 @@ class User extends Equatable {
     fcmToken,
     schoolId,
     tier,
+    ageDeclaration,
+    ageDeclaredAt,
     createdAt,
   ];
 }

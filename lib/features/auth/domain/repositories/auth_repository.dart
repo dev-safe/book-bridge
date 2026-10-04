@@ -42,4 +42,7 @@ abstract class AuthRepository {
   Future<Either<Failure, User>> updateUser(User user);
   Future<Either<Failure, void>> updateFcmToken(String userId, String token);
   Future<Either<Failure, User>> getUserById(String userId);
+
+  /// Records the current user's age self-declaration (`adult` or `guardian`).
+  Future<Either<Failure, void>> declareAge(String choice);
 }

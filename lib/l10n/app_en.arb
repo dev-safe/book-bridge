@@ -501,5 +501,12 @@
   "powerSellerCardTitle": "Become a Power Seller",
   "powerSellerCardSubtitle": "Unlimited listings · 500 FCFA / 30 days",
   "powerSellerUpgradeError": "Could not start the upgrade. Please try again.",
-  "freeTierLimitReached": "Free sellers can have up to 3 active listings. Upgrade to Power Seller on your Profile for unlimited listings."
+  "freeTierLimitReached": "Free sellers can have up to 3 active listings. Upgrade to Power Seller on your Profile for unlimited listings.",
+  "ageDeclarationTitle": "Before you continue",
+  "ageDeclarationSubtitle": "BookBridge involves buying and selling with real money. Please tell us which statement applies to you.",
+  "ageDeclarationAdult": "I declare that I am 18 years of age or older.",
+  "ageDeclarationGuardian": "I declare that a parent or guardian is completing purchases on my behalf.",
+  "ageDeclarationNotVerified": "This is a self-declaration. BookBridge does not verify your age; you are responsible for the accuracy of your answer.",
+  "ageDeclarationContinue": "Confirm and continue",
+  "ageDeclarationError": "Could not save your declaration. Please try again."
 }

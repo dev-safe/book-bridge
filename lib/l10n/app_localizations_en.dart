@@ -1338,4 +1338,25 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get freeTierLimitReached => 'Free sellers can have up to 3 active listings. Upgrade to Power Seller on your Profile for unlimited listings.';
+
+  @override
+  String get ageDeclarationTitle => 'Before you continue';
+
+  @override
+  String get ageDeclarationSubtitle => 'BookBridge involves buying and selling with real money. Please tell us which statement applies to you.';
+
+  @override
+  String get ageDeclarationAdult => 'I declare that I am 18 years of age or older.';
+
+  @override
+  String get ageDeclarationGuardian => 'I declare that a parent or guardian is completing purchases on my behalf.';
+
+  @override
+  String get ageDeclarationNotVerified => 'This is a self-declaration. BookBridge does not verify your age; you are responsible for the accuracy of your answer.';
+
+  @override
+  String get ageDeclarationContinue => 'Confirm and continue';
+
+  @override
+  String get ageDeclarationError => 'Could not save your declaration. Please try again.';
 }
