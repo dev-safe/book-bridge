@@ -336,6 +336,18 @@ class SupabaseAuthDataSource {
     }
   }
 
+  /// Records the current user's age self-declaration (`adult` or
+  /// `guardian`) via the `declare_age` RPC. The server sets the timestamp.
+  Future<void> declareAge(String choice) async {
+    try {
+      await supabaseClient.rpc('declare_age', params: {'p_choice': choice});
+    } on PostgrestException catch (e) {
+      throw ServerException(message: e.message);
+    } catch (e) {
+      throw ServerException(message: e.toString());
+    }
+  }
+
   /// Retrieves user profile by ID.
   Future<UserModel> getUserById(String userId) async {
     return _fetchUserProfile(userId);

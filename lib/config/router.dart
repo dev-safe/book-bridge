@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:book_bridge/features/auth/presentation/screens/sign_in_screen.dart';
 import 'package:book_bridge/features/auth/presentation/screens/sign_up_screen.dart';
 import 'package:book_bridge/features/auth/presentation/screens/complete_profile_screen.dart';
+import 'package:book_bridge/features/auth/presentation/screens/age_declaration_screen.dart';
 import 'package:book_bridge/features/auth/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:book_bridge/features/listings/presentation/screens/home_screen.dart';
 import 'package:book_bridge/features/listings/presentation/screens/listing_details_screen.dart';
@@ -89,11 +90,22 @@ final appRouter = GoRouter(
         return '/complete-profile';
       }
 
-      // 2. If profile is complete but trying to go to auth/splash
+      // 2. Profile complete but no 18+/guardian declaration yet (asked once)
       if (authViewModel.isProfileComplete &&
+          !authViewModel.hasAgeDeclaration &&
+          location != '/age-declaration') {
+        _rememberDeepLink(location);
+        debugPrint('Router: Redirecting to /age-declaration');
+        return '/age-declaration';
+      }
+
+      // 3. Onboarding done but trying to go to auth/splash/onboarding
+      if (authViewModel.isProfileComplete &&
+          authViewModel.hasAgeDeclaration &&
           (isGoingToAuth ||
               location == '/' ||
-              location == '/complete-profile')) {
+              location == '/complete-profile' ||
+              location == '/age-declaration')) {
         final pending = _pendingDeepLink;
         _pendingDeepLink = null;
         debugPrint('Router: Redirecting to ${pending ?? '/home'}');
@@ -130,6 +142,11 @@ final appRouter = GoRouter(
       path: '/complete-profile',
       name: 'completeProfile',
       builder: (context, state) => const CompleteProfileScreen(),
+    ),
+    GoRoute(
+      path: '/age-declaration',
+      name: 'ageDeclaration',
+      builder: (context, state) => const AgeDeclarationScreen(),
     ),
 
     // Main Shell Route (with Bottom Navigation)

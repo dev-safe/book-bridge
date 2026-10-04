@@ -2674,6 +2674,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Free sellers can have up to 3 active listings. Upgrade to Power Seller on your Profile for unlimited listings.'**
   String get freeTierLimitReached;
+
+  /// No description provided for @ageDeclarationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Before you continue'**
+  String get ageDeclarationTitle;
+
+  /// No description provided for @ageDeclarationSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'BookBridge involves buying and selling with real money. Please tell us which statement applies to you.'**
+  String get ageDeclarationSubtitle;
+
+  /// No description provided for @ageDeclarationAdult.
+  ///
+  /// In en, this message translates to:
+  /// **'I declare that I am 18 years of age or older.'**
+  String get ageDeclarationAdult;
+
+  /// No description provided for @ageDeclarationGuardian.
+  ///
+  /// In en, this message translates to:
+  /// **'I declare that a parent or guardian is completing purchases on my behalf.'**
+  String get ageDeclarationGuardian;
+
+  /// No description provided for @ageDeclarationNotVerified.
+  ///
+  /// In en, this message translates to:
+  /// **'This is a self-declaration. BookBridge does not verify your age; you are responsible for the accuracy of your answer.'**
+  String get ageDeclarationNotVerified;
+
+  /// No description provided for @ageDeclarationContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm and continue'**
+  String get ageDeclarationContinue;
+
+  /// No description provided for @ageDeclarationError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save your declaration. Please try again.'**
+  String get ageDeclarationError;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
