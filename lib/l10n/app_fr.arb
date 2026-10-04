@@ -476,5 +476,12 @@
   "powerSellerCardTitle": "Devenir Vendeur Pro",
   "powerSellerCardSubtitle": "Annonces illimitées · 500 FCFA / 30 jours",
   "powerSellerUpgradeError": "Impossible de lancer la mise à niveau. Veuillez réessayer.",
-  "freeTierLimitReached": "Les vendeurs gratuits peuvent avoir jusqu'à 3 annonces actives. Passez Vendeur Pro depuis votre Profil pour des annonces illimitées."
+  "freeTierLimitReached": "Les vendeurs gratuits peuvent avoir jusqu'à 3 annonces actives. Passez Vendeur Pro depuis votre Profil pour des annonces illimitées.",
+  "ageDeclarationTitle": "Avant de continuer",
+  "ageDeclarationSubtitle": "BookBridge implique des achats et des ventes avec de l'argent réel. Veuillez indiquer la déclaration qui vous correspond.",
+  "ageDeclarationAdult": "Je déclare avoir 18 ans ou plus.",
+  "ageDeclarationGuardian": "Je déclare qu'un parent ou tuteur effectue les achats en mon nom.",
+  "ageDeclarationNotVerified": "Ceci est une auto-déclaration. BookBridge ne vérifie pas votre âge ; vous êtes responsable de l'exactitude de votre réponse.",
+  "ageDeclarationContinue": "Confirmer et continuer",
+  "ageDeclarationError": "Impossible d'enregistrer votre déclaration. Veuillez réessayer."
 }

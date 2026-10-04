@@ -235,6 +235,34 @@ class AuthViewModel extends ChangeNotifier {
         (_currentUser!.whatsappNumber?.isNotEmpty ?? false);
   }
 
+  /// Whether the current user has made the 18+/guardian self-declaration.
+  bool get hasAgeDeclaration => _currentUser?.hasAgeDeclaration ?? false;
+
+  /// Records the age self-declaration (`adult` or `guardian`).
+  ///
+  /// Does not touch [authState] so the router does not react mid-request.
+  /// Returns true on success; on failure sets [errorMessage].
+  Future<bool> declareAge(String choice) async {
+    _errorMessage = null;
+    final result = await repository.declareAge(choice);
+    final failure = result.fold((f) => f, (_) => null);
+    if (failure != null) {
+      _errorMessage = failure.message;
+      notifyListeners();
+      return false;
+    }
+    final user = _currentUser;
+    if (user != null) {
+      _currentUser = user.copyWith(
+        ageDeclaration: choice,
+        ageDeclaredAt: DateTime.now(),
+      );
+    }
+    notifyListeners();
+    await refreshUser();
+    return true;
+  }
+
   /// Performs user sign-out.
   Future<void> signOut() async {
     _authState = AuthState.loading;

@@ -20,6 +20,8 @@ class UserModel extends User {
     super.fcmToken,
     super.schoolId,
     super.tier = 'free',
+    super.ageDeclaration,
+    super.ageDeclaredAt,
     required super.createdAt,
   });
 
@@ -43,6 +45,10 @@ class UserModel extends User {
       fcmToken: json['fcm_token'] as String?,
       schoolId: json['school_id'] as String?,
       tier: json['tier'] as String? ?? 'free',
+      ageDeclaration: json['age_declaration'] as String?,
+      ageDeclaredAt: json['age_declared_at'] != null
+          ? DateTime.parse(json['age_declared_at'] as String)
+          : null,
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'] as String)
           : DateTime.now(),
@@ -68,6 +74,8 @@ class UserModel extends User {
       'fcm_token': fcmToken,
       'school_id': schoolId,
       'tier': tier,
+      'age_declaration': ageDeclaration,
+      'age_declared_at': ageDeclaredAt?.toIso8601String(),
       'created_at': createdAt.toIso8601String(),
     };
   }
@@ -89,6 +97,8 @@ class UserModel extends User {
       fcmToken: user.fcmToken,
       schoolId: user.schoolId,
       tier: user.tier,
+      ageDeclaration: user.ageDeclaration,
+      ageDeclaredAt: user.ageDeclaredAt,
       createdAt: user.createdAt,
     );
   }
@@ -110,6 +120,8 @@ class UserModel extends User {
       fcmToken: fcmToken,
       schoolId: schoolId,
       tier: tier,
+      ageDeclaration: ageDeclaration,
+      ageDeclaredAt: ageDeclaredAt,
       createdAt: createdAt,
     );
   }
