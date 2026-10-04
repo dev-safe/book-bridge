@@ -227,16 +227,21 @@ class TermsScreen extends StatelessWidget {
         title: '5. Age & Guardians',
         color: primary,
         content:
-            'Before using the marketplace, every user must declare either that they '
-            'are 18 or older, or that a parent or guardian will complete '
-            'payments on their behalf. Users under 18 must not pay or receive '
-            'money without a parent or guardian.\n\n'
-            'This declaration is currently self-reported and is not yet '
-            'checked against an identity document. We plan to introduce ID '
-            'verification (a school ID for users under 18 and a National '
-            'Identity Card for users 18 and over) and will update these terms '
-            'when it goes live. Parents and guardians remain responsible for '
-            'supervising a minor\'s use of the app.',
+            'New accounts are open to users aged 10 to 22. Anyone can browse '
+            'and list books, but you must verify your identity before you can '
+            'buy a book or receive a payout, and buyers cannot pay for books '
+            'listed by unverified sellers.\n\n'
+            '• 18 and over: your National Identity Card (CNI).\n'
+            '• 15 to 17: your school ID. Once verified, you may pay and '
+            'receive payouts yourself.\n'
+            '• 10 to 14: your school ID plus your parent\'s or guardian\'s CNI '
+            'and their Mobile Money number. All payments and payouts for the '
+            'account use that number, and the parent or guardian is '
+            'responsible for them.\n\n'
+            'A BookBridge administrator reviews each submission and may '
+            'reject it if the documents are unclear or do not match. Parents '
+            'and guardians remain responsible for supervising a minor\'s use '
+            'of the app.',
       ),
       _TermSection(
         icon: Icons.lock_outline_rounded,
@@ -248,6 +253,12 @@ class TermsScreen extends StatelessWidget {
             'and messages, your age declaration, and your Mobile Money payout '
             'number. We use it to operate accounts, process payments and '
             'payouts, prevent fraud, and resolve disputes.\n\n'
+            'For identity verification we also collect your date of birth, '
+            'photos of your ID documents and, for users aged 10 to 14, a '
+            'parent\'s or guardian\'s Mobile Money number. ID photos are '
+            'stored privately, seen only by BookBridge administrators, and '
+            'deleted once the review is complete; we keep only the result, '
+            'the type of ID and your date of birth.\n\n'
             'Your contact details are shared only with the other party in a '
             'transaction. We never sell your data. We process personal data, '
             'including that of minors, in line with Cameroon\'s laws on '

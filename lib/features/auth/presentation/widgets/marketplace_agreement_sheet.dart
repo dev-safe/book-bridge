@@ -193,7 +193,7 @@ class _MarketplaceAgreementSheetState
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: const Text(
-                          'These terms apply to all users of BookBridge. By agreeing, you confirm you are a student aged 10 to 22 or a parent/guardian acting for one, and that anyone under 18 will only pay or receive money through a parent or guardian.',
+                          'These terms apply to all users of BookBridge. By agreeing, you confirm you are a student aged 10 to 22 or a parent/guardian acting for one. You must verify your identity before buying or receiving payouts, and users aged 10 to 14 pay and get paid only through a parent\'s or guardian\'s Mobile Money number.',
                           style: TextStyle(
                             fontSize: 11,
                             color: Colors.grey,
