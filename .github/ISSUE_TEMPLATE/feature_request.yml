@@ -1,0 +1,30 @@
+name: Feature request
+description: Suggest an idea or improvement for BookBridge.
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What problem does this solve, and for whom (buyers, sellers, parents, admins)?
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+  - type: checkboxes
+    id: impact
+    attributes:
+      label: Does this touch any of the following?
+      options:
+        - label: Payments, fees, or escrow
+        - label: Personal data or minors
+        - label: Terms & Conditions
