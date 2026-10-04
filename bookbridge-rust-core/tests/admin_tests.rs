@@ -10,7 +10,7 @@ use axum::{
     extract::{Path, Query, State},
     http::{header::AUTHORIZATION, HeaderMap, Method, Request, StatusCode},
     response::IntoResponse,
-    routing::{get, post},
+    routing::{delete, get, post},
     Json, Router,
 };
 use bookbridge_rust_core::{
@@ -47,27 +47,74 @@ fn item(trans_id: &str, status: &str) -> FapshiSearchItem {
     }
 }
 
-/// Mock Supabase Auth: each token maps to one user id.
+/// Mock Supabase Storage: records bulk deletes per bucket; can be made to fail.
+#[derive(Default)]
+struct MockStorage {
+    deleted: Vec<(String, Vec<String>)>,
+    fail: bool,
+}
+
+type Storage = Arc<Mutex<MockStorage>>;
+
+/// Mock Supabase Auth (each token maps to one user id) plus Storage.
 async fn spawn_mock_auth(tokens: HashMap<String, Uuid>) -> String {
+    spawn_mock_supabase(tokens, Storage::default()).await
+}
+
+async fn spawn_mock_supabase(tokens: HashMap<String, Uuid>, storage: Storage) -> String {
     let tokens = Arc::new(tokens);
-    let app = Router::new().route(
-        "/auth/v1/user",
-        get(move |headers: HeaderMap| {
-            let tokens = tokens.clone();
-            async move {
-                let key_ok = headers.get("apikey").is_some_and(|v| v == ANON_KEY);
-                let user = headers
-                    .get(AUTHORIZATION)
-                    .and_then(|v| v.to_str().ok())
-                    .and_then(|v| v.strip_prefix("Bearer "))
-                    .and_then(|t| tokens.get(t));
-                match (key_ok, user) {
-                    (true, Some(id)) => Json(json!({ "id": id })).into_response(),
-                    _ => StatusCode::UNAUTHORIZED.into_response(),
-                }
+    let user_of = {
+        let tokens = tokens.clone();
+        move |headers: &HeaderMap| -> Option<Uuid> {
+            if !headers.get("apikey").is_some_and(|v| v == ANON_KEY) {
+                return None;
             }
-        }),
-    );
+            headers
+                .get(AUTHORIZATION)
+                .and_then(|v| v.to_str().ok())
+                .and_then(|v| v.strip_prefix("Bearer "))
+                .and_then(|t| tokens.get(t))
+                .copied()
+        }
+    };
+    let user_of_storage = user_of.clone();
+    let app = Router::new()
+        .route(
+            "/auth/v1/user",
+            get(move |headers: HeaderMap| async move {
+                match user_of(&headers) {
+                    Some(id) => Json(json!({ "id": id })).into_response(),
+                    None => StatusCode::UNAUTHORIZED.into_response(),
+                }
+            }),
+        )
+        .route(
+            "/storage/v1/object/:bucket",
+            delete(
+                move |headers: HeaderMap, Path(bucket): Path<String>, Json(body): Json<Value>| {
+                    let storage = storage.clone();
+                    async move {
+                        if user_of_storage(&headers).is_none() {
+                            return StatusCode::UNAUTHORIZED.into_response();
+                        }
+                        let mut s = storage.lock().unwrap();
+                        if s.fail {
+                            return StatusCode::INTERNAL_SERVER_ERROR.into_response();
+                        }
+                        let prefixes = body["prefixes"]
+                            .as_array()
+                            .map(|a| {
+                                a.iter()
+                                    .filter_map(|v| v.as_str().map(str::to_string))
+                                    .collect()
+                            })
+                            .unwrap_or_default();
+                        s.deleted.push((bucket, prefixes));
+                        Json(json!([])).into_response()
+                    }
+                },
+            ),
+        );
     serve(app).await
 }
 
@@ -342,6 +389,7 @@ async fn test_db() -> Option<PgPool> {
 struct World {
     state: AppState,
     fapshi: Fapshi,
+    storage: Storage,
     pool: PgPool,
     admin: Uuid,
     user: Uuid,
@@ -379,10 +427,14 @@ async fn world() -> Option<World> {
         .await
         .unwrap();
     }
-    let auth_url = spawn_mock_auth(HashMap::from([
-        (ADMIN_TOKEN.to_string(), admin),
-        (USER_TOKEN.to_string(), user),
-    ]))
+    let storage = Storage::default();
+    let auth_url = spawn_mock_supabase(
+        HashMap::from([
+            (ADMIN_TOKEN.to_string(), admin),
+            (USER_TOKEN.to_string(), user),
+        ]),
+        storage.clone(),
+    )
     .await;
     let fapshi: Fapshi = Arc::default();
     let fapshi_url = spawn_mock_fapshi(fapshi.clone()).await;
@@ -397,6 +449,7 @@ async fn world() -> Option<World> {
     Some(World {
         state,
         fapshi,
+        storage,
         pool,
         admin,
         user,
@@ -923,4 +976,160 @@ async fn buyer_fee_is_refunded_and_seller_is_paid_in_full() {
     assert_eq!(f.payouts[0]["amount"], json!(530.0));
     assert_eq!(f.payouts[1]["phone"], SELLER_PHONE);
     assert_eq!(f.payouts[1]["amount"], json!(500.0));
+}
+
+// ------------------------------------------------- ID verification (#34, #36)
+
+/// Gives the plain user a pending submission with two uploaded photos.
+async fn seed_pending_id(w: &World) -> Vec<String> {
+    let paths = vec![
+        format!("{}/school.jpg", w.user),
+        format!("{}/cni.jpg", w.user),
+    ];
+    sqlx::query(
+        "INSERT INTO profiles (id, full_name, date_of_birth, id_verification_status, id_type, \
+                               guardian_phone, id_document_paths, id_submitted_at) \
+         VALUES ($1, 'Student', current_date - interval '12 years', 'pending', 'school_id', \
+                 '699000111', $2, now())",
+    )
+    .bind(w.user)
+    .bind(&paths)
+    .execute(&w.pool)
+    .await
+    .unwrap();
+    paths
+}
+
+async fn id_state(w: &World) -> (String, Vec<String>, Option<String>) {
+    let row = sqlx::query(
+        "SELECT id_verification_status, id_document_paths, id_rejection_reason \
+         FROM profiles WHERE id = $1",
+    )
+    .bind(w.user)
+    .fetch_one(&w.pool)
+    .await
+    .unwrap();
+    (
+        row.get("id_verification_status"),
+        row.get("id_document_paths"),
+        row.get("id_rejection_reason"),
+    )
+}
+
+async fn id_actions(w: &World) -> Vec<(String, Uuid)> {
+    sqlx::query("SELECT action, admin_id FROM admin_actions WHERE target_user_id = $1")
+        .bind(w.user)
+        .fetch_all(&w.pool)
+        .await
+        .unwrap()
+        .into_iter()
+        .map(|r| (r.get("action"), r.get("admin_id")))
+        .collect()
+}
+
+#[tokio::test]
+async fn admin_lists_and_approves_an_id_submission() {
+    let Some(w) = world().await else { return };
+    let paths = seed_pending_id(&w).await;
+
+    let (status, body) = send(
+        &w.state,
+        Method::GET,
+        "/admin/id-verifications",
+        Some(ADMIN_TOKEN),
+        None,
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "{body}");
+    let listed = body["submissions"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|s| s["user_id"] == json!(w.user))
+        .expect("pending submission is listed")
+        .clone();
+    assert_eq!(listed["age"], 12);
+    assert_eq!(listed["document_paths"], json!(paths));
+    assert_ne!(listed["guardian_phone_hint"], json!("699000111"));
+
+    let path = format!("/admin/id-verifications/{}/approve", w.user);
+    let (status, body) = send(&w.state, Method::POST, &path, Some(ADMIN_TOKEN), note()).await;
+    assert_eq!(status, StatusCode::OK, "{body}");
+    assert_eq!(body["status"], "verified");
+
+    assert_eq!(id_state(&w).await, ("verified".into(), vec![], None));
+    assert_eq!(
+        w.storage.lock().unwrap().deleted,
+        vec![("id-documents".to_string(), paths)]
+    );
+    assert_eq!(id_actions(&w).await, vec![("approve_id".into(), w.admin)]);
+
+    // Already reviewed: a second decision is refused.
+    let (status, _) = send(&w.state, Method::POST, &path, Some(ADMIN_TOKEN), note()).await;
+    assert_eq!(status, StatusCode::CONFLICT);
+}
+
+#[tokio::test]
+async fn admin_rejects_an_id_submission_with_a_reason() {
+    let Some(w) = world().await else { return };
+    seed_pending_id(&w).await;
+
+    let path = format!("/admin/id-verifications/{}/reject", w.user);
+    let body = Some(json!({ "note": "Photo is blurry" }));
+    let (status, body) = send(&w.state, Method::POST, &path, Some(ADMIN_TOKEN), body).await;
+    assert_eq!(status, StatusCode::OK, "{body}");
+
+    assert_eq!(
+        id_state(&w).await,
+        ("rejected".into(), vec![], Some("Photo is blurry".into()))
+    );
+    assert_eq!(id_actions(&w).await, vec![("reject_id".into(), w.admin)]);
+}
+
+#[tokio::test]
+async fn id_review_needs_an_admin() {
+    let Some(w) = world().await else { return };
+    let paths = seed_pending_id(&w).await;
+
+    let path = format!("/admin/id-verifications/{}/approve", w.user);
+    let (status, _) = send(&w.state, Method::POST, &path, Some(USER_TOKEN), note()).await;
+    assert_eq!(status, StatusCode::FORBIDDEN);
+    assert_eq!(id_state(&w).await, ("pending".into(), paths, None));
+    assert!(w.storage.lock().unwrap().deleted.is_empty());
+}
+
+#[tokio::test]
+async fn failed_photo_delete_leaves_the_submission_pending() {
+    let Some(w) = world().await else { return };
+    let paths = seed_pending_id(&w).await;
+    w.storage.lock().unwrap().fail = true;
+
+    let path = format!("/admin/id-verifications/{}/approve", w.user);
+    let (status, _) = send(&w.state, Method::POST, &path, Some(ADMIN_TOKEN), note()).await;
+    assert!(!status.is_success());
+    assert_eq!(id_state(&w).await, ("pending".into(), paths, None));
+    assert!(id_actions(&w).await.is_empty());
+}
+
+#[tokio::test]
+async fn young_seller_is_paid_on_the_guardian_number() {
+    let Some(w) = world().await else { return };
+    let sale = seed_sale(&w, "disputed", Some(PAYER_PHONE)).await;
+    sqlx::query(
+        "UPDATE profiles SET date_of_birth = current_date - interval '12 years', \
+                id_verification_status = 'verified', id_type = 'school_id', \
+                guardian_phone = '699000111' \
+         WHERE id = (SELECT seller_id FROM transactions WHERE id = $1)",
+    )
+    .bind(sale.tx_id)
+    .execute(&w.pool)
+    .await
+    .unwrap();
+
+    let path = format!("/admin/disputes/{}/release", sale.tx_id);
+    let (status, body) = send(&w.state, Method::POST, &path, Some(ADMIN_TOKEN), note()).await;
+    assert_eq!(status, StatusCode::OK, "{body}");
+    let f = w.fapshi.lock().unwrap();
+    assert_eq!(f.payouts.len(), 1);
+    assert_eq!(f.payouts[0]["phone"], "699000111");
 }

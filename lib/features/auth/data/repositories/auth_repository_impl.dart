@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:dartz/dartz.dart';
 import 'package:book_bridge/core/error/failures.dart';
 import 'package:book_bridge/core/error/exceptions.dart';
@@ -156,6 +158,28 @@ class AuthRepositoryImpl implements AuthRepository {
     try {
       await dataSource.declareAge(choice);
       return const Right(null);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message));
+    } catch (e) {
+      return Left(UnknownFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> submitIdVerification({
+    required DateTime dateOfBirth,
+    required List<Uint8List> documents,
+    String? guardianPhone,
+  }) async {
+    try {
+      await dataSource.submitIdVerification(
+        dateOfBirth: dateOfBirth,
+        documents: documents,
+        guardianPhone: guardianPhone,
+      );
+      return const Right(null);
+    } on AuthAppException catch (e) {
+      return Left(AuthFailure(message: e.message));
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message));
     } catch (e) {

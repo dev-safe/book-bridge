@@ -30,4 +30,15 @@ abstract class AdminRepository {
 
   /// Marks an unmatched payment handled without paying anything.
   Future<Either<Failure, Unit>> dismissUnmatched(String id, String note);
+
+  Future<Either<Failure, List<IdVerificationSubmission>>> idVerifications();
+
+  /// Marks the user verified and deletes their ID photos.
+  Future<Either<Failure, Unit>> approveId(String userId, String note);
+
+  /// Marks the user rejected, shows them [note] and deletes their ID photos.
+  Future<Either<Failure, Unit>> rejectId(String userId, String note);
+
+  /// A short-lived URL for one ID photo.
+  Future<Either<Failure, String>> idPhotoUrl(String path);
 }

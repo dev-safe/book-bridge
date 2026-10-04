@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
-/// Internal tool for resolving disputes and unmatched payments. Opened by
+/// Internal tool for resolving disputes and unmatched payments and reviewing
+/// ID submissions. Opened by
 /// long-pressing "About BookBridge" on the profile screen; the server
 /// decides who may use it. English-only, like the rest of the admin tooling.
 class AdminScreen extends StatelessWidget {
@@ -14,7 +15,7 @@ class AdminScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final vm = context.watch<AdminViewModel>();
     return DefaultTabController(
-      length: 2,
+      length: 3,
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Admin'),
@@ -26,6 +27,7 @@ class AdminScreen extends StatelessWidget {
                   tabs: [
                     Tab(text: 'Disputes (${vm.disputes.length})'),
                     Tab(text: 'Unmatched (${vm.unmatched.length})'),
+                    Tab(text: 'IDs (${vm.idSubmissions.length})'),
                   ],
                 ),
         ),
@@ -68,6 +70,14 @@ class AdminScreen extends StatelessWidget {
                       children: [
                         for (final p in vm.unmatched)
                           _UnmatchedCard(payment: p),
+                      ],
+                    ),
+                    _CaseList(
+                      empty: 'No pending ID submissions',
+                      onRefresh: vm.refresh,
+                      children: [
+                        for (final s in vm.idSubmissions)
+                          _IdSubmissionCard(submission: s),
                       ],
                     ),
                   ],
@@ -286,6 +296,174 @@ class _UnmatchedCard extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+String _idTypeLabel(String? idType) => switch (idType) {
+  'school_id' => 'School ID',
+  'cni' => 'National ID (CNI)',
+  _ => idType ?? 'unknown',
+};
+
+class _IdSubmissionCard extends StatelessWidget {
+  final IdVerificationSubmission submission;
+
+  const _IdSubmissionCard({required this.submission});
+
+  @override
+  Widget build(BuildContext context) {
+    final vm = context.watch<AdminViewModel>();
+    final busy = vm.busyId != null;
+    final s = submission;
+    final dob = s.dateOfBirth == null
+        ? 'unknown'
+        : DateFormat('d MMM yyyy').format(s.dateOfBirth!);
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              s.fullName ?? 'No name on profile',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 4),
+            Text('Born $dob · age ${s.age ?? '?'} · ${_idTypeLabel(s.idType)}'),
+            if (s.guardianPhoneHint != null)
+              Text('Guardian MoMo: ${s.guardianPhoneHint}'),
+            Text('Submitted: ${_when(s.submittedAt)}'),
+            const SizedBox(height: 8),
+            if (s.documentPaths.isEmpty)
+              const Text('No photos attached')
+            else
+              SizedBox(
+                height: 160,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: s.documentPaths.length,
+                  separatorBuilder: (_, _) => const SizedBox(width: 8),
+                  itemBuilder: (_, i) => _IdPhoto(path: s.documentPaths[i]),
+                ),
+              ),
+            const SizedBox(height: 4),
+            Text(
+              'Check the name and date of birth match the photo. Photos are '
+              'deleted after you decide.',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            SelectableText(
+              'User ${s.userId}',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            const SizedBox(height: 8),
+            if (vm.busyId == s.userId) const LinearProgressIndicator(),
+            OverflowBar(
+              alignment: MainAxisAlignment.end,
+              spacing: 8,
+              children: [
+                OutlinedButton(
+                  onPressed: busy
+                      ? null
+                      : () => _resolve(
+                          context,
+                          title: 'Reject ID',
+                          consequence:
+                              'Marks the ID rejected and deletes the photos. '
+                              'The user sees your note and can submit again.',
+                          run: (note, _) => vm.rejectId(s.userId, note),
+                        ),
+                  child: const Text('Reject'),
+                ),
+                FilledButton(
+                  onPressed: busy
+                      ? null
+                      : () => _resolve(
+                          context,
+                          title: 'Approve ID',
+                          consequence:
+                              'Marks the user verified so they can pay, and '
+                              'deletes the photos.',
+                          run: (note, _) => vm.approveId(s.userId, note),
+                        ),
+                  child: const Text('Approve'),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Loads a short-lived signed URL for one ID photo; tap to zoom.
+class _IdPhoto extends StatefulWidget {
+  final String path;
+
+  const _IdPhoto({required this.path});
+
+  @override
+  State<_IdPhoto> createState() => _IdPhotoState();
+}
+
+class _IdPhotoState extends State<_IdPhoto> {
+  late Future<String> _url;
+
+  @override
+  void initState() {
+    super.initState();
+    _url = context.read<AdminViewModel>().idPhotoUrl(widget.path);
+  }
+
+  void _retry() => setState(() {
+    _url = context.read<AdminViewModel>().idPhotoUrl(widget.path);
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return AspectRatio(
+      aspectRatio: 1.4,
+      child: FutureBuilder<String>(
+        future: _url,
+        builder: (context, snapshot) {
+          if (snapshot.hasError) return _PhotoError(onRetry: _retry);
+          final url = snapshot.data;
+          if (url == null) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          return InkWell(
+            onTap: () => showDialog<void>(
+              context: context,
+              builder: (_) =>
+                  Dialog(child: InteractiveViewer(child: Image.network(url))),
+            ),
+            child: Image.network(
+              url,
+              fit: BoxFit.cover,
+              errorBuilder: (_, _, _) => _PhotoError(onRetry: _retry),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _PhotoError extends StatelessWidget {
+  final VoidCallback onRetry;
+
+  const _PhotoError({required this.onRetry});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: TextButton.icon(
+        onPressed: onRetry,
+        icon: const Icon(Icons.refresh),
+        label: const Text('Could not load photo'),
       ),
     );
   }

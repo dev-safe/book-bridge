@@ -3,6 +3,7 @@ use serde::Serialize;
 use crate::error::AppError;
 use crate::fapshi::FapshiClient;
 use crate::routes::payments::{seller_payout, MIN_AMOUNT_XAF};
+use crate::verification::{payout_phone, Verification};
 use crate::AppState;
 use sqlx::Row;
 use sqlx::PgConnection;
@@ -170,6 +171,25 @@ pub(crate) async fn record_admin_action(
     Ok(())
 }
 
+/// Records an admin decision about a user (for example an ID review).
+pub(crate) async fn record_user_admin_action(
+    conn: &mut PgConnection,
+    decision: &AdminDecision<'_>,
+    target_user_id: Uuid,
+) -> Result<(), AppError> {
+    sqlx::query(
+        "INSERT INTO admin_actions (admin_id, action, target_user_id, note) \
+         VALUES ($1, $2, $3, $4)",
+    )
+    .bind(decision.admin_id)
+    .bind(decision.action)
+    .bind(target_user_id)
+    .bind(decision.note)
+    .execute(&mut *conn)
+    .await?;
+    Ok(())
+}
+
 /// Pays the seller for a `held` escrow (buyer confirmation or deadline).
 pub async fn release_escrow(
     state: &AppState,
@@ -224,9 +244,11 @@ pub(crate) async fn release_escrow_locked(
     let commission_amount: Option<f64> = tx.get("commission_amount");
     let payment_reference: String = tx.get("payment_reference");
 
-    // 3. Fetch seller profile; the payout number lives in owner-only profiles_private
+    // 3. Fetch seller profile; the payout number lives in owner-only profiles_private.
+    // A verified seller under 15 is paid to their guardian's number instead.
     let seller_row = sqlx::query(
-        "SELECT ppr.whatsapp_number, pr.full_name \
+        "SELECT ppr.whatsapp_number, pr.full_name, pr.id_verification_status, \
+         pr.guardian_phone, date_part('year', age(current_date, pr.date_of_birth))::int AS age \
          FROM profiles pr \
          LEFT JOIN profiles_private ppr ON ppr.id = pr.id \
          WHERE pr.id = $1"
@@ -242,11 +264,13 @@ pub(crate) async fn release_escrow_locked(
 
     let whatsapp_number: Option<String> = seller.get("whatsapp_number");
     let full_name: Option<String> = seller.get("full_name");
-
-    let phone = match whatsapp_number {
-        Some(num) if !num.trim().is_empty() => num,
-        _ => return Err(AppError::BadRequest("Seller has no payout number configured".to_string())),
+    let seller_verification = Verification {
+        status: seller.get("id_verification_status"),
+        age: seller.get("age"),
+        guardian_phone: seller.get("guardian_phone"),
     };
+
+    let phone = payout_phone(&seller_verification, whatsapp_number.as_deref())?;
 
     let payout_amount = seller_payout(amount, commission_amount.unwrap_or(0.0)).ok_or_else(|| {
         AppError::BadRequest(format!(

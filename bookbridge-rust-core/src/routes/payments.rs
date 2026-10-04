@@ -104,6 +104,13 @@ pub async fn initiate_payment_handler(
                     "Listings priced below {MIN_AMOUNT_XAF} XAF cannot be paid online"
                 )));
             }
+            crate::verification::check_purchase_allowed(
+                &state.pool,
+                user_id,
+                listing.seller_id,
+                &phone,
+            )
+            .await?;
             if !reserve_listing(&state.pool, listing_id, user_id).await? {
                 return Err(AppError::Conflict(
                     "Someone else is paying for this book right now. Try again in a few minutes."

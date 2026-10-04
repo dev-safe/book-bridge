@@ -47,6 +47,22 @@ class AdminRepositoryImpl implements AdminRepository {
   Future<Either<Failure, Unit>> dismissUnmatched(String id, String note) =>
       _done(() => _dataSource.dismissUnmatched(id, note));
 
+  @override
+  Future<Either<Failure, List<IdVerificationSubmission>>> idVerifications() =>
+      _guard(() => _dataSource.idVerifications());
+
+  @override
+  Future<Either<Failure, Unit>> approveId(String userId, String note) =>
+      _done(() => _dataSource.approveId(userId, note));
+
+  @override
+  Future<Either<Failure, Unit>> rejectId(String userId, String note) =>
+      _done(() => _dataSource.rejectId(userId, note));
+
+  @override
+  Future<Either<Failure, String>> idPhotoUrl(String path) =>
+      _guard(() => _dataSource.idPhotoUrl(path));
+
   Future<Either<Failure, Unit>> _done(Future<void> Function() run) =>
       _guard(() async {
         await run();

@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:dartz/dartz.dart';
 import 'package:book_bridge/core/error/failures.dart';
 import 'package:book_bridge/features/auth/domain/entities/user.dart';
@@ -45,4 +47,11 @@ abstract class AuthRepository {
 
   /// Records the current user's age self-declaration (`adult` or `guardian`).
   Future<Either<Failure, void>> declareAge(String choice);
+
+  /// Uploads ID document photos and submits them for admin review.
+  Future<Either<Failure, void>> submitIdVerification({
+    required DateTime dateOfBirth,
+    required List<Uint8List> documents,
+    String? guardianPhone,
+  });
 }

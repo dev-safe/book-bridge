@@ -62,7 +62,8 @@ import 'app_localizations_fr.dart';
 /// be consistent with the languages listed in the AppLocalizations.supportedLocales
 /// property.
 abstract class AppLocalizations {
-  AppLocalizations(String locale) : localeName = intl.Intl.canonicalizedLocale(locale.toString());
+  AppLocalizations(String locale)
+    : localeName = intl.Intl.canonicalizedLocale(locale.toString());
 
   final String localeName;
 
@@ -70,7 +71,8 @@ abstract class AppLocalizations {
     return Localizations.of<AppLocalizations>(context, AppLocalizations);
   }
 
-  static const LocalizationsDelegate<AppLocalizations> delegate = _AppLocalizationsDelegate();
+  static const LocalizationsDelegate<AppLocalizations> delegate =
+      _AppLocalizationsDelegate();
 
   /// A list of this localizations delegate along with the default localizations
   /// delegates.
@@ -82,17 +84,18 @@ abstract class AppLocalizations {
   /// Additional delegates can be added by appending to this list in
   /// MaterialApp. This list does not have to be used at all if a custom list
   /// of delegates is preferred or required.
-  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates = <LocalizationsDelegate<dynamic>>[
-    delegate,
-    GlobalMaterialLocalizations.delegate,
-    GlobalCupertinoLocalizations.delegate,
-    GlobalWidgetsLocalizations.delegate,
-  ];
+  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates =
+      <LocalizationsDelegate<dynamic>>[
+        delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+      ];
 
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
     Locale('en'),
-    Locale('fr')
+    Locale('fr'),
   ];
 
   /// The title of the application
@@ -2716,9 +2719,202 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not save your declaration. Please try again.'**
   String get ageDeclarationError;
+
+  /// No description provided for @idVerifyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify your identity'**
+  String get idVerifyTitle;
+
+  /// No description provided for @idVerifySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'To buy books on BookBridge, an admin must check your ID. Your photos are only used for this review and are deleted afterwards.'**
+  String get idVerifySubtitle;
+
+  /// No description provided for @idVerifyDobLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Date of birth'**
+  String get idVerifyDobLabel;
+
+  /// No description provided for @idVerifyDobHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to select your date of birth'**
+  String get idVerifyDobHint;
+
+  /// No description provided for @idVerifyTooYoung.
+  ///
+  /// In en, this message translates to:
+  /// **'You must be at least 10 years old to use BookBridge.'**
+  String get idVerifyTooYoung;
+
+  /// No description provided for @idVerifyDocSchoolId.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo of your school ID card'**
+  String get idVerifyDocSchoolId;
+
+  /// No description provided for @idVerifyDocCni.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo of your National Identity Card (CNI)'**
+  String get idVerifyDocCni;
+
+  /// No description provided for @idVerifyDocGuardianCni.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo of your parent or guardian\'s CNI'**
+  String get idVerifyDocGuardianCni;
+
+  /// No description provided for @idVerifyGuardianPhoneLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Parent or guardian\'s Mobile Money number'**
+  String get idVerifyGuardianPhoneLabel;
+
+  /// No description provided for @idVerifyGuardianPhoneInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid 9-digit Cameroon number starting with 6.'**
+  String get idVerifyGuardianPhoneInvalid;
+
+  /// No description provided for @idVerifyGuardianNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Because you are under 15, your purchases must be paid from this number and your sales will be paid out to it.'**
+  String get idVerifyGuardianNote;
+
+  /// No description provided for @idVerifyAddPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Add photo'**
+  String get idVerifyAddPhoto;
+
+  /// No description provided for @idVerifyCamera.
+  ///
+  /// In en, this message translates to:
+  /// **'Take a photo'**
+  String get idVerifyCamera;
+
+  /// No description provided for @idVerifyGallery.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose from gallery'**
+  String get idVerifyGallery;
+
+  /// No description provided for @idVerifySubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit for review'**
+  String get idVerifySubmit;
+
+  /// No description provided for @idVerifySubmitted.
+  ///
+  /// In en, this message translates to:
+  /// **'Submitted. We\'ll review your ID shortly.'**
+  String get idVerifySubmitted;
+
+  /// No description provided for @idVerifyError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not submit your ID: {error}'**
+  String idVerifyError(String error);
+
+  /// No description provided for @idVerifyPendingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Under review'**
+  String get idVerifyPendingTitle;
+
+  /// No description provided for @idVerifyPendingBody.
+  ///
+  /// In en, this message translates to:
+  /// **'An admin is reviewing your ID. You\'ll be able to buy books once it\'s approved.'**
+  String get idVerifyPendingBody;
+
+  /// No description provided for @idVerifyVerifiedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Identity verified'**
+  String get idVerifyVerifiedTitle;
+
+  /// No description provided for @idVerifyVerifiedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your ID has been verified. You can buy and sell on BookBridge.'**
+  String get idVerifyVerifiedBody;
+
+  /// No description provided for @idVerifyRejectedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Verification not approved'**
+  String get idVerifyRejectedTitle;
+
+  /// No description provided for @idVerifyRejectedReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason: {reason}'**
+  String idVerifyRejectedReason(String reason);
+
+  /// No description provided for @idVerifyRejectedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Please submit new, clear photos below.'**
+  String get idVerifyRejectedBody;
+
+  /// No description provided for @idVerifyTile.
+  ///
+  /// In en, this message translates to:
+  /// **'ID verification'**
+  String get idVerifyTile;
+
+  /// No description provided for @idVerifyStatusUnverified.
+  ///
+  /// In en, this message translates to:
+  /// **'Not verified'**
+  String get idVerifyStatusUnverified;
+
+  /// No description provided for @idVerifyStatusPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Under review'**
+  String get idVerifyStatusPending;
+
+  /// No description provided for @idVerifyStatusVerified.
+  ///
+  /// In en, this message translates to:
+  /// **'Verified'**
+  String get idVerifyStatusVerified;
+
+  /// No description provided for @idVerifyStatusRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Not approved, tap to resubmit'**
+  String get idVerifyStatusRejected;
+
+  /// No description provided for @idVerifyRequiredToBuy.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify your identity before buying books.'**
+  String get idVerifyRequiredToBuy;
+
+  /// No description provided for @idVerifyNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify now'**
+  String get idVerifyNow;
+
+  /// No description provided for @idVerifiedBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'ID verified'**
+  String get idVerifiedBadge;
 }
 
-class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
+class _AppLocalizationsDelegate
+    extends LocalizationsDelegate<AppLocalizations> {
   const _AppLocalizationsDelegate();
 
   @override
@@ -2727,25 +2923,26 @@ class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> 
   }
 
   @override
-  bool isSupported(Locale locale) => <String>['en', 'fr'].contains(locale.languageCode);
+  bool isSupported(Locale locale) =>
+      <String>['en', 'fr'].contains(locale.languageCode);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
 }
 
 AppLocalizations lookupAppLocalizations(Locale locale) {
-
-
   // Lookup logic when only language code is specified.
   switch (locale.languageCode) {
-    case 'en': return AppLocalizationsEn();
-    case 'fr': return AppLocalizationsFr();
+    case 'en':
+      return AppLocalizationsEn();
+    case 'fr':
+      return AppLocalizationsFr();
   }
 
   throw FlutterError(
     'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
     'an issue with the localizations generation tool. Please file an issue '
     'on GitHub with a reproducible sample app and the gen-l10n configuration '
-    'that was used.'
+    'that was used.',
   );
 }
