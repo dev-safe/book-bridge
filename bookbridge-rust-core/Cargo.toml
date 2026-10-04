@@ -19,3 +19,4 @@ chrono = { version = "0.4", features = ["serde"] }
 dotenvy = "0.15"
 anyhow = "1.0"
 tower = { version = "0.4", features = ["util"] }
+jsonwebtoken = "9"
