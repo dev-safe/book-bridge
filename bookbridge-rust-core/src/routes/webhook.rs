@@ -3,7 +3,10 @@ use serde::{Deserialize, Serialize};
 use crate::error::AppError;
 use crate::auth::constant_time_compare;
 use crate::routes::escrow::{handle_purchase_success_db, PurchaseOutcome};
-use crate::routes::payments::{buyer_fee_for, covers_expected, BOOST_DAYS, BOOST_PRICE_XAF};
+use crate::routes::payments::{
+    buyer_fee_for, covers_expected, parse_external_ref, ExternalRef, BOOST_DAYS, BOOST_PRICE_XAF,
+    SUBSCRIPTION_DAYS, SUBSCRIPTION_PRICE_XAF,
+};
 use crate::AppState;
 use sqlx::{PgPool, Row};
 use uuid::Uuid;
@@ -223,6 +226,81 @@ async fn handle_boost_success(
     .execute(pool)
     .await?;
 
+    Ok(())
+}
+
+/// Grants (or extends) Power Seller for one paid period. Renewals stack on
+/// the latest active expiry so paying early never loses days. Idempotent on
+/// the Fapshi transId.
+pub(crate) async fn handle_subscription_success(
+    pool: &PgPool,
+    reference: &str,
+    amount: f64,
+    external_ref: &str,
+) -> Result<(), AppError> {
+    let user_id = match parse_external_ref(external_ref) {
+        Some(ExternalRef::Subscription { user_id }) => user_id,
+        _ => {
+            return Err(AppError::BadRequest(format!(
+                "Invalid subscription externalId: {external_ref}"
+            )))
+        }
+    };
+    if !covers_expected(amount, SUBSCRIPTION_PRICE_XAF as f64) {
+        let reason = format!("subscription underpaid: costs {SUBSCRIPTION_PRICE_XAF} XAF");
+        return record_unmatched_payment(pool, reference, amount, external_ref, &reason).await;
+    }
+
+    let mut tx = pool.begin().await?;
+    let profile = sqlx::query("SELECT id FROM profiles WHERE id = $1 FOR UPDATE")
+        .bind(user_id)
+        .fetch_optional(&mut *tx)
+        .await?;
+    if profile.is_none() {
+        record_unmatched_payment(
+            &mut *tx,
+            reference,
+            amount,
+            external_ref,
+            "subscription for unknown profile",
+        )
+        .await?;
+        tx.commit().await?;
+        return Ok(());
+    }
+
+    let inserted = sqlx::query(
+        "INSERT INTO subscriptions
+             (user_id, tier, status, fapshi_reference, amount, started_at, expires_at)
+         SELECT $1, 'power_seller', 'active', $2, $3, now(),
+                greatest(now(), coalesce(max(s.expires_at), now())) + make_interval(days => $4)
+         FROM (SELECT expires_at FROM subscriptions
+               WHERE user_id = $1 AND status = 'active' AND expires_at > now()) s
+         ON CONFLICT (fapshi_reference) DO NOTHING
+         RETURNING id",
+    )
+    .bind(user_id)
+    .bind(reference)
+    .bind(amount.round() as i32)
+    .bind(SUBSCRIPTION_DAYS)
+    .fetch_optional(&mut *tx)
+    .await?;
+
+    if inserted.is_none() {
+        tracing::info!(
+            "Subscription payment {} already recorded; skipping",
+            reference
+        );
+        tx.commit().await?;
+        return Ok(());
+    }
+
+    sqlx::query("UPDATE profiles SET tier = 'power_seller' WHERE id = $1")
+        .bind(user_id)
+        .execute(&mut *tx)
+        .await?;
+    tx.commit().await?;
+    tracing::info!(%user_id, "Power Seller granted via payment {}", reference);
     Ok(())
 }
 
@@ -459,6 +537,11 @@ pub async fn fapshi_webhook_handler(
     if status_upper == "SUCCESSFUL" || status_upper == "SUCCESS" {
         if external_reference.starts_with("boost:") || external_reference.starts_with("boost_") {
             handle_boost_success(&state.pool, &reference, amount, &external_reference).await?;
+        } else if external_reference.starts_with("subscription:")
+            || external_reference.starts_with("subscription_")
+        {
+            handle_subscription_success(&state.pool, &reference, amount, &external_reference)
+                .await?;
         } else if external_reference.starts_with("donation:") || external_reference.starts_with("donation_") {
             handle_donation_success(&state.pool, &reference, amount, &external_reference).await?;
         } else if external_reference.starts_with("purchase:") || external_reference.starts_with("purchase_") {

@@ -5,6 +5,7 @@ import 'package:book_bridge/features/listings/data/models/listing_model.dart';
 import 'package:book_bridge/features/listings/data/datasources/supabase_storage_data_source.dart';
 import 'package:book_bridge/features/listings/domain/entities/academic_lookups.dart';
 import 'package:book_bridge/features/listings/domain/entities/book_condition.dart';
+import 'package:book_bridge/features/subscriptions/domain/subscription_constants.dart';
 
 /// Data source for listing operations using Supabase PostgreSQL and Storage.
 ///
@@ -273,6 +274,9 @@ class SupabaseListingsDataSource {
 
       return ListingModel.fromJson(response);
     } on PostgrestException catch (e) {
+      if (e.code == 'P0001' && isFreeTierLimitError(e.message)) {
+        throw ServerException(message: kFreeTierLimitError);
+      }
       throw ServerException(message: e.message);
     } catch (e) {
       throw ServerException(message: e.toString());

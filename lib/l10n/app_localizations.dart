@@ -1736,7 +1736,7 @@ abstract class AppLocalizations {
   /// No description provided for @termsPaymentsContent.
   ///
   /// In en, this message translates to:
-  /// **'Payments for books are generally handled in cash upon delivery or via direct mobile money transfer between the buyer and seller. BookBridge may offer integrated payment solutions (like Fapshi) for specific services or donations.'**
+  /// **'Payments for books are generally handled in cash upon delivery or via direct mobile money transfer between the buyer and seller. BookBridge may offer integrated payment solutions (like Fapshi) for specific services or donations. Free sellers may have up to 3 active listings at a time. The optional Power Seller subscription (500 FCFA for 30 days, paid via Fapshi) removes this limit; it does not renew automatically and is non-refundable once activated.'**
   String get termsPaymentsContent;
 
   /// No description provided for @termsLiabilityTitle.
@@ -2644,6 +2644,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'See photos and buy safely on BookBridge:'**
   String get shareTextViewListing;
+
+  /// No description provided for @powerSellerBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Power Seller'**
+  String get powerSellerBadge;
+
+  /// No description provided for @powerSellerCardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Become a Power Seller'**
+  String get powerSellerCardTitle;
+
+  /// No description provided for @powerSellerCardSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlimited listings · 500 FCFA / 30 days'**
+  String get powerSellerCardSubtitle;
+
+  /// No description provided for @powerSellerUpgradeError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not start the upgrade. Please try again.'**
+  String get powerSellerUpgradeError;
+
+  /// No description provided for @freeTierLimitReached.
+  ///
+  /// In en, this message translates to:
+  /// **'Free sellers can have up to 3 active listings. Upgrade to Power Seller on your Profile for unlimited listings.'**
+  String get freeTierLimitReached;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

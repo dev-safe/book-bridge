@@ -857,7 +857,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get termsPaymentsTitle => '4. Paiements';
 
   @override
-  String get termsPaymentsContent => 'Les paiements pour les livres sont généralement gérés en espèces à la livraison ou via un transfert direct d\'argent mobile entre l\'acheteur et le vendeur. BookBridge peut proposer des solutions de paiement intégrées (comme Fapshi) pour des services spécifiques ou des dons.';
+  String get termsPaymentsContent => 'Les paiements pour les livres sont généralement gérés en espèces à la livraison ou via un transfert direct d\'argent mobile entre l\'acheteur et le vendeur. BookBridge peut proposer des solutions de paiement intégrées (comme Fapshi) pour des services spécifiques ou des dons. Les vendeurs gratuits peuvent avoir jusqu\'à 3 annonces actives à la fois. L\'abonnement optionnel Vendeur Pro (500 FCFA pour 30 jours, payé via Fapshi) supprime cette limite ; il ne se renouvelle pas automatiquement et n\'est pas remboursable une fois activé.';
 
   @override
   String get termsLiabilityTitle => '5. Limitation de responsabilité';
@@ -1323,4 +1323,19 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get shareTextViewListing => 'Voir les photos et acheter en toute sécurité sur BookBridge :';
+
+  @override
+  String get powerSellerBadge => 'Vendeur Pro';
+
+  @override
+  String get powerSellerCardTitle => 'Devenir Vendeur Pro';
+
+  @override
+  String get powerSellerCardSubtitle => 'Annonces illimitées · 500 FCFA / 30 jours';
+
+  @override
+  String get powerSellerUpgradeError => 'Impossible de lancer la mise à niveau. Veuillez réessayer.';
+
+  @override
+  String get freeTierLimitReached => 'Les vendeurs gratuits peuvent avoir jusqu\'à 3 annonces actives. Passez Vendeur Pro depuis votre Profil pour des annonces illimitées.';
 }

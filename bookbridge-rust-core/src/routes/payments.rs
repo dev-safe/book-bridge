@@ -24,6 +24,8 @@ pub const MIN_AMOUNT_XAF: i64 = 100;
 pub const MAX_DONATION_XAF: i64 = 1_000_000;
 pub const BOOST_PRICE_XAF: i64 = 500;
 pub const BOOST_DAYS: i32 = 7;
+pub const SUBSCRIPTION_PRICE_XAF: i64 = 500;
+pub const SUBSCRIPTION_DAYS: i32 = 30;
 const MAX_TRANS_ID_CHARS: usize = 100;
 
 #[derive(Deserialize, Debug, PartialEq)]
@@ -58,6 +60,7 @@ pub enum ExternalRef {
     Purchase { listing_id: Uuid, buyer_id: Uuid },
     Boost { listing_id: Uuid },
     Donation { user_id: Option<Uuid> },
+    Subscription { user_id: Uuid },
 }
 
 pub fn payment_routes() -> Router<AppState> {
@@ -190,7 +193,11 @@ pub async fn initiate_payment_handler(
     Ok(Json(InitiatePaymentResponse { trans_id }))
 }
 
-async fn record_payer(pool: &PgPool, trans_id: &str, phone: &str) -> Result<(), AppError> {
+pub(crate) async fn record_payer(
+    pool: &PgPool,
+    trans_id: &str,
+    phone: &str,
+) -> Result<(), AppError> {
     sqlx::query(
         "INSERT INTO payment_payers (payment_reference, phone) VALUES ($1, $2) \
          ON CONFLICT (payment_reference) DO NOTHING",
@@ -219,6 +226,9 @@ pub async fn payment_status_handler(
         Some(ExternalRef::Boost { listing_id }) => {
             load_listing(&state.pool, listing_id).await?.seller_id == user_id
         }
+        Some(ExternalRef::Subscription {
+            user_id: subscriber,
+        }) => subscriber == user_id,
         None => false,
     };
     if !owner_ok {
@@ -424,6 +434,10 @@ pub fn donation_external_id(user_id: Uuid, millis: i64) -> String {
     format!("donation_{user_id}_{millis}")
 }
 
+pub fn subscription_external_id(user_id: Uuid, millis: i64) -> String {
+    format!("subscription_{user_id}_{millis}")
+}
+
 /// Parses externalIds in both the current `_` form and the older `:` form.
 pub fn parse_external_ref(external_id: &str) -> Option<ExternalRef> {
     let separator = if external_id.contains(':') { ':' } else { '_' };
@@ -443,6 +457,9 @@ pub fn parse_external_ref(external_id: &str) -> Option<ExternalRef> {
                 user_id: Some(uuid_at(1)?),
             }),
         },
+        "subscription" => Some(ExternalRef::Subscription {
+            user_id: uuid_at(1)?,
+        }),
         _ => None,
     }
 }

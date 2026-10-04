@@ -12,6 +12,7 @@ import 'package:book_bridge/features/auth/presentation/viewmodels/auth_viewmodel
 import 'package:book_bridge/features/listings/presentation/widgets/academic_filter_bar.dart';
 import 'package:book_bridge/features/listings/presentation/widgets/listing_photos_picker.dart';
 import 'package:book_bridge/features/listings/presentation/widgets/meetup_pin_picker.dart';
+import 'package:book_bridge/features/subscriptions/domain/subscription_constants.dart';
 import 'package:latlong2/latlong.dart' show LatLng;
 
 /// Screen for creating and selling a new book listing.
@@ -294,7 +295,11 @@ class _SellScreenState extends State<SellScreen> {
         ..hideCurrentSnackBar()
         ..showSnackBar(
           SnackBar(
-            content: Text(sellViewModel.errorMessage!),
+            content: Text(
+              isFreeTierLimitError(sellViewModel.errorMessage)
+                  ? AppLocalizations.of(context)!.freeTierLimitReached
+                  : sellViewModel.errorMessage!,
+            ),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
