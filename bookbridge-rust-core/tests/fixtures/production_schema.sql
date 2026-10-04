@@ -5,7 +5,9 @@
 -- tables the service never reads are left out.
 --
 -- Load it into a throwaway local Postgres, apply the migrations newer than
--- this snapshot (20261003000000_admin_dispute_resolution.sql onwards), then
+-- this snapshot (20261003000000_admin_dispute_resolution.sql onwards), loading
+-- supabase_extensions_stub.sql before 20261008000000_push_notifications.sql,
+-- then
 --   DATABASE_URL=postgres://postgres@127.0.0.1:<port>/postgres cargo test
 -- Never load this into a real Supabase project.
 

@@ -59,6 +59,7 @@ async fn state_with(settings: RateLimitSettings) -> AppState {
         in_progress_payouts: Arc::new(Mutex::new(HashSet::new())),
         fapshi_base_url: "http://127.0.0.1:1".to_string(),
         supabase_auth: SupabaseAuth::new(spawn_mock_supabase_auth().await, ANON_KEY),
+        push: Default::default(),
         rate_limits: RateLimits::new(settings),
     }
 }

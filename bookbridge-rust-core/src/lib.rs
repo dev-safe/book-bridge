@@ -2,6 +2,7 @@ pub mod auth;
 pub mod config;
 pub mod error;
 pub mod fapshi;
+pub mod push;
 pub mod rate_limit;
 pub mod routes;
 pub mod user_auth;
@@ -19,4 +20,5 @@ pub struct AppState {
     pub fapshi_base_url: String,
     pub supabase_auth: user_auth::SupabaseAuth,
     pub rate_limits: rate_limit::RateLimits,
+    pub push: push::PushService,
 }

@@ -127,6 +127,7 @@ async fn test_release_escrow_db_integration() -> Result<(), Box<dyn std::error::
         pool: pool.clone(),
         in_progress_payouts: Arc::new(Mutex::new(HashSet::new())),
         fapshi_base_url: "http://127.0.0.1:1".to_string(), // Unreachable: fail at the network boundary
+        push: Default::default(),
         rate_limits: Default::default(),
         supabase_auth: bookbridge_rust_core::user_auth::SupabaseAuth::new("http://127.0.0.1:1", "test-anon-key"),
     };

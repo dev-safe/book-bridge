@@ -14,7 +14,9 @@ use bookbridge_rust_core::routes::admin::admin_routes;
 use bookbridge_rust_core::routes::buyer::buyer_routes;
 use bookbridge_rust_core::routes::escrow::{poll_pending_handler, process_releases_handler};
 use bookbridge_rust_core::routes::health::health_handler;
+use bookbridge_rust_core::push::PushService;
 use bookbridge_rust_core::routes::payments::payment_routes;
+use bookbridge_rust_core::routes::push::dispatch_push_handler;
 use bookbridge_rust_core::routes::webhook::fapshi_webhook_handler;
 use bookbridge_rust_core::user_auth::SupabaseAuth;
 use bookbridge_rust_core::AppState;
@@ -47,12 +49,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         ),
         fapshi_base_url: config.fapshi_base_url,
         rate_limits: RateLimits::new(config.rate_limits),
+        push: PushService::from_env(),
     };
 
     // 4. Build authenticated routes
     let internal_routes = Router::new()
         .route("/escrow/process-releases", post(process_releases_handler))
         .route("/escrow/poll-pending", post(poll_pending_handler))
+        .route("/push/dispatch", post(dispatch_push_handler))
         .layer(middleware::from_fn_with_state(
             shared_config.clone(),
             require_internal_auth,
