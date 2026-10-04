@@ -12,7 +12,7 @@ class SupabaseFavoritesDataSource {
       final response = await supabaseClient
           .from('wishlists')
           .select(
-            '*, listings(*, profiles:seller_id(id, full_name, locality, avatar_url, rating, review_count))',
+            '*, listings(*, profiles:public_profiles!seller_id(id, full_name, locality, avatar_url, rating, review_count))',
           )
           .eq('user_id', userId)
           .order('created_at', ascending: false);
