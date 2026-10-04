@@ -5,17 +5,38 @@ on:
     branches: [ dev, main ]
     paths:
       - 'bookbridge-rust-core/**'
+      - 'supabase/migrations/**'
       - '.github/workflows/rust.yml'
   pull_request:
     branches: [ dev, main ]
     paths:
       - 'bookbridge-rust-core/**'
+      - 'supabase/migrations/**'
       - '.github/workflows/rust.yml'
 
 jobs:
   test:
     name: Build & Test
     runs-on: ubuntu-latest
+
+    # Throwaway Postgres so the DB integration tests run instead of skipping.
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      PGHOST: 127.0.0.1
+      PGUSER: postgres
+      PGDATABASE: postgres
 
     steps:
     - name: Checkout repository
@@ -35,9 +56,34 @@ jobs:
       run: cargo build --verbose
       working-directory: bookbridge-rust-core
 
+    - name: Load test database schema
+      run: |
+        set -euo pipefail
+        fixtures=bookbridge-rust-core/tests/fixtures
+        psql -v ON_ERROR_STOP=1 -q -f "$fixtures/production_schema.sql"
+        for f in $(ls supabase/migrations/*.sql | sort); do
+          name=$(basename "$f")
+          [[ "$name" < "20261003000000" ]] && continue
+          if [[ "$name" == 20261008000000_* ]]; then
+            echo "Applying supabase_extensions_stub.sql"
+            psql -v ON_ERROR_STOP=1 -q -f "$fixtures/supabase_extensions_stub.sql"
+          fi
+          echo "Applying $name"
+          psql -v ON_ERROR_STOP=1 -q -f "$f"
+        done
+
     - name: Cargo Test
-      run: cargo test --verbose
+      run: |
+        set -o pipefail
+        cargo test --verbose -- --nocapture 2>&1 | tee /tmp/cargo-test.log
+        # DB tests pass silently when they skip; fail CI if any skipped.
+        if grep -E 'Skipping .*(DB|database|query|poll)' /tmp/cargo-test.log; then
+          echo "::error::DB integration tests were skipped"
+          exit 1
+        fi
       working-directory: bookbridge-rust-core
+      env:
+        DATABASE_URL: postgres://postgres@127.0.0.1:5432/postgres
 
     - name: Cargo Clippy
       run: cargo clippy -- -D warnings
