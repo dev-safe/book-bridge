@@ -7,7 +7,14 @@ import 'package:book_bridge/features/admin/domain/entities/admin_cases.dart';
 class RustAdminDataSource {
   final RustCoreClient _client;
 
-  RustAdminDataSource(this._client);
+  /// Returns a short-lived URL for a photo in the private `id-documents`
+  /// bucket; Storage only signs it for admins.
+  final Future<String> Function(String path)? _signIdPhoto;
+
+  RustAdminDataSource(
+    this._client, {
+    Future<String> Function(String path)? signIdPhoto,
+  }) : _signIdPhoto = signIdPhoto;
 
   /// Completes normally only for admins; anyone else gets a [ServerException].
   Future<void> checkAdmin() async {
@@ -74,6 +81,38 @@ class RustAdminDataSource {
     );
   }
 
+  Future<List<IdVerificationSubmission>> idVerifications() async {
+    final body = await _client.get(
+      '/admin/id-verifications',
+      failurePrefix: 'Could not load ID submissions',
+    );
+    return _list(body, 'submissions').map(_submission).toList();
+  }
+
+  Future<void> approveId(String userId, String note) {
+    return _resolve(
+      '/admin/id-verifications/${Uri.encodeComponent(userId)}/approve',
+      note,
+      failurePrefix: 'Approve failed',
+    );
+  }
+
+  Future<void> rejectId(String userId, String note) {
+    return _resolve(
+      '/admin/id-verifications/${Uri.encodeComponent(userId)}/reject',
+      note,
+      failurePrefix: 'Reject failed',
+    );
+  }
+
+  Future<String> idPhotoUrl(String path) async {
+    final sign = _signIdPhoto;
+    if (sign == null) {
+      throw ServerException(message: 'ID photos are not available');
+    }
+    return sign(path);
+  }
+
   Future<void> _resolve(
     String path,
     String note, {
@@ -127,6 +166,27 @@ class RustAdminDataSource {
       reason: json['reason'] as String?,
       receivedAt: _date(json['received_at']),
       payerPhoneHint: json['payer_phone_hint'] as String?,
+    );
+  }
+
+  static IdVerificationSubmission _submission(Map<String, dynamic> json) {
+    final id = json['user_id'];
+    if (id is! String) {
+      throw ServerException(message: 'Unexpected ID submission in response');
+    }
+    final paths = json['document_paths'];
+    final age = json['age'];
+    return IdVerificationSubmission(
+      userId: id,
+      fullName: json['full_name'] as String?,
+      dateOfBirth: _date(json['date_of_birth']),
+      age: age is num ? age.toInt() : null,
+      idType: json['id_type'] as String?,
+      guardianPhoneHint: json['guardian_phone_hint'] as String?,
+      documentPaths: paths is List
+          ? List.unmodifiable(paths.whereType<String>())
+          : const [],
+      submittedAt: _date(json['submitted_at']),
     );
   }
 

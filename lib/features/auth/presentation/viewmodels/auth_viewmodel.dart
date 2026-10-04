@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:book_bridge/features/auth/domain/entities/user.dart';
 import 'package:book_bridge/features/auth/domain/usecases/sign_up_usecase.dart';
@@ -256,6 +258,50 @@ class AuthViewModel extends ChangeNotifier {
       _currentUser = user.copyWith(
         ageDeclaration: choice,
         ageDeclaredAt: DateTime.now(),
+      );
+    }
+    notifyListeners();
+    await refreshUser();
+    return true;
+  }
+
+  bool _isSubmittingId = false;
+
+  /// Whether an ID verification submission is in flight.
+  bool get isSubmittingId => _isSubmittingId;
+
+  /// Whether the current user's ID has been approved by an admin.
+  bool get isIdVerified => _currentUser?.isIdVerified ?? false;
+
+  /// Uploads ID photos and submits them for admin review.
+  ///
+  /// Does not touch [authState] so the router does not react mid-request.
+  /// Returns true on success; on failure sets [errorMessage].
+  Future<bool> submitIdVerification({
+    required DateTime dateOfBirth,
+    required List<Uint8List> documents,
+    String? guardianPhone,
+  }) async {
+    _errorMessage = null;
+    _isSubmittingId = true;
+    notifyListeners();
+    final result = await repository.submitIdVerification(
+      dateOfBirth: dateOfBirth,
+      documents: documents,
+      guardianPhone: guardianPhone,
+    );
+    _isSubmittingId = false;
+    final failure = result.fold((f) => f, (_) => null);
+    if (failure != null) {
+      _errorMessage = failure.message;
+      notifyListeners();
+      return false;
+    }
+    final user = _currentUser;
+    if (user != null) {
+      _currentUser = user.copyWith(
+        idVerificationStatus: 'pending',
+        dateOfBirth: dateOfBirth,
       );
     }
     notifyListeners();

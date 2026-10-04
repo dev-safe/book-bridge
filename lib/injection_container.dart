@@ -343,9 +343,15 @@ Future<void> setupDependencyInjection() async {
     () => RustSubscriptionDataSource(getIt<RustCoreClient>()),
   );
 
-  // Admin Feature (dispute resolution; the server checks admin_users)
+  // Admin Feature (disputes, unmatched payments, ID reviews; the server
+  // checks admin_users)
   getIt.registerLazySingleton<RustAdminDataSource>(
-    () => RustAdminDataSource(getIt<RustCoreClient>()),
+    () => RustAdminDataSource(
+      getIt<RustCoreClient>(),
+      signIdPhoto: (path) => getIt<SupabaseClient>().storage
+          .from('id-documents')
+          .createSignedUrl(path, 600),
+    ),
   );
 
   getIt.registerLazySingleton<AdminRepository>(

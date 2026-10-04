@@ -22,6 +22,11 @@ class UserModel extends User {
     super.tier = 'free',
     super.ageDeclaration,
     super.ageDeclaredAt,
+    super.idVerificationStatus = 'unverified',
+    super.idType,
+    super.dateOfBirth,
+    super.guardianPhone,
+    super.idRejectionReason,
     required super.createdAt,
   });
 
@@ -49,6 +54,14 @@ class UserModel extends User {
       ageDeclaredAt: json['age_declared_at'] != null
           ? DateTime.parse(json['age_declared_at'] as String)
           : null,
+      idVerificationStatus:
+          json['id_verification_status'] as String? ?? 'unverified',
+      idType: json['id_type'] as String?,
+      dateOfBirth: json['date_of_birth'] != null
+          ? DateTime.parse(json['date_of_birth'] as String)
+          : null,
+      guardianPhone: json['guardian_phone'] as String?,
+      idRejectionReason: json['id_rejection_reason'] as String?,
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'] as String)
           : DateTime.now(),
@@ -76,6 +89,11 @@ class UserModel extends User {
       'tier': tier,
       'age_declaration': ageDeclaration,
       'age_declared_at': ageDeclaredAt?.toIso8601String(),
+      'id_verification_status': idVerificationStatus,
+      'id_type': idType,
+      'date_of_birth': dateOfBirth?.toIso8601String().substring(0, 10),
+      'guardian_phone': guardianPhone,
+      'id_rejection_reason': idRejectionReason,
       'created_at': createdAt.toIso8601String(),
     };
   }
@@ -99,6 +117,11 @@ class UserModel extends User {
       tier: user.tier,
       ageDeclaration: user.ageDeclaration,
       ageDeclaredAt: user.ageDeclaredAt,
+      idVerificationStatus: user.idVerificationStatus,
+      idType: user.idType,
+      dateOfBirth: user.dateOfBirth,
+      guardianPhone: user.guardianPhone,
+      idRejectionReason: user.idRejectionReason,
       createdAt: user.createdAt,
     );
   }
@@ -122,6 +145,11 @@ class UserModel extends User {
       tier: tier,
       ageDeclaration: ageDeclaration,
       ageDeclaredAt: ageDeclaredAt,
+      idVerificationStatus: idVerificationStatus,
+      idType: idType,
+      dateOfBirth: dateOfBirth,
+      guardianPhone: guardianPhone,
+      idRejectionReason: idRejectionReason,
       createdAt: createdAt,
     );
   }

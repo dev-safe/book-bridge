@@ -55,6 +55,30 @@ class _FakeRepo implements AdminRepository {
     String id,
     String note,
   ) async => actionResult;
+
+  List<IdVerificationSubmission> idList = const [
+    IdVerificationSubmission(userId: 'user-1', idType: 'cni'),
+  ];
+  Either<Failure, String> photoResult = const Right('https://signed/url');
+
+  @override
+  Future<Either<Failure, List<IdVerificationSubmission>>>
+  idVerifications() async => Right(idList);
+
+  @override
+  Future<Either<Failure, Unit>> approveId(String userId, String note) async {
+    calls.add('approveId $userId $note');
+    return actionResult;
+  }
+
+  @override
+  Future<Either<Failure, Unit>> rejectId(String userId, String note) async {
+    calls.add('rejectId $userId $note');
+    return actionResult;
+  }
+
+  @override
+  Future<Either<Failure, String>> idPhotoUrl(String path) async => photoResult;
 }
 
 void main() {
@@ -111,6 +135,46 @@ void main() {
 
     expect(error, 'A refund is already in progress');
     expect(vm.busyId, isNull);
+  });
+
+  group('ID verification', () {
+    test('open loads pending ID submissions', () async {
+      await vm.open();
+
+      expect(vm.idSubmissions.single.userId, 'user-1');
+    });
+
+    test('approveId calls the repository and reloads', () async {
+      await vm.open();
+      repo.idList = const [];
+
+      final error = await vm.approveId('user-1', 'CNI matches');
+
+      expect(error, isNull);
+      expect(repo.calls, contains('approveId user-1 CNI matches'));
+      expect(vm.idSubmissions, isEmpty);
+      expect(vm.busyId, isNull);
+    });
+
+    test('rejectId returns the server message on failure', () async {
+      await vm.open();
+      repo.actionResult = const Left(
+        ServerFailure(message: 'Submission is no longer pending'),
+      );
+
+      final error = await vm.rejectId('user-1', 'Blurry photo');
+
+      expect(error, 'Submission is no longer pending');
+      expect(repo.calls, contains('rejectId user-1 Blurry photo'));
+    });
+
+    test('idPhotoUrl returns the signed URL or throws', () async {
+      expect(await vm.idPhotoUrl('user-1/front.jpg'), 'https://signed/url');
+
+      repo.photoResult = const Left(ServerFailure(message: 'Forbidden'));
+
+      await expectLater(vm.idPhotoUrl('user-1/front.jpg'), throwsA(anything));
+    });
   });
 
   group('dialog validation', () {

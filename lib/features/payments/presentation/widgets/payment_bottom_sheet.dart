@@ -2,6 +2,7 @@ import 'package:book_bridge/features/payments/domain/entities/buyer_fee.dart';
 import 'package:book_bridge/features/payments/domain/entities/payment_purpose.dart';
 import 'package:book_bridge/features/payments/presentation/viewmodels/payment_viewmodel.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:book_bridge/l10n/app_localizations.dart';
 import 'package:book_bridge/features/auth/presentation/viewmodels/auth_viewmodel.dart';
@@ -57,6 +58,48 @@ class _PaymentBottomSheetState extends State<PaymentBottomSheet> {
 
   int get _buyerFee =>
       widget.purpose is PurchasePayment ? buyerFeeFor(widget.amount) : 0;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.purpose is PurchasePayment) {
+      // The cached status may predate an admin approval.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final auth = context.read<AuthViewModel>();
+        if (mounted && !auth.isIdVerified) auth.refreshUser();
+      });
+    }
+  }
+
+  void _openIdVerification() {
+    final router = GoRouter.of(context);
+    Navigator.pop(context);
+    router.push('/verify-id');
+  }
+
+  Widget _idVerificationRequired(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const Icon(Icons.badge_outlined, size: 64, color: Colors.orange),
+        const SizedBox(height: 16),
+        Text(
+          l10n.idVerifyRequiredToBuy,
+          textAlign: TextAlign.center,
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 24),
+        ElevatedButton(
+          onPressed: _openIdVerification,
+          style: ElevatedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+          ),
+          child: Text(l10n.idVerifyNow),
+        ),
+      ],
+    );
+  }
 
   @override
   void dispose() {
@@ -141,7 +184,11 @@ class _PaymentBottomSheetState extends State<PaymentBottomSheet> {
                     _meetupCard(),
                     const SizedBox(height: 24),
                   ],
-                  if (viewModel.state == PaymentState.initial) ...[
+                  if (viewModel.state == PaymentState.initial &&
+                      widget.purpose is PurchasePayment &&
+                      !context.watch<AuthViewModel>().isIdVerified) ...[
+                    _idVerificationRequired(context),
+                  ] else if (viewModel.state == PaymentState.initial) ...[
                     Form(
                       key: _formKey,
                       child: TextFormField(
@@ -260,6 +307,16 @@ class _PaymentBottomSheetState extends State<PaymentBottomSheet> {
                       style: const TextStyle(color: Colors.red),
                     ),
                     const SizedBox(height: 24),
+                    if (viewModel.errorMessage?.contains(
+                          'Verify your identity',
+                        ) ??
+                        false) ...[
+                      ElevatedButton(
+                        onPressed: _openIdVerification,
+                        child: Text(AppLocalizations.of(context)!.idVerifyNow),
+                      ),
+                      const SizedBox(height: 12),
+                    ],
                     ElevatedButton(
                       onPressed: () => viewModel.reset(),
                       child: Text(AppLocalizations.of(context)!.tryAgain),

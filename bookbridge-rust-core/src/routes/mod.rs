@@ -2,6 +2,7 @@ pub mod admin;
 pub mod buyer;
 pub mod escrow;
 pub mod health;
+pub mod id_verification;
 pub mod payments;
 pub mod push;
 pub mod subscriptions;

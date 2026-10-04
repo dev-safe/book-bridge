@@ -5,6 +5,7 @@ import 'package:book_bridge/features/auth/presentation/screens/sign_in_screen.da
 import 'package:book_bridge/features/auth/presentation/screens/sign_up_screen.dart';
 import 'package:book_bridge/features/auth/presentation/screens/complete_profile_screen.dart';
 import 'package:book_bridge/features/auth/presentation/screens/age_declaration_screen.dart';
+import 'package:book_bridge/features/auth/presentation/screens/id_verification_screen.dart';
 import 'package:book_bridge/features/auth/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:book_bridge/features/listings/presentation/screens/home_screen.dart';
 import 'package:book_bridge/features/listings/presentation/screens/listing_details_screen.dart';
@@ -147,6 +148,11 @@ final appRouter = GoRouter(
       path: '/age-declaration',
       name: 'ageDeclaration',
       builder: (context, state) => const AgeDeclarationScreen(),
+    ),
+    GoRoute(
+      path: '/verify-id',
+      name: 'verifyId',
+      builder: (context, state) => const IdVerificationScreen(),
     ),
 
     // Main Shell Route (with Bottom Navigation)

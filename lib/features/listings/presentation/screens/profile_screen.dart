@@ -12,6 +12,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:book_bridge/l10n/app_localizations.dart';
+import 'package:book_bridge/features/auth/domain/entities/user.dart';
 import 'package:book_bridge/features/payments/domain/entities/payment_purpose.dart';
 import 'package:book_bridge/features/payments/presentation/widgets/payment_bottom_sheet.dart';
 import 'package:book_bridge/features/payments/presentation/viewmodels/payment_viewmodel.dart';
@@ -179,6 +180,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       icon: Icons.person_outline,
                       title: AppLocalizations.of(context)!.myProfileEdit,
                       onTap: () => context.push('/edit-profile'),
+                    ),
+                    _buildMenuItem(
+                      context,
+                      icon: user.isIdVerified
+                          ? Icons.verified_user
+                          : Icons.badge_outlined,
+                      title: AppLocalizations.of(context)!.idVerifyTile,
+                      subtitle: _idStatusLabel(context, user),
+                      onTap: () async {
+                        await context.push('/verify-id');
+                        if (context.mounted) {
+                          context.read<ProfileViewModel>().loadProfile();
+                        }
+                      },
                     ),
                     _buildMenuItem(
                       context,
@@ -472,11 +487,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  String _idStatusLabel(BuildContext context, User user) {
+    final l10n = AppLocalizations.of(context)!;
+    switch (user.idVerificationStatus) {
+      case 'verified':
+        return l10n.idVerifyStatusVerified;
+      case 'pending':
+        return l10n.idVerifyStatusPending;
+      case 'rejected':
+        return l10n.idVerifyStatusRejected;
+      default:
+        return l10n.idVerifyStatusUnverified;
+    }
+  }
+
   Widget _buildMenuItem(
     BuildContext context, {
     required IconData icon,
     required String title,
     required VoidCallback onTap,
+    String? subtitle,
     VoidCallback? onLongPress,
     Color? textColor,
     bool isLast = false,
@@ -500,6 +530,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
               fontWeight: FontWeight.w500,
             ),
           ),
+          subtitle: subtitle == null
+              ? null
+              : Text(subtitle, style: const TextStyle(fontSize: 12)),
           onTap: onTap,
           onLongPress: onLongPress,
           trailing: Icon(

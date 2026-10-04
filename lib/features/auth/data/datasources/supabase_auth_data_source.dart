@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:book_bridge/core/error/exceptions.dart';
@@ -341,6 +343,56 @@ class SupabaseAuthDataSource {
   Future<void> declareAge(String choice) async {
     try {
       await supabaseClient.rpc('declare_age', params: {'p_choice': choice});
+    } on PostgrestException catch (e) {
+      throw ServerException(message: e.message);
+    } catch (e) {
+      throw ServerException(message: e.toString());
+    }
+  }
+
+  static const String idDocumentsBucket = 'id-documents';
+
+  /// Uploads ID document photos to the private `id-documents` bucket under
+  /// `{uid}/` and submits them for admin review via the
+  /// `submit_id_verification` RPC. The server derives the ID type from
+  /// [dateOfBirth] and validates the document count and guardian phone.
+  Future<void> submitIdVerification({
+    required DateTime dateOfBirth,
+    required List<Uint8List> documents,
+    String? guardianPhone,
+  }) async {
+    final userId = supabaseClient.auth.currentUser?.id;
+    if (userId == null) {
+      throw AuthAppException(message: 'Not signed in');
+    }
+    try {
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final paths = <String>[];
+      for (var i = 0; i < documents.length; i++) {
+        final path = '$userId/id_${timestamp}_$i.jpg';
+        await supabaseClient.storage
+            .from(idDocumentsBucket)
+            .uploadBinary(
+              path,
+              documents[i],
+              fileOptions: const FileOptions(
+                upsert: true,
+                contentType: 'image/jpeg',
+              ),
+            );
+        paths.add(path);
+      }
+      final dob = dateOfBirth.toIso8601String().substring(0, 10);
+      await supabaseClient.rpc(
+        'submit_id_verification',
+        params: {
+          'p_date_of_birth': dob,
+          'p_document_paths': paths,
+          'p_guardian_phone': guardianPhone,
+        },
+      );
+    } on StorageException catch (e) {
+      throw ServerException(message: e.message);
     } on PostgrestException catch (e) {
       throw ServerException(message: e.message);
     } catch (e) {

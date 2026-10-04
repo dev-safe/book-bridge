@@ -24,6 +24,35 @@ class AdminDispute {
   });
 }
 
+/// A user's ID photos waiting for an admin to approve or reject them.
+class IdVerificationSubmission {
+  final String userId;
+  final String? fullName;
+  final DateTime? dateOfBirth;
+  final int? age;
+
+  /// `school_id` (ages 10-17) or `cni` (18+).
+  final String? idType;
+
+  /// Masked guardian MoMo number, set for users aged 10-14.
+  final String? guardianPhoneHint;
+
+  /// Object paths in the private `id-documents` bucket.
+  final List<String> documentPaths;
+  final DateTime? submittedAt;
+
+  const IdVerificationSubmission({
+    required this.userId,
+    this.fullName,
+    this.dateOfBirth,
+    this.age,
+    this.idType,
+    this.guardianPhoneHint,
+    this.documentPaths = const [],
+    this.submittedAt,
+  });
+}
+
 /// A payment Fapshi reported that matched no pending purchase.
 class UnmatchedPayment {
   final String id;
