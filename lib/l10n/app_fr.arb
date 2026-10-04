@@ -444,5 +444,12 @@
   "mySchoolLabel": "Mon établissement",
   "classLevelRequired": "Veuillez choisir une classe",
   "subjectRequired": "Veuillez choisir une matière",
-  "noListingsMatchFilters": "Aucun livre ne correspond à ces filtres"
+  "noListingsMatchFilters": "Aucun livre ne correspond à ces filtres",
+  "radiusAny": "Toute distance",
+  "withinKm": "À moins de {km} km",
+  "mapViewTitle": "Livres près de vous",
+  "showOnMap": "Carte",
+  "yourLocation": "Votre position",
+  "noBooksWithinRadius": "Aucun livre avec un lieu de retrait dans cette zone",
+  "mapNeedsLocation": "Activez la localisation dans les Paramètres pour voir les livres proches sur la carte."
 }

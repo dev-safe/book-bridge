@@ -7,6 +7,7 @@ import 'package:book_bridge/features/auth/presentation/screens/complete_profile_
 import 'package:book_bridge/features/auth/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:book_bridge/features/listings/presentation/screens/home_screen.dart';
 import 'package:book_bridge/features/listings/presentation/screens/listing_details_screen.dart';
+import 'package:book_bridge/features/listings/presentation/screens/map_screen.dart';
 import 'package:book_bridge/features/listings/presentation/screens/sell_screen.dart';
 import 'package:book_bridge/features/listings/presentation/screens/profile_screen.dart';
 import 'package:book_bridge/features/listings/presentation/screens/my_books_screen.dart';
@@ -183,6 +184,13 @@ final appRouter = GoRouter(
           ],
         ),
       ],
+    ),
+
+    // Nearby map (Full Screen, outside shell)
+    GoRoute(
+      path: '/map',
+      name: 'map',
+      builder: (context, state) => const MapScreen(),
     ),
 
     // Listing Details Route (Full Screen, outside shell)

@@ -10,6 +10,7 @@ import 'package:book_bridge/l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
 import 'package:book_bridge/features/listings/presentation/widgets/listing_card.dart';
 import 'package:book_bridge/features/listings/presentation/widgets/academic_filter_bar.dart';
+import 'package:book_bridge/features/listings/presentation/widgets/radius_filter_bar.dart';
 import 'package:book_bridge/injection_container.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:book_bridge/features/listings/presentation/viewmodels/locale_viewmodel.dart';
@@ -114,6 +115,14 @@ class _HomeScreenState extends State<HomeScreen> {
             child: AcademicFilterBar(viewModel: viewModel),
           ),
         ),
+        if (viewModel.currentPosition != null)
+          SliverToBoxAdapter(
+            child: RadiusFilterBar(
+              selectedKm: viewModel.radiusKm,
+              onChanged: viewModel.setRadiusKm,
+              onOpenMap: () => context.push('/map'),
+            ),
+          ),
         if (viewModel.homeState == HomeState.error &&
             viewModel.filteredListings.isEmpty)
           SliverFillRemaining(

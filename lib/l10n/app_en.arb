@@ -447,5 +447,17 @@
   "mySchoolLabel": "My school",
   "classLevelRequired": "Please select a class level",
   "subjectRequired": "Please select a subject",
-  "noListingsMatchFilters": "No books match these filters"
+  "noListingsMatchFilters": "No books match these filters",
+  "radiusAny": "Any distance",
+  "withinKm": "Within {km} km",
+  "@withinKm": {
+    "placeholders": {
+      "km": {"type": "String"}
+    }
+  },
+  "mapViewTitle": "Books near you",
+  "showOnMap": "Map",
+  "yourLocation": "Your location",
+  "noBooksWithinRadius": "No books with a pickup location in this area",
+  "mapNeedsLocation": "Turn on location in Settings to see books near you on the map."
 }
