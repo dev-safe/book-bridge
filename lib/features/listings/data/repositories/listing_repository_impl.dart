@@ -205,6 +205,9 @@ class ListingRepositoryImpl implements ListingRepository {
     String? classLevelId,
     String? subjectId,
     String? schoolId,
+    String? meetupSpot,
+    double? meetupLatitude,
+    double? meetupLongitude,
   }) async {
     try {
       final listingModel = await dataSource.createListing(
@@ -224,6 +227,9 @@ class ListingRepositoryImpl implements ListingRepository {
         classLevelId: classLevelId,
         subjectId: subjectId,
         schoolId: schoolId,
+        meetupSpot: meetupSpot,
+        meetupLatitude: meetupLatitude,
+        meetupLongitude: meetupLongitude,
       );
       return Right(listingModel.toEntity());
     } on ServerException catch (e) {
@@ -267,6 +273,10 @@ class ListingRepositoryImpl implements ListingRepository {
     String? subjectId,
     String? schoolId,
     bool clearSchool = false,
+    String? meetupSpot,
+    double? meetupLatitude,
+    double? meetupLongitude,
+    bool updateMeetup = false,
   }) async {
     try {
       final listingModel = await dataSource.updateListing(
@@ -288,6 +298,10 @@ class ListingRepositoryImpl implements ListingRepository {
         subjectId: subjectId,
         schoolId: schoolId,
         clearSchool: clearSchool,
+        meetupSpot: meetupSpot,
+        meetupLatitude: meetupLatitude,
+        meetupLongitude: meetupLongitude,
+        updateMeetup: updateMeetup,
       );
       return Right(listingModel.toEntity());
     } on NotFoundException catch (e) {

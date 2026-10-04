@@ -8,6 +8,7 @@ import 'package:book_bridge/features/auth/presentation/viewmodels/auth_viewmodel
 import 'package:book_bridge/features/reviews/presentation/viewmodels/review_viewmodel.dart';
 import 'package:book_bridge/features/reviews/presentation/widgets/review_dialog.dart';
 import 'package:book_bridge/features/transactions/domain/entities/transaction_entity.dart';
+import 'package:book_bridge/features/listings/presentation/widgets/meetup_info_card.dart';
 
 class PaymentBottomSheet extends StatefulWidget {
   /// Shown to the user (the book price for purchases; the 6% buyer fee is
@@ -18,12 +19,21 @@ class PaymentBottomSheet extends StatefulWidget {
   final PaymentPurpose purpose;
   final VoidCallback onSuccess;
 
+  /// Seller's meetup spot for purchases; shown so the buyer knows where to
+  /// collect the book.
+  final String? meetupSpot;
+  final double? meetupLatitude;
+  final double? meetupLongitude;
+
   const PaymentBottomSheet({
     super.key,
     required this.amount,
     required this.title,
     required this.purpose,
     required this.onSuccess,
+    this.meetupSpot,
+    this.meetupLatitude,
+    this.meetupLongitude,
   });
 
   @override
@@ -33,6 +43,17 @@ class PaymentBottomSheet extends StatefulWidget {
 class _PaymentBottomSheetState extends State<PaymentBottomSheet> {
   final _phoneController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+
+  Widget _meetupCard() => MeetupInfoCard(
+    spot: widget.meetupSpot,
+    latitude: widget.meetupLatitude,
+    longitude: widget.meetupLongitude,
+  );
+
+  bool get _hasMeetup =>
+      widget.purpose is PurchasePayment &&
+      ((widget.meetupSpot?.trim().isNotEmpty ?? false) ||
+          (widget.meetupLatitude != null && widget.meetupLongitude != null));
 
   int get _buyerFee =>
       widget.purpose is PurchasePayment ? buyerFeeFor(widget.amount) : 0;
@@ -114,6 +135,12 @@ class _PaymentBottomSheetState extends State<PaymentBottomSheet> {
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 24),
+                  if (_hasMeetup &&
+                      (viewModel.state == PaymentState.initial ||
+                          viewModel.state == PaymentState.success)) ...[
+                    _meetupCard(),
+                    const SizedBox(height: 24),
+                  ],
                   if (viewModel.state == PaymentState.initial) ...[
                     Form(
                       key: _formKey,

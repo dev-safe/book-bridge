@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:dartz/dartz.dart';
 import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:geolocator/geolocator.dart';
@@ -9,6 +10,8 @@ import 'package:book_bridge/features/listings/domain/repositories/listing_reposi
 import 'package:book_bridge/features/listings/domain/usecases/create_listing_usecase.dart';
 import 'package:book_bridge/features/listings/domain/usecases/update_listing_usecase.dart';
 import 'package:book_bridge/core/error/exceptions.dart';
+import 'package:book_bridge/core/error/failures.dart';
+import 'package:book_bridge/features/safety/domain/entities/campus_zone.dart';
 import 'package:book_bridge/features/listings/presentation/viewmodels/location_viewmodel.dart';
 import 'package:book_bridge/features/listings/presentation/viewmodels/academic_filters_mixin.dart';
 
@@ -24,6 +27,13 @@ class SellViewModel extends ChangeNotifier with AcademicFiltersMixin {
   final UpdateListingUseCase updateListingUseCase;
   final ListingRepository repository;
   final LocationViewModel locationViewModel;
+
+  /// Loads suggested meetup spots (verified campus zones). Optional.
+  final Future<Either<Failure, List<CampusZone>>> Function()?
+  loadMeetupSuggestions;
+
+  /// Max length of a meetup spot name (mirrors the DB check).
+  static const int maxMeetupSpotLength = 80;
 
   SellState _sellState = SellState.initial;
   String? _errorMessage;
@@ -41,6 +51,11 @@ class SellViewModel extends ChangeNotifier with AcademicFiltersMixin {
   String _sellerType = 'individual';
   bool _isBuyBackEligible = false;
   int _stockCount = 1;
+  String? _meetupSpot;
+  double? _meetupLatitude;
+  double? _meetupLongitude;
+  List<CampusZone> _meetupSuggestions = const [];
+  bool _meetupSuggestionsLoaded = false;
 
   // Guards async school lookups (edit prefill / profile default) against
   // races with user selection or form resets.
@@ -51,6 +66,7 @@ class SellViewModel extends ChangeNotifier with AcademicFiltersMixin {
     required this.updateListingUseCase,
     required this.repository,
     required this.locationViewModel,
+    this.loadMeetupSuggestions,
   });
 
   // Getters
@@ -104,6 +120,62 @@ class SellViewModel extends ChangeNotifier with AcademicFiltersMixin {
   String get sellerType => _sellerType;
   bool get isBuyBackEligible => _isBuyBackEligible;
   int get stockCount => _stockCount;
+  String? get meetupSpot => _meetupSpot;
+  double? get meetupLatitude => _meetupLatitude;
+  double? get meetupLongitude => _meetupLongitude;
+  bool get hasMeetupPin => _meetupLatitude != null && _meetupLongitude != null;
+  List<CampusZone> get meetupSuggestions => _meetupSuggestions;
+
+  /// Rounds a coordinate to 3 decimals (~100 m) so the exact spot isn't
+  /// published.
+  static double roundCoordinate(double value) =>
+      (value * 1000).roundToDouble() / 1000;
+
+  /// Updates the meetup spot name. Blank input clears it.
+  void setMeetupSpot(String spot) {
+    final trimmed = spot.trim();
+    _meetupSpot = trimmed.isEmpty ? null : trimmed;
+    notifyListeners();
+  }
+
+  /// Drops the optional meetup pin, rounded to ~100 m.
+  void setMeetupPin(double latitude, double longitude) {
+    if (latitude < -90 || latitude > 90) return;
+    if (longitude < -180 || longitude > 180) return;
+    _meetupLatitude = roundCoordinate(latitude);
+    _meetupLongitude = roundCoordinate(longitude);
+    notifyListeners();
+  }
+
+  /// Removes the meetup pin, keeping the spot name.
+  void clearMeetupPin() {
+    _meetupLatitude = null;
+    _meetupLongitude = null;
+    notifyListeners();
+  }
+
+  /// Fills the spot name and pin from a suggested campus zone.
+  void applyMeetupSuggestion(CampusZone zone) {
+    final name = zone.name.trim();
+    _meetupSpot = name.length > maxMeetupSpotLength
+        ? name.substring(0, maxMeetupSpotLength)
+        : name;
+    _meetupLatitude = roundCoordinate(zone.latitude);
+    _meetupLongitude = roundCoordinate(zone.longitude);
+    notifyListeners();
+  }
+
+  /// Loads meetup suggestions once; failures leave the list empty.
+  Future<void> loadMeetupSuggestionsIfNeeded() async {
+    final loader = loadMeetupSuggestions;
+    if (loader == null || _meetupSuggestionsLoaded) return;
+    _meetupSuggestionsLoaded = true;
+    final result = await loader();
+    result.fold((_) => _meetupSuggestionsLoaded = false, (zones) {
+      _meetupSuggestions = List.unmodifiable(zones);
+      notifyListeners();
+    });
+  }
 
   /// Updates the title field.
   void setTitle(String title) {
@@ -206,6 +278,9 @@ class SellViewModel extends ChangeNotifier with AcademicFiltersMixin {
     _sellerType = listing.sellerType;
     _isBuyBackEligible = listing.isBuyBackEligible;
     _stockCount = listing.stockCount;
+    _meetupSpot = listing.meetupSpot;
+    _meetupLatitude = listing.meetupLatitude;
+    _meetupLongitude = listing.meetupLongitude;
     _prefillAcademicFields(listing);
     notifyListeners();
   }
@@ -237,6 +312,9 @@ class SellViewModel extends ChangeNotifier with AcademicFiltersMixin {
     _sellerType = 'individual';
     _isBuyBackEligible = false;
     _stockCount = 1;
+    _meetupSpot = null;
+    _meetupLatitude = null;
+    _meetupLongitude = null;
     _sellState = SellState.initial;
     _errorMessage = null;
     _createdListing = null;
@@ -290,6 +368,14 @@ class SellViewModel extends ChangeNotifier with AcademicFiltersMixin {
       return false;
     }
 
+    if ((_meetupSpot?.length ?? 0) > maxMeetupSpotLength) {
+      _errorMessage =
+          'Meetup spot must be $maxMeetupSpotLength characters or less';
+      _sellState = SellState.error;
+      notifyListeners();
+      return false;
+    }
+
     // Check if any image URL is a local file path (not yet uploaded)
     if (_imageUrls.any((url) => url.startsWith('/'))) {
       _errorMessage = 'Please wait for image to upload';
@@ -329,6 +415,9 @@ class SellViewModel extends ChangeNotifier with AcademicFiltersMixin {
       classLevelId: selectedClassLevelId,
       subjectId: selectedSubjectId,
       schoolId: selectedSchool?.id,
+      meetupSpot: _meetupSpot,
+      meetupLatitude: _meetupLatitude,
+      meetupLongitude: _meetupLongitude,
     );
 
     final result = await createListingUseCase(params);
@@ -378,6 +467,10 @@ class SellViewModel extends ChangeNotifier with AcademicFiltersMixin {
       subjectId: selectedSubjectId,
       schoolId: selectedSchool?.id,
       clearSchool: selectedSchool == null && _editingListing!.schoolId != null,
+      meetupSpot: _meetupSpot,
+      meetupLatitude: _meetupLatitude,
+      meetupLongitude: _meetupLongitude,
+      updateMeetup: true,
     );
 
     final result = await updateListingUseCase(params);

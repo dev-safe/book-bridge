@@ -1,3 +1,4 @@
+import 'package:book_bridge/features/listings/presentation/widgets/meetup_info_card.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:book_bridge/features/transactions/presentation/viewmodels/transaction_history_viewmodel.dart';
@@ -388,6 +389,16 @@ class _TransactionItem extends StatelessWidget {
               const SizedBox(height: 12),
               const Divider(),
               const SizedBox(height: 8),
+              if ((transaction.meetupSpot?.trim().isNotEmpty ?? false) ||
+                  (transaction.meetupLatitude != null &&
+                      transaction.meetupLongitude != null)) ...[
+                MeetupInfoCard(
+                  spot: transaction.meetupSpot,
+                  latitude: transaction.meetupLatitude,
+                  longitude: transaction.meetupLongitude,
+                ),
+                const SizedBox(height: 12),
+              ],
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [

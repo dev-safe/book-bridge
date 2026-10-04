@@ -74,6 +74,9 @@ abstract class ListingRepository {
     String? classLevelId,
     String? subjectId,
     String? schoolId,
+    String? meetupSpot,
+    double? meetupLatitude,
+    double? meetupLongitude,
   });
 
   /// Deletes a listing.
@@ -103,6 +106,12 @@ abstract class ListingRepository {
     String? subjectId,
     String? schoolId,
     bool clearSchool = false,
+    String? meetupSpot,
+    double? meetupLatitude,
+    double? meetupLongitude,
+
+    /// When true, the meetup columns are written as given (nulls clear them).
+    bool updateMeetup = false,
   });
 
   /// Fetches all class levels, ordered for display.

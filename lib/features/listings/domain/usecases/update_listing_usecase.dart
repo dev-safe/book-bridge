@@ -33,6 +33,10 @@ class UpdateListingUseCase implements UseCase<Listing, UpdateListingParams> {
       subjectId: params.subjectId,
       schoolId: params.schoolId,
       clearSchool: params.clearSchool,
+      meetupSpot: params.meetupSpot,
+      meetupLatitude: params.meetupLatitude,
+      meetupLongitude: params.meetupLongitude,
+      updateMeetup: params.updateMeetup,
     );
   }
 }
@@ -60,6 +64,12 @@ class UpdateListingParams extends Equatable {
 
   /// When true and [schoolId] is null, the listing's school is cleared.
   final bool clearSchool;
+  final String? meetupSpot;
+  final double? meetupLatitude;
+  final double? meetupLongitude;
+
+  /// When true, the meetup fields are written as given (nulls clear them).
+  final bool updateMeetup;
 
   const UpdateListingParams({
     required this.id,
@@ -80,6 +90,10 @@ class UpdateListingParams extends Equatable {
     this.subjectId,
     this.schoolId,
     this.clearSchool = false,
+    this.meetupSpot,
+    this.meetupLatitude,
+    this.meetupLongitude,
+    this.updateMeetup = false,
   });
 
   @override
@@ -102,5 +116,9 @@ class UpdateListingParams extends Equatable {
     subjectId,
     schoolId,
     clearSchool,
+    meetupSpot,
+    meetupLatitude,
+    meetupLongitude,
+    updateMeetup,
   ];
 }

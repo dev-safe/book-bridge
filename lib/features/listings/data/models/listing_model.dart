@@ -38,6 +38,9 @@ class ListingModel extends Listing {
     super.subjectName,
     super.schoolId,
     super.schoolName,
+    super.meetupSpot,
+    super.meetupLatitude,
+    super.meetupLongitude,
   });
 
   static String? _embeddedField(Object? embed, String key) =>
@@ -122,6 +125,9 @@ class ListingModel extends Listing {
       subjectName: _embeddedField(json['subject'], 'name'),
       schoolId: json['school_id'] as String?,
       schoolName: _embeddedField(json['school'], 'name'),
+      meetupSpot: json['meetup_spot'] as String?,
+      meetupLatitude: (json['meetup_latitude'] as num?)?.toDouble(),
+      meetupLongitude: (json['meetup_longitude'] as num?)?.toDouble(),
     );
   }
 
@@ -153,6 +159,9 @@ class ListingModel extends Listing {
       'class_level_id': classLevelId,
       'subject_id': subjectId,
       'school_id': schoolId,
+      'meetup_spot': meetupSpot,
+      'meetup_latitude': meetupLatitude,
+      'meetup_longitude': meetupLongitude,
     };
   }
 
@@ -190,6 +199,9 @@ class ListingModel extends Listing {
       subjectName: listing.subjectName,
       schoolId: listing.schoolId,
       schoolName: listing.schoolName,
+      meetupSpot: listing.meetupSpot,
+      meetupLatitude: listing.meetupLatitude,
+      meetupLongitude: listing.meetupLongitude,
     );
   }
 
@@ -226,6 +238,9 @@ class ListingModel extends Listing {
       subjectName: subjectName,
       schoolId: schoolId,
       schoolName: schoolName,
+      meetupSpot: meetupSpot,
+      meetupLatitude: meetupLatitude,
+      meetupLongitude: meetupLongitude,
     );
   }
 }

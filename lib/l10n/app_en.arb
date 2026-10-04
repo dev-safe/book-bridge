@@ -481,5 +481,18 @@
         "type": "int"
       }
     }
-  }
+  },
+  "meetupSpotFieldLabel": "Meetup spot (optional)",
+  "meetupSpotFieldHint": "e.g. Main gate, Amphi 700, library entrance",
+  "meetupSuggestionsLabel": "Suggested safe spots",
+  "meetupPinDrop": "Drop a map pin",
+  "meetupPinChange": "Change pin",
+  "meetupPinRemove": "Remove pin",
+  "meetupSafetyHint": "Pick a busy public place on campus. Never share your home address. Agree on changes in chat.",
+  "meetupPinPickerTitle": "Choose meetup spot",
+  "meetupPinPickerHint": "Tap the map to place the pin, then tap Confirm.",
+  "meetupPinConfirm": "Confirm",
+  "meetupSpotLabel": "Meetup spot",
+  "meetupPinOnly": "Pinned on map",
+  "meetupOpenMapsFailed": "Could not open maps"
 }

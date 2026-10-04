@@ -259,6 +259,8 @@ Future<void> setupDependencyInjection() async {
       updateListingUseCase: getIt<UpdateListingUseCase>(),
       repository: getIt<ListingRepository>(),
       locationViewModel: getIt<LocationViewModel>(),
+      // Resolved lazily: the safety feature is registered further below.
+      loadMeetupSuggestions: () => getIt<GetCampusZonesUseCase>()(),
     ),
   );
 

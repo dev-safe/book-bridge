@@ -166,4 +166,47 @@ void main() {
       );
     });
   });
+
+  group('fromRow', () {
+    Map<String, dynamic> row({Map<String, dynamic>? listing}) => {
+      'id': _txId,
+      'listing_id': 'lst-1',
+      'buyer_id': 'buyer-1',
+      'seller_id': 'seller-1',
+      'amount': 3000,
+      'status': 'paid',
+      'external_ref': 'ref-1',
+      'created_at': '2026-10-01T10:00:00Z',
+      'listings': listing,
+    };
+
+    test('reads meetup fields from the embedded listing', () {
+      final tx = SupabaseTransactionsDataSource.fromRow(
+        row(
+          listing: {
+            'title': 'Physics',
+            'image_url': 'https://cdn.example.com/a.jpg',
+            'meetup_spot': 'UB Main Gate',
+            'meetup_latitude': 4.152,
+            'meetup_longitude': 9,
+          },
+        ),
+      );
+
+      expect(tx.listingTitle, 'Physics');
+      expect(tx.meetupSpot, 'UB Main Gate');
+      expect(tx.meetupLatitude, 4.152);
+      expect(tx.meetupLongitude, 9.0);
+    });
+
+    test('falls back safely when the listing is not embedded', () {
+      final tx = SupabaseTransactionsDataSource.fromRow(row());
+
+      expect(tx.listingTitle, 'Unknown Book');
+      expect(tx.listingImageUrl, '');
+      expect(tx.meetupSpot, isNull);
+      expect(tx.meetupLatitude, isNull);
+      expect(tx.meetupLongitude, isNull);
+    });
+  });
 }
