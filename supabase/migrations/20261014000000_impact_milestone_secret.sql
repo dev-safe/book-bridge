@@ -2,12 +2,14 @@
 --
 -- The prod function fell back to a literal secret when the
 -- app.broadcast_secret setting was missing. It now reads the secret from
--- Vault (name 'broadcast_secret') and skips the call if the secret is not
--- set. search_path is pinned and clients cannot execute the function.
+-- public.app_secrets (key 'broadcast_secret'), the same row the
+-- broadcast-milestone edge function validates against, and skips the call
+-- if the secret is not set. search_path is pinned and clients cannot
+-- execute the function.
 --
--- Before applying, store the rotated secret in Vault:
---   SELECT vault.create_secret('<new secret>', 'broadcast_secret');
--- and set the same value on the broadcast-milestone edge function.
+-- Rotate the secret with:
+--   UPDATE public.app_secrets SET value = '<new secret>'
+--   WHERE key = 'broadcast_secret';
 
 CREATE OR REPLACE FUNCTION public.notify_impact_milestone_fcm()
 RETURNS trigger
@@ -26,13 +28,13 @@ BEGIN
     RETURN NEW;
   END IF;
 
-  SELECT decrypted_secret INTO secret
-  FROM vault.decrypted_secrets
-  WHERE name = 'broadcast_secret'
+  SELECT value INTO secret
+  FROM public.app_secrets
+  WHERE key = 'broadcast_secret'
   LIMIT 1;
 
   IF secret IS NULL THEN
-    RAISE WARNING 'broadcast_secret missing from vault; milestone broadcast skipped';
+    RAISE WARNING 'broadcast_secret missing from app_secrets; milestone broadcast skipped';
     RETURN NEW;
   END IF;
 
