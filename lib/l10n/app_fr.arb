@@ -195,7 +195,7 @@
   "feedback": "Retours",
   "contactUs": "Contactez-nous",
   "inviteFriends": "Inviter des amis",
-  "inviteMessage": "Rejoignez-moi sur BookBridge, la plateforme d'échange de livres d'occasion au Cameroun ! 📚✨\n\nTéléchargez ou visitez-nous sur : https://book-bridge-three.vercel.app/",
+  "inviteMessage": "Rejoignez-moi sur BookBridge, la plateforme d'échange de livres d'occasion au Cameroun ! 📚✨\n\nTéléchargez ou visitez-nous sur : https://bookbridge.devsafe.cm/",
   "inviteSubject": "Invitation à BookBridge",
   "aboutBookBridge": "À propos de BookBridge",
   "unknownLocation": "Emplacement inconnu",
@@ -469,5 +469,7 @@
   "meetupPinConfirm": "Confirmer",
   "meetupSpotLabel": "Lieu de rencontre",
   "meetupPinOnly": "Repère sur la carte",
-  "meetupOpenMapsFailed": "Impossible d'ouvrir la carte"
+  "meetupOpenMapsFailed": "Impossible d'ouvrir la carte",
+  "shareTextSchool": "École",
+  "shareTextViewListing": "Voir les photos et acheter en toute sécurité sur BookBridge :"
 }

@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.bookbridge.app",
+      "sha256_cert_fingerprints": [
+        "89:8D:E6:02:6B:0B:DF:11:75:7F:63:F5:08:F3:8B:DF:D8:E7:DE:1A:C4:BE:1B:DD:75:9E:CD:94:BE:AD:53:B4"
+      ]
+    }
+  }
+]
