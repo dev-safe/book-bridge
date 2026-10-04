@@ -86,7 +86,7 @@ class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // Left Side: Home & Categories
+              // Left Side: Home & Discover
               Expanded(
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -99,9 +99,9 @@ class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
                       isSelected: currentIndex == 0,
                     ),
                     _buildNavItem(
-                      icon: Icons.grid_view_outlined,
-                      selectedIcon: Icons.grid_view_rounded,
-                      label: 'Category',
+                      icon: Icons.explore_outlined,
+                      selectedIcon: Icons.explore,
+                      label: 'Discover',
                       index: 1,
                       isSelected: currentIndex == 1,
                     ),

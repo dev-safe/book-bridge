@@ -11,7 +11,7 @@ import 'package:book_bridge/features/listings/presentation/screens/map_screen.da
 import 'package:book_bridge/features/listings/presentation/screens/sell_screen.dart';
 import 'package:book_bridge/features/listings/presentation/screens/profile_screen.dart';
 import 'package:book_bridge/features/listings/presentation/screens/my_books_screen.dart';
-import 'package:book_bridge/features/listings/presentation/screens/categories_screen.dart';
+import 'package:book_bridge/features/listings/presentation/screens/discover_screen.dart';
 import 'package:book_bridge/core/presentation/widgets/scaffold_with_navbar.dart';
 import 'package:book_bridge/features/auth/presentation/screens/edit_profile_screen.dart';
 import 'package:book_bridge/features/notifications/presentation/screens/notifications_screen.dart';
@@ -136,13 +136,13 @@ final appRouter = GoRouter(
           ],
         ),
 
-        // Categories Branch (index 1)
+        // Discover Branch (index 1)
         StatefulShellBranch(
           routes: [
             GoRoute(
-              path: '/categories',
-              name: 'categories',
-              builder: (context, state) => const CategoriesScreen(),
+              path: '/discover',
+              name: 'discover',
+              builder: (context, state) => const DiscoverScreen(),
             ),
           ],
         ),

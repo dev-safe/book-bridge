@@ -1,6 +1,7 @@
 import 'package:dartz/dartz.dart' hide Order;
 import 'package:flutter/foundation.dart' hide Category;
 import 'package:book_bridge/core/error/failures.dart';
+import 'package:book_bridge/core/utils/geo_radius.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:book_bridge/features/listings/domain/entities/listing.dart';
 import 'package:book_bridge/features/listings/domain/entities/category.dart';
@@ -28,6 +29,7 @@ class SearchViewModel extends ChangeNotifier with AcademicFiltersMixin {
   String _currentQuery = '';
   Category? _selectedCategory;
   bool _isSearching = false;
+  double? _radiusKm;
 
   /// Incremented per request so stale responses are dropped.
   int _requestSeq = 0;
@@ -53,12 +55,58 @@ class SearchViewModel extends ChangeNotifier with AcademicFiltersMixin {
       await searchByCategory(category);
     } else if (_currentQuery.isNotEmpty) {
       await search(_currentQuery);
-    } else if (hasAcademicFilters) {
+    } else if (_hasBrowseCriteria) {
       await _browseByFilters();
     } else {
       _resetResults();
       notifyListeners();
     }
+  }
+
+  /// Filters or a distance radius alone are enough to browse listings.
+  bool get _hasBrowseCriteria => hasAcademicFilters || _radiusKm != null;
+
+  /// Selected distance radius in km, or null for "any distance".
+  double? get radiusKm => _radiusKm;
+
+  /// Sets the distance radius. Results are filtered on the device, so a
+  /// refetch only happens when the radius is the sole browse criterion.
+  Future<void> setRadiusKm(double? km) async {
+    if (km == _radiusKm) return;
+    _radiusKm = km;
+    final hasOtherCriteria =
+        _selectedCategory != null ||
+        _currentQuery.isNotEmpty ||
+        hasAcademicFilters;
+    if (hasOtherCriteria) {
+      notifyListeners();
+    } else if (km == null) {
+      _resetResults();
+      notifyListeners();
+    } else if (_searchState == SearchState.initial ||
+        _searchState == SearchState.error) {
+      await _browseByFilters();
+    } else {
+      notifyListeners();
+    }
+  }
+
+  /// Current results limited to [_radiusKm] around the given origin.
+  ///
+  /// Returns [searchResults] unchanged when no radius is set or the origin
+  /// is unknown.
+  List<Listing> resultsWithin({
+    required double? originLat,
+    required double? originLng,
+  }) {
+    return filterWithinRadius<Listing>(
+      items: _searchResults,
+      originLat: originLat,
+      originLng: originLng,
+      radiusKm: _radiusKm,
+      latOf: (l) => l.latitude,
+      lngOf: (l) => l.longitude,
+    );
   }
 
   // Getters
@@ -137,7 +185,7 @@ class SearchViewModel extends ChangeNotifier with AcademicFiltersMixin {
 
     // With no query, fall back to filter-only browsing (or idle).
     if (_currentQuery.isEmpty) {
-      if (hasAcademicFilters) {
+      if (_hasBrowseCriteria) {
         await _browseByFilters();
       } else {
         _resetResults();
@@ -210,7 +258,7 @@ class SearchViewModel extends ChangeNotifier with AcademicFiltersMixin {
   void clearSearch() {
     _currentQuery = '';
     _selectedCategory = null;
-    if (hasAcademicFilters) {
+    if (_hasBrowseCriteria) {
       _browseByFilters();
       return;
     }
