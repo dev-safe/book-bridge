@@ -107,6 +107,7 @@ pub fn admin_routes() -> Router<AppState> {
             "/admin/unmatched-payments/:log_id/dismiss",
             post(dismiss_unmatched_handler),
         )
+        .merge(crate::routes::id_verification::id_verification_routes())
 }
 
 pub async fn me_handler(_admin: AdminUser) -> Json<AdminMeResponse> {

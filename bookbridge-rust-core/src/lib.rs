@@ -6,6 +6,7 @@ pub mod push;
 pub mod rate_limit;
 pub mod routes;
 pub mod user_auth;
+pub mod verification;
 
 use sqlx::PgPool;
 use std::collections::HashSet;

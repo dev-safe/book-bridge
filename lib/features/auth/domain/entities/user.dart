@@ -30,6 +30,18 @@ class User extends Equatable {
   /// declaration, not a verification. Set via the `declare_age` RPC only.
   final String? ageDeclaration;
   final DateTime? ageDeclaredAt;
+
+  /// Admin-reviewed ID check: `unverified`, `pending`, `verified` or
+  /// `rejected`. Set via the `submit_id_verification` RPC and admin review.
+  final String idVerificationStatus;
+
+  /// `school_id` (under 18) or `cni` (18+), derived by the server.
+  final String? idType;
+  final DateTime? dateOfBirth;
+
+  /// Guardian's Mobile Money number for verified users aged 10-14.
+  final String? guardianPhone;
+  final String? idRejectionReason;
   final DateTime createdAt;
 
   const User({
@@ -49,12 +61,21 @@ class User extends Equatable {
     this.tier = 'free',
     this.ageDeclaration,
     this.ageDeclaredAt,
+    this.idVerificationStatus = 'unverified',
+    this.idType,
+    this.dateOfBirth,
+    this.guardianPhone,
+    this.idRejectionReason,
     required this.createdAt,
   });
 
   bool get isPowerSeller => tier == 'power_seller';
 
   bool get hasAgeDeclaration => ageDeclaration != null;
+
+  bool get isIdVerified => idVerificationStatus == 'verified';
+
+  bool get isIdPending => idVerificationStatus == 'pending';
 
   User copyWith({
     String? id,
@@ -74,6 +95,11 @@ class User extends Equatable {
     String? tier,
     String? ageDeclaration,
     DateTime? ageDeclaredAt,
+    String? idVerificationStatus,
+    String? idType,
+    DateTime? dateOfBirth,
+    String? guardianPhone,
+    String? idRejectionReason,
     DateTime? createdAt,
   }) {
     return User(
@@ -93,6 +119,11 @@ class User extends Equatable {
       tier: tier ?? this.tier,
       ageDeclaration: ageDeclaration ?? this.ageDeclaration,
       ageDeclaredAt: ageDeclaredAt ?? this.ageDeclaredAt,
+      idVerificationStatus: idVerificationStatus ?? this.idVerificationStatus,
+      idType: idType ?? this.idType,
+      dateOfBirth: dateOfBirth ?? this.dateOfBirth,
+      guardianPhone: guardianPhone ?? this.guardianPhone,
+      idRejectionReason: idRejectionReason ?? this.idRejectionReason,
       createdAt: createdAt ?? this.createdAt,
     );
   }
@@ -115,6 +146,11 @@ class User extends Equatable {
     tier,
     ageDeclaration,
     ageDeclaredAt,
+    idVerificationStatus,
+    idType,
+    dateOfBirth,
+    guardianPhone,
+    idRejectionReason,
     createdAt,
   ];
 }

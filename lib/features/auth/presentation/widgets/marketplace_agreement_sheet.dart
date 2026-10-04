@@ -129,7 +129,7 @@ class _MarketplaceAgreementSheetState
                             'Buyers pay a 6% service fee on top of the book price at checkout. It covers mobile money processing and sustains the service for students across Cameroon.\n\n'
                             '✅ Seller receives: 100% of the sale price\n'
                             '🧾 Buyer pays: the sale price + 6% service fee\n\n'
-                            'Payment is held securely until the buyer confirms receipt of the book, then paid out to the seller\'s registered Mobile Money number.',
+                            'Payment is held securely until the buyer confirms receipt of the book, then paid out to the seller\'s registered Mobile Money number. If the buyer neither confirms nor disputes within 5 days, the payment is released to the seller automatically.',
                         highlight: true,
                       ),
                       _buildSection(
@@ -182,8 +182,8 @@ class _MarketplaceAgreementSheetState
                         title: '8. Dispute Resolution',
                         color: primaryColor,
                         content:
-                            'If a transaction goes wrong (e.g., book not received, payment not settled), contact BookBridge support via the "Contact Us" section in the app.\n\n'
-                            'We will review the case and assist in mediation. However, BookBridge is not liable for losses resulting from in-person exchange disputes.',
+                            'If a book is not handed over or does not match its listing, open a dispute from your transaction history within 5 days of payment. The payment stays held while a BookBridge administrator reviews the case and either releases it to the seller or refunds the buyer.\n\n'
+                            'For anything else, contact BookBridge support via "Contact Us". BookBridge is not liable for losses resulting from in-person exchanges.',
                       ),
                       const SizedBox(height: 8),
                       Container(
@@ -193,7 +193,7 @@ class _MarketplaceAgreementSheetState
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: const Text(
-                          'These terms apply to all users of BookBridge. By agreeing, you confirm you are at least 13 years old and have the authority to use Mobile Money services in Cameroon.',
+                          'These terms apply to all users of BookBridge. By agreeing, you confirm you are a student aged 10 to 22 or a parent/guardian acting for one. You must verify your identity before buying or receiving payouts, and users aged 10 to 14 pay and get paid only through a parent\'s or guardian\'s Mobile Money number.',
                           style: TextStyle(
                             fontSize: 11,
                             color: Colors.grey,

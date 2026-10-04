@@ -191,6 +191,91 @@ void main() {
     });
   });
 
+  group('ID verification', () {
+    const userId = '77777777-2222-4333-8444-555555555555';
+
+    test('idVerifications parses the list', () async {
+      final ds = build(
+        (_) => ok({
+          'submissions': [
+            {
+              'user_id': userId,
+              'full_name': 'Ngum Awa',
+              'date_of_birth': '2013-05-01',
+              'age': 12,
+              'id_type': 'school_id',
+              'guardian_phone_hint': '677•••456',
+              'document_paths': ['$userId/id.jpg', '$userId/guardian.jpg', 7],
+              'submitted_at': '2026-10-01T08:00:00Z',
+            },
+            {'user_id': userId},
+          ],
+        }),
+      );
+
+      final submissions = await ds.idVerifications();
+
+      expect(requests.single.url.path, '/admin/id-verifications');
+      expect(submissions, hasLength(2));
+      final first = submissions.first;
+      expect(first.fullName, 'Ngum Awa');
+      expect(first.age, 12);
+      expect(first.idType, 'school_id');
+      expect(first.guardianPhoneHint, '677•••456');
+      expect(first.documentPaths, ['$userId/id.jpg', '$userId/guardian.jpg']);
+      expect(first.dateOfBirth?.year, 2013);
+      expect(first.submittedAt, DateTime.utc(2026, 10, 1, 8).toLocal());
+      expect(submissions.last.documentPaths, isEmpty);
+      expect(submissions.last.age, isNull);
+    });
+
+    test('idVerifications rejects a submission without user_id', () async {
+      final ds = build(
+        (_) => ok({
+          'submissions': [
+            {'full_name': 'x'},
+          ],
+        }),
+      );
+
+      await expectLater(ds.idVerifications(), throwsA(isA<ServerException>()));
+    });
+
+    test('approveId and rejectId POST the note', () async {
+      final ds = build((_) => ok({'ok': true}));
+
+      await ds.approveId(userId, 'CNI matches');
+      await ds.rejectId(userId, 'Blurry');
+
+      expect(requests[0].url.path, '/admin/id-verifications/$userId/approve');
+      expect(jsonDecode(requests[0].body), {'note': 'CNI matches'});
+      expect(requests[1].url.path, '/admin/id-verifications/$userId/reject');
+      expect(jsonDecode(requests[1].body), {'note': 'Blurry'});
+    });
+
+    test('idPhotoUrl uses the injected signer', () async {
+      final ds = RustAdminDataSource(
+        RustCoreClient(
+          baseUrl: 'https://rust.example.com',
+          accessToken: () async => 't',
+          httpClient: MockClient((_) async => http.Response('', 500)),
+        ),
+        signIdPhoto: (path) async => 'signed:$path',
+      );
+
+      expect(await ds.idPhotoUrl('a/b.jpg'), 'signed:a/b.jpg');
+    });
+
+    test('idPhotoUrl throws without a signer', () async {
+      final ds = build((_) => ok({}));
+
+      await expectLater(
+        ds.idPhotoUrl('a/b.jpg'),
+        throwsA(isA<ServerException>()),
+      );
+    });
+  });
+
   test('a 409 from a second click surfaces the server message', () async {
     final ds = build(
       (_) => http.Response(

@@ -69,6 +69,38 @@ impl SupabaseAuth {
             s => Err(AppError::AuthService(format!("status {s}"))),
         }
     }
+
+    /// Deletes objects from a Storage bucket as the user owning
+    /// `access_token`, so the bucket's RLS policies decide what is allowed.
+    /// Objects that don't exist are ignored by Storage.
+    pub async fn delete_storage_objects(
+        &self,
+        access_token: &str,
+        bucket: &str,
+        paths: &[String],
+    ) -> Result<(), AppError> {
+        if paths.is_empty() {
+            return Ok(());
+        }
+        let response = self
+            .http
+            .delete(format!("{}/storage/v1/object/{bucket}", self.base_url))
+            .header("apikey", &self.anon_key)
+            .bearer_auth(access_token)
+            .json(&serde_json::json!({ "prefixes": paths }))
+            .send()
+            .await
+            .map_err(|e| AppError::AuthService(format!("storage request failed: {e}")))?;
+
+        if response.status().is_success() {
+            Ok(())
+        } else {
+            Err(AppError::AuthService(format!(
+                "storage delete returned status {}",
+                response.status()
+            )))
+        }
+    }
 }
 
 /// Extracts the token from an `Authorization: Bearer <token>` header.

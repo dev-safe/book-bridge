@@ -129,3 +129,12 @@ create table public.messages (
   is_read     boolean default false,
   created_at  timestamptz default now()
 );
+
+create table public.platform_stats (
+  id                     uuid primary key default gen_random_uuid(),
+  total_books_circulated integer default 0,
+  total_students_reached integer default 0,
+  total_money_saved_fcfa bigint default 0,
+  total_co2_avoided_kg   double precision default 0,
+  updated_at             timestamptz default now()
+);

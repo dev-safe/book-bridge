@@ -159,8 +159,12 @@ async fn world() -> Option<World> {
         .execute(&pool)
         .await
         .unwrap();
+    // Purchases need an ID-verified buyer and seller (#34, #36).
     sqlx::query(
-        "INSERT INTO profiles (id, full_name) VALUES ($1, 'Seller'), ($2, 'Buyer A'), ($3, 'Buyer B')",
+        "INSERT INTO profiles (id, full_name, date_of_birth, id_type, id_verification_status) \
+         VALUES ($1, 'Seller', '2000-01-01', 'cni', 'verified'), \
+                ($2, 'Buyer A', '2000-01-01', 'cni', 'verified'), \
+                ($3, 'Buyer B', '2000-01-01', 'cni', 'verified')",
     )
     .bind(seller)
     .bind(buyer_a)
@@ -220,7 +224,11 @@ async fn world() -> Option<World> {
 
 impl World {
     async fn initiate(&self, token: &str) -> (StatusCode, Value) {
-        let body = json!({ "kind": "purchase", "listing_id": self.listing, "phone": "677123456" });
+        self.initiate_from(token, "677123456").await
+    }
+
+    async fn initiate_from(&self, token: &str, phone: &str) -> (StatusCode, Value) {
+        let body = json!({ "kind": "purchase", "listing_id": self.listing, "phone": phone });
         let req = Request::builder()
             .method(Method::POST)
             .uri("/payments/initiate")
@@ -581,4 +589,68 @@ async fn webhook_paying_only_the_price_is_queued_as_underpaid() {
     );
     assert_eq!(w.held_escrows().await, 1);
     assert_eq!(w.listing_status().await, "sold");
+}
+
+// ------------------------------------------------- ID verification (#34, #36)
+
+impl World {
+    async fn set_verification(&self, user: Uuid, dob: &str, status: &str, guardian: Option<&str>) {
+        sqlx::query(
+            "UPDATE profiles SET date_of_birth = $2::date, id_verification_status = $3, \
+             id_type = CASE WHEN $3 = 'verified' THEN 'school_id' ELSE NULL END, \
+             guardian_phone = $4 WHERE id = $1",
+        )
+        .bind(user)
+        .bind(dob)
+        .bind(status)
+        .bind(guardian)
+        .execute(&self.pool)
+        .await
+        .unwrap();
+    }
+
+    /// Asserts a purchase attempt was refused before anything was reserved
+    /// or charged.
+    async fn assert_refused(&self, (status, body): (StatusCode, Value)) {
+        assert_eq!(status, StatusCode::FORBIDDEN, "{body}");
+        assert_eq!(self.reservation_holder().await, None);
+        assert_eq!(self.fapshi.lock().unwrap().direct_pays, 0);
+    }
+}
+
+/// A date of birth that makes someone `years` old today.
+fn dob_for_age(years: i64) -> String {
+    (chrono::Utc::now().date_naive() - chrono::Duration::days(years * 366)).to_string()
+}
+
+#[tokio::test]
+async fn unverified_buyer_cannot_pay() {
+    let Some(w) = world().await else { return };
+    w.set_verification(w.buyer_a, &dob_for_age(20), "pending", None)
+        .await;
+
+    w.assert_refused(w.initiate(BUYER_A).await).await;
+}
+
+#[tokio::test]
+async fn buyer_cannot_pay_an_unverified_seller() {
+    let Some(w) = world().await else { return };
+    w.set_verification(w.seller, &dob_for_age(20), "unverified", None)
+        .await;
+
+    w.assert_refused(w.initiate(BUYER_A).await).await;
+}
+
+#[tokio::test]
+async fn young_buyer_must_pay_from_the_guardian_number() {
+    let Some(w) = world().await else { return };
+    w.set_verification(w.buyer_a, &dob_for_age(12), "verified", Some("699000111"))
+        .await;
+
+    w.assert_refused(w.initiate_from(BUYER_A, "677123456").await)
+        .await;
+
+    let (status, body) = w.initiate_from(BUYER_A, "699000111").await;
+    assert_eq!(status, StatusCode::OK, "{body}");
+    assert_eq!(w.reservation_holder().await, Some(w.buyer_a));
 }
