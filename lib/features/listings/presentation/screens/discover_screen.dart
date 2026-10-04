@@ -10,19 +10,18 @@ import 'package:book_bridge/features/listings/domain/entities/category.dart'
 import 'package:book_bridge/features/listings/presentation/viewmodels/home_viewmodel.dart';
 import 'package:book_bridge/features/listings/presentation/widgets/listing_card.dart';
 import 'package:book_bridge/features/listings/presentation/widgets/academic_filter_bar.dart';
+import 'package:book_bridge/features/listings/presentation/widgets/radius_filter_bar.dart';
+import 'package:go_router/go_router.dart';
 
-/// Search screen for finding book listings.
-///
-/// This screen provides a search bar and filters to find books,
-/// displaying results in a grid or list format.
-class SearchScreen extends StatefulWidget {
-  const SearchScreen({super.key});
+/// Discover tab: search, browse by category, academic filters and distance.
+class DiscoverScreen extends StatefulWidget {
+  const DiscoverScreen({super.key});
 
   @override
-  State<SearchScreen> createState() => _SearchScreenState();
+  State<DiscoverScreen> createState() => _DiscoverScreenState();
 }
 
-class _SearchScreenState extends State<SearchScreen> {
+class _DiscoverScreenState extends State<DiscoverScreen> {
   final _searchController = TextEditingController();
   Timer? _debounce;
 
@@ -48,6 +47,15 @@ class _SearchScreenState extends State<SearchScreen> {
   Widget build(BuildContext context) {
     return Consumer<SearchViewModel>(
       builder: (context, viewModel, _) {
+        final position = context.watch<HomeViewModel>().currentPosition;
+        final visibleResults = viewModel.resultsWithin(
+          originLat: position?.latitude,
+          originLng: position?.longitude,
+        );
+        final isRadiusActive = viewModel.radiusKm != null && position != null;
+        final isBrowsing =
+            _searchController.text.isEmpty &&
+            (viewModel.hasAcademicFilters || isRadiusActive);
         return Scaffold(
           appBar: PreferredSize(
             preferredSize: const Size.fromHeight(180),
@@ -141,6 +149,15 @@ class _SearchScreenState extends State<SearchScreen> {
                   padding: const EdgeInsets.only(top: 8),
                   child: AcademicFilterBar(viewModel: viewModel),
                 ),
+                if (position != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: RadiusFilterBar(
+                      selectedKm: viewModel.radiusKm,
+                      onChanged: viewModel.setRadiusKm,
+                      onOpenMap: () => context.push('/map'),
+                    ),
+                  ),
                 Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
@@ -149,7 +166,8 @@ class _SearchScreenState extends State<SearchScreen> {
                       // Show Categories and Recent Searches only when NOT searching
                       if (viewModel.searchState == SearchState.initial ||
                           (viewModel.searchState == SearchState.success &&
-                              _searchController.text.isEmpty)) ...[
+                              _searchController.text.isEmpty &&
+                              !isBrowsing)) ...[
                         // Academic Categories
                         Text(
                           AppLocalizations.of(context)!.academicCategories,
@@ -308,8 +326,9 @@ class _SearchScreenState extends State<SearchScreen> {
                       // Empty State
                       if (viewModel.searchState == SearchState.empty ||
                           (viewModel.searchState == SearchState.success &&
-                              viewModel.searchResults.isEmpty &&
-                              _searchController.text.isNotEmpty))
+                              visibleResults.isEmpty &&
+                              (_searchController.text.isNotEmpty ||
+                                  isBrowsing)))
                         Center(
                           child: Padding(
                             padding: const EdgeInsets.all(40.0),
@@ -324,16 +343,12 @@ class _SearchScreenState extends State<SearchScreen> {
                                 ),
                                 const SizedBox(height: 16),
                                 Text(
-                                  _searchController.text.isEmpty &&
-                                          viewModel.hasAcademicFilters
-                                      ? AppLocalizations.of(
-                                          context,
-                                        )!.noListingsMatchFilters
-                                      : AppLocalizations.of(
-                                          context,
-                                        )!.noResultsFoundFor(
-                                          _searchController.text,
-                                        ),
+                                  _emptyMessage(
+                                    context,
+                                    viewModel,
+                                    isRadiusActive: isRadiusActive,
+                                    isBrowsing: isBrowsing,
+                                  ),
                                   textAlign: TextAlign.center,
                                   style: Theme.of(
                                     context,
@@ -346,15 +361,15 @@ class _SearchScreenState extends State<SearchScreen> {
 
                       // Search results
                       if (viewModel.searchState == SearchState.success &&
-                          viewModel.searchResults.isNotEmpty)
+                          visibleResults.isNotEmpty)
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const SizedBox(height: 24),
                             Text(
-                              AppLocalizations.of(context)!.resultsFoundCount(
-                                viewModel.searchResults.length,
-                              ),
+                              AppLocalizations.of(
+                                context,
+                              )!.resultsFoundCount(visibleResults.length),
                               style: Theme.of(context).textTheme.bodySmall,
                             ),
                             const SizedBox(height: 12),
@@ -369,15 +384,11 @@ class _SearchScreenState extends State<SearchScreen> {
                                     crossAxisSpacing: 16,
                                     mainAxisSpacing: 16,
                                   ),
-                              itemCount: viewModel.searchResults.length,
+                              itemCount: visibleResults.length,
                               itemBuilder: (context, index) {
-                                final listing = viewModel.searchResults[index];
-                                final homeViewModel = context
-                                    .watch<HomeViewModel>();
                                 return ListingCard(
-                                  listing: listing,
-                                  currentPosition:
-                                      homeViewModel.currentPosition,
+                                  listing: visibleResults[index],
+                                  currentPosition: position,
                                 );
                               },
                             ),
@@ -392,6 +403,20 @@ class _SearchScreenState extends State<SearchScreen> {
         );
       },
     );
+  }
+
+  String _emptyMessage(
+    BuildContext context,
+    SearchViewModel viewModel, {
+    required bool isRadiusActive,
+    required bool isBrowsing,
+  }) {
+    final l10n = AppLocalizations.of(context)!;
+    if (isRadiusActive && viewModel.searchResults.isNotEmpty) {
+      return l10n.noBooksWithinRadius;
+    }
+    if (isBrowsing) return l10n.noListingsMatchFilters;
+    return l10n.noResultsFoundFor(_searchController.text);
   }
 
   Widget _buildCategoryItem(
