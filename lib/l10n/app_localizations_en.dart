@@ -1259,4 +1259,23 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get mapNeedsLocation => 'Turn on location in Settings to see books near you on the map.';
+
+  @override
+  String get coverPhotoLabel => 'Cover';
+
+  @override
+  String get addPhoto => 'Add photo';
+
+  @override
+  String get removePhoto => 'Remove photo';
+
+  @override
+  String photoCountHint(int max) {
+    return 'Up to $max photos. Tap a photo to make it the cover.';
+  }
+
+  @override
+  String photoOfTotal(int index, int total) {
+    return 'Photo $index of $total';
+  }
 }

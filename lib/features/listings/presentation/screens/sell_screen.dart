@@ -10,6 +10,7 @@ import 'package:book_bridge/features/listings/domain/entities/book_condition.dar
 import 'package:book_bridge/core/constants/categories.dart';
 import 'package:book_bridge/features/auth/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:book_bridge/features/listings/presentation/widgets/academic_filter_bar.dart';
+import 'package:book_bridge/features/listings/presentation/widgets/listing_photos_picker.dart';
 
 /// Screen for creating and selling a new book listing.
 ///
@@ -279,43 +280,13 @@ class _SellScreenState extends State<SellScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  GestureDetector(
-                    onTap: () {
-                      _showImageSelectionDialog(context, viewModel);
-                    },
-                    child: Container(
-                      width: double.infinity,
-                      height:
-                          MediaQuery.of(context).size.height *
-                          0.25, // Responsive height
-                      decoration: BoxDecoration(
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.surfaceContainerHighest,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.outlineVariant.withValues(alpha: 0.2),
-                          width: 2,
-                        ),
-                      ),
-                      child: viewModel.isLoading && viewModel.imageUrl == null
-                          ? const Center(child: CircularProgressIndicator())
-                          : viewModel.imageUrl != null &&
-                                viewModel.imageUrl!.isNotEmpty
-                          ? ClipRRect(
-                              borderRadius: BorderRadius.circular(12),
-                              child: Image.network(
-                                viewModel.imageUrl!,
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) {
-                                  return _buildImagePlaceholder();
-                                },
-                              ),
-                            )
-                          : _buildImagePlaceholder(),
-                    ),
+                  ListingPhotosPicker(
+                    imageUrls: viewModel.imageUrls,
+                    maxImages: Listing.maxImages,
+                    isUploading: viewModel.isLoading,
+                    onAdd: () => _showImageSelectionDialog(context, viewModel),
+                    onRemove: viewModel.removeImageAt,
+                    onSetCover: viewModel.setCoverAt,
                   ),
                   const SizedBox(height: 24),
 
@@ -800,30 +771,6 @@ class _SellScreenState extends State<SellScreen> {
           );
         },
       ),
-    );
-  }
-
-  Widget _buildImagePlaceholder() {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Icon(
-          Icons.add_a_photo,
-          size: MediaQuery.of(context).size.width * 0.15, // Responsive size
-          color: Theme.of(context).colorScheme.primary,
-        ),
-        const SizedBox(height: 8),
-        Text(
-          AppLocalizations.of(context)!.addBookPhotos,
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-            color: Theme.of(
-              context,
-            ).textTheme.bodyLarge?.color?.withValues(alpha: 0.7),
-          ),
-        ),
-      ],
     );
   }
 }

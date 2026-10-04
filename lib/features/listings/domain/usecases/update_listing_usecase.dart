@@ -21,6 +21,7 @@ class UpdateListingUseCase implements UseCase<Listing, UpdateListingParams> {
       priceFcfa: params.priceFcfa,
       condition: params.condition,
       imageUrl: params.imageUrl,
+      imageUrls: params.imageUrls,
       description: params.description,
       category: params.category,
       sellerType: params.sellerType,
@@ -43,6 +44,9 @@ class UpdateListingParams extends Equatable {
   final int? priceFcfa;
   final BookCondition? condition;
   final String? imageUrl;
+
+  /// When set, replaces all photos (cover first).
+  final List<String>? imageUrls;
   final String? description;
   final String? category;
   final String? sellerType;
@@ -64,6 +68,7 @@ class UpdateListingParams extends Equatable {
     this.priceFcfa,
     this.condition,
     this.imageUrl,
+    this.imageUrls,
     this.description,
     this.category,
     this.sellerType,
@@ -85,6 +90,7 @@ class UpdateListingParams extends Equatable {
     priceFcfa,
     condition,
     imageUrl,
+    imageUrls,
     description,
     category,
     sellerType,

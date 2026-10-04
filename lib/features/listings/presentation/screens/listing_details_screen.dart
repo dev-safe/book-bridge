@@ -1,3 +1,4 @@
+import 'package:book_bridge/features/listings/presentation/widgets/listing_image_carousel.dart';
 import 'package:flutter/material.dart';
 import 'package:book_bridge/l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
@@ -218,51 +219,37 @@ ${l10n.shareTextDownload}
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(12),
-                child: listing.imageUrl.isNotEmpty
-                    ? Image.network(
-                        listing.imageUrl,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          // If image fails to load in details screen, it's likely a broken listing
-                          // Inform user and go back
-                          Future.microtask(() {
-                            if (context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    AppLocalizations.of(
-                                      context,
-                                    )!.listingNotAvailableSnackBar,
-                                  ),
-                                  duration: const Duration(seconds: 2),
-                                ),
-                              );
-                              // Check if we can pop before attempting to do so
-                              if (Navigator.of(context).canPop()) {
-                                Navigator.of(context).pop();
-                              } else {
-                                // If we can't pop, navigate to home using go_router
-                                if (context.mounted) {
-                                  context.go('/home');
-                                }
-                              }
-                            }
-                          });
-                          return const Center(
-                            child: CircularProgressIndicator(),
-                          );
-                        },
-                      )
-                    : Container(
-                        color: Theme.of(context).colorScheme.surface,
-                        child: Icon(
-                          Icons.image_not_supported,
-                          size:
-                              MediaQuery.of(context).size.height *
-                              0.05, // Responsive size
-                          color: Theme.of(context).disabledColor,
-                        ),
-                      ),
+                child: ListingImageCarousel(
+                  imageUrls: listing.gallery,
+                  coverErrorBuilder: (context, error, stackTrace) {
+                    // If image fails to load in details screen, it's likely a broken listing
+                    // Inform user and go back
+                    Future.microtask(() {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              AppLocalizations.of(
+                                context,
+                              )!.listingNotAvailableSnackBar,
+                            ),
+                            duration: const Duration(seconds: 2),
+                          ),
+                        );
+                        // Check if we can pop before attempting to do so
+                        if (Navigator.of(context).canPop()) {
+                          Navigator.of(context).pop();
+                        } else {
+                          // If we can't pop, navigate to home using go_router
+                          if (context.mounted) {
+                            context.go('/home');
+                          }
+                        }
+                      }
+                    });
+                    return const Center(child: CircularProgressIndicator());
+                  },
+                ),
               ),
             ),
           ),

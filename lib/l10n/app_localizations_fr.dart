@@ -1259,4 +1259,23 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get mapNeedsLocation => 'Activez la localisation dans les Paramètres pour voir les livres proches sur la carte.';
+
+  @override
+  String get coverPhotoLabel => 'Couverture';
+
+  @override
+  String get addPhoto => 'Ajouter une photo';
+
+  @override
+  String get removePhoto => 'Retirer la photo';
+
+  @override
+  String photoCountHint(int max) {
+    return 'Jusqu\'à $max photos. Touchez une photo pour en faire la couverture.';
+  }
+
+  @override
+  String photoOfTotal(int index, int total) {
+    return 'Photo $index sur $total';
+  }
 }
