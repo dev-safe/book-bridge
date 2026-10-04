@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:book_bridge/core/utils/geo_radius.dart';
 import 'package:book_bridge/features/listings/domain/entities/listing.dart';
 import 'package:book_bridge/features/listings/domain/repositories/listing_repository.dart';
 import 'package:book_bridge/features/listings/domain/usecases/get_listings_usecase.dart';
@@ -30,6 +31,7 @@ class HomeViewModel extends ChangeNotifier with AcademicFiltersMixin {
   String? _selectedCategory;
   String _searchQuery = '';
   Position? _currentPosition;
+  double? _radiusKm;
   bool _shouldScrollToResults = false;
   bool _isOffline = false;
   PlatformStats? _platformStats;
@@ -50,14 +52,21 @@ class HomeViewModel extends ChangeNotifier with AcademicFiltersMixin {
   /// cache because the device is offline or the remote fetch failed.
   bool get isOffline => _isOffline;
 
-  /// Returns filtered listings based on search query
+  /// Selected search radius in km; null means "Any" (no distance filter).
+  double? get radiusKm => _radiusKm;
+
+  /// Whether a distance filter is currently narrowing the results.
+  bool get isRadiusActive => _radiusKm != null && _currentPosition != null;
+
+  /// Returns filtered listings based on search query and distance radius.
   List<Listing> get filteredListings {
+    final withinRadius = _applyRadius(_listings);
     if (_searchQuery.isEmpty) {
-      return _listings;
+      return withinRadius;
     }
 
     final query = _searchQuery.toLowerCase();
-    return _listings.where((listing) {
+    return withinRadius.where((listing) {
       return listing.title.toLowerCase().contains(query) ||
           listing.author.toLowerCase().contains(query);
     }).toList();
@@ -70,7 +79,7 @@ class HomeViewModel extends ChangeNotifier with AcademicFiltersMixin {
       return [];
     }
 
-    final List<Listing> sortedListings = List.from(_listings);
+    final List<Listing> sortedListings = List.from(_applyRadius(_listings));
     sortedListings.sort((a, b) {
       if (a.latitude == null || a.longitude == null) return 1;
       if (b.latitude == null || b.longitude == null) return -1;
@@ -119,8 +128,33 @@ class HomeViewModel extends ChangeNotifier with AcademicFiltersMixin {
       _fetchLocation();
     } else {
       _currentPosition = null;
+      _radiusKm = null;
       notifyListeners();
     }
+  }
+
+  /// Sets the distance radius in km; pass null for "Any".
+  void setRadiusKm(double? km) {
+    if (_radiusKm == km) return;
+    _radiusKm = km;
+    notifyListeners();
+  }
+
+  @visibleForTesting
+  void setCurrentPositionForTesting(Position? position) {
+    _currentPosition = position;
+    notifyListeners();
+  }
+
+  List<Listing> _applyRadius(List<Listing> listings) {
+    return filterWithinRadius<Listing>(
+      items: listings,
+      originLat: _currentPosition?.latitude,
+      originLng: _currentPosition?.longitude,
+      radiusKm: _radiusKm,
+      latOf: (l) => l.latitude,
+      lngOf: (l) => l.longitude,
+    );
   }
 
   /// Public method to manually refresh GPS (e.g., pull-to-refresh).
