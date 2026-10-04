@@ -198,7 +198,7 @@
   "feedback": "Feedback",
   "contactUs": "Contact Us",
   "inviteFriends": "Invite friends",
-  "inviteMessage": "Join me on BookBridge, the peer-to-peer marketplace for used books in Cameroon! 📚✨\n\nDownload or visit us at: https://book-bridge-three.vercel.app/",
+  "inviteMessage": "Join me on BookBridge, the peer-to-peer marketplace for used books in Cameroon! 📚✨\n\nDownload or visit us at: https://bookbridge.devsafe.cm/",
   "inviteSubject": "Invite to BookBridge",
   "aboutBookBridge": "About BookBridge",
   "unknownLocation": "Unknown Location",
@@ -494,5 +494,7 @@
   "meetupPinConfirm": "Confirm",
   "meetupSpotLabel": "Meetup spot",
   "meetupPinOnly": "Pinned on map",
-  "meetupOpenMapsFailed": "Could not open maps"
+  "meetupOpenMapsFailed": "Could not open maps",
+  "shareTextSchool": "School",
+  "shareTextViewListing": "See photos and buy safely on BookBridge:"
 }

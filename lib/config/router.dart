@@ -36,6 +36,16 @@ import 'package:book_bridge/injection_container.dart' as di;
 
 final routerKey = GlobalKey<NavigatorState>();
 
+/// Shared listing link opened before sign-in / profile completion; resumed
+/// once the user lands in the app instead of dropping them on /home.
+String? _pendingDeepLink;
+
+void _rememberDeepLink(String location) {
+  if (location.startsWith('/listing/') || location.startsWith('/l/')) {
+    _pendingDeepLink = location;
+  }
+}
+
 /// App router configuration using go_router.
 ///
 /// This configures all routes in the application and handles navigation
@@ -65,6 +75,7 @@ final appRouter = GoRouter(
 
     // If not authenticated and not going to auth screen, redirect to sign-in
     if (!isAuthenticated && !isGoingToAuth) {
+      _rememberDeepLink(location);
       debugPrint('Router: Redirecting unauthenticated user to /sign-in');
       return '/sign-in';
     }
@@ -73,6 +84,7 @@ final appRouter = GoRouter(
     if (isAuthenticated) {
       // 1. Check if profile is incomplete
       if (!authViewModel.isProfileComplete && location != '/complete-profile') {
+        _rememberDeepLink(location);
         debugPrint('Router: Redirecting to /complete-profile');
         return '/complete-profile';
       }
@@ -82,8 +94,10 @@ final appRouter = GoRouter(
           (isGoingToAuth ||
               location == '/' ||
               location == '/complete-profile')) {
-        debugPrint('Router: Redirecting to /home');
-        return '/home';
+        final pending = _pendingDeepLink;
+        _pendingDeepLink = null;
+        debugPrint('Router: Redirecting to ${pending ?? '/home'}');
+        return pending ?? '/home';
       }
     }
 
@@ -201,6 +215,12 @@ final appRouter = GoRouter(
         final listingId = state.pathParameters['id']!;
         return ListingDetailsScreen(listingId: listingId);
       },
+    ),
+
+    // Public share link (#35): https://bookbridge.devsafe.cm/l/<id>
+    GoRoute(
+      path: '/l/:id',
+      redirect: (context, state) => '/listing/${state.pathParameters['id']}',
     ),
 
     // My Books Route (Full Screen, outside shell — accessible from Profile)

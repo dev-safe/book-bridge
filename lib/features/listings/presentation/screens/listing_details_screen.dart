@@ -14,6 +14,7 @@ import 'package:book_bridge/injection_container.dart';
 import 'package:book_bridge/features/listings/domain/entities/listing.dart';
 import 'package:book_bridge/features/reviews/presentation/widgets/seller_rating_badge.dart';
 import 'package:book_bridge/core/theme/app_theme.dart';
+import 'package:book_bridge/core/utils/listing_share.dart';
 import 'package:book_bridge/features/safety/presentation/widgets/meetup_tips_card.dart';
 import 'package:book_bridge/features/listings/presentation/widgets/meetup_info_card.dart';
 
@@ -58,17 +59,7 @@ class _ListingDetailsScreenState extends State<ListingDetailsScreen> {
     if (listing == null) return;
 
     final l10n = AppLocalizations.of(context)!;
-    final shareText =
-        '''
-${l10n.shareTextCheckOut}
-📚 ${listing.title} by ${listing.author}
-💰 ${l10n.priceFormat(listing.priceFcfa)}
-🔍 ${l10n.shareTextCondition}: ${listing.condition.localizedLabel(l10n)}
-
-${l10n.shareTextDownload}
-''';
-
-    await Share.share(shareText);
+    await Share.share(buildListingShareText(listing, l10n));
   }
 
   @override
