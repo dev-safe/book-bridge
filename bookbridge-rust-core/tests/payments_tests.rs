@@ -13,11 +13,10 @@ use axum::{
 };
 use bookbridge_rust_core::{
     routes::payments::{
-        boost_external_id, commission_for, covers_expected, donation_external_id,
+        boost_external_id, buyer_fee_for, covers_expected, donation_external_id,
         parse_external_ref, payment_routes, purchase_external_id, seller_payout,
-        validate_donation_amount,
-        validate_medium, validate_phone, validate_trans_id, ExternalRef, BOOST_DAYS,
-        MAX_DONATION_XAF, MIN_AMOUNT_XAF,
+        validate_donation_amount, validate_medium, validate_phone, validate_trans_id, ExternalRef,
+        BOOST_DAYS, MAX_DONATION_XAF, MIN_AMOUNT_XAF,
     },
     user_auth::SupabaseAuth,
     AppState,
@@ -338,14 +337,21 @@ fn amount_rules() {
     assert!(!covers_expected(100.0, 5000.0));
     assert!(!covers_expected(4999.0, 5000.0));
 
-    assert_eq!(commission_for(5000.0), 250.0);
-    assert_eq!(commission_for(101.0), 6.0);
+    // The buyer pays 6% on top of the price, rounded up to a whole franc.
+    assert_eq!(buyer_fee_for(5000), 300);
+    assert_eq!(buyer_fee_for(100), 6);
+    assert_eq!(buyer_fee_for(101), 7);
+    assert_eq!(buyer_fee_for(0), 0);
+    assert_eq!(buyer_fee_for(-50), 0);
 
-    // Fapshi rejects payouts below 100 XAF, so small sales pay out the minimum.
+    // New sales carry no commission: the seller gets the full price.
+    assert_eq!(seller_payout(5000.0, 0.0), Some(5000.0));
+    // Legacy sales keep their stored 5% commission.
     assert_eq!(seller_payout(5000.0, 250.0), Some(4750.0));
-    assert_eq!(seller_payout(100.0, commission_for(100.0)), Some(100.0));
-    assert_eq!(seller_payout(103.0, commission_for(103.0)), Some(100.0));
-    assert_eq!(seller_payout(110.0, commission_for(110.0)), Some(104.0));
+    // Fapshi rejects payouts below 100 XAF, so small sales pay out the minimum.
+    assert_eq!(seller_payout(100.0, 5.0), Some(100.0));
+    assert_eq!(seller_payout(103.0, 6.0), Some(100.0));
+    assert_eq!(seller_payout(110.0, 6.0), Some(104.0));
     assert_eq!(seller_payout(99.0, 0.0), None);
 
     assert!(validate_trans_id("KGEartB8BK").is_ok());

@@ -971,7 +971,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get faqSellingFeesA =>
-      'Actuellement, la mise en vente de livres sur BookBridge est gratuite pour les étudiants individuels. Nous voulons vous faciliter au maximum le recyclage de vos ressources éducatives.';
+      'La mise en vente de livres sur BookBridge est gratuite, et les vendeurs reçoivent le prix de vente complet. Les acheteurs paient des frais de service de 6 % en plus du prix du livre au moment du paiement, ce qui couvre les frais de mobile money et permet à BookBridge de fonctionner.';
 
   @override
   String get faqBuyBackEligibleQ => 'Qu\'est-ce que le « Rachat éligible » ?';
@@ -1008,6 +1008,16 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get phoneNumberHint => 'ex. 677777777';
+
+  @override
+  String bookPriceLabel(Object amount) {
+    return 'Prix du livre : $amount FCFA';
+  }
+
+  @override
+  String serviceFeeLabel(Object percent, Object amount) {
+    return 'Frais de service ($percent %) : $amount FCFA';
+  }
 
   @override
   String get fieldRequired => 'Requis';

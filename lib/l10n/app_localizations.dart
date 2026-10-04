@@ -1865,7 +1865,7 @@ abstract class AppLocalizations {
   /// No description provided for @faqSellingFeesA.
   ///
   /// In en, this message translates to:
-  /// **'Currently, listing books on BookBridge is free for individual students. We want to make it as easy as possible for you to recycle your educational resources.'**
+  /// **'Listing books on BookBridge is free, and sellers receive the full sale price. Buyers pay a 6% service fee on top of the book price at checkout, which covers mobile money processing and keeps BookBridge running.'**
   String get faqSellingFeesA;
 
   /// No description provided for @faqBuyBackEligibleQ.
@@ -1927,6 +1927,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'e.g. 677777777'**
   String get phoneNumberHint;
+
+  /// No description provided for @bookPriceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Book price: {amount} FCFA'**
+  String bookPriceLabel(Object amount);
+
+  /// No description provided for @serviceFeeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Service fee ({percent}%): {amount} FCFA'**
+  String serviceFeeLabel(Object percent, Object amount);
 
   /// No description provided for @fieldRequired.
   ///

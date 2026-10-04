@@ -108,7 +108,7 @@ pub async fn initiate_payment_handler(
                 ));
             }
             let pay = DirectPayRequest {
-                amount: listing.price,
+                amount: listing.price + buyer_fee_for(listing.price),
                 phone: phone.clone(),
                 medium,
                 external_id: purchase_external_id(listing_id, user_id, millis),
@@ -131,7 +131,7 @@ pub async fn initiate_payment_handler(
             };
             // The payment prompt is already on the buyer's phone, so a failed
             // insert must not hide the transId. The webhook re-validates
-            // against the listing price when no pending row exists.
+            // against the listing price plus fee when no pending row exists.
             if let Err(e) = record_pending_purchase(
                 &state.pool,
                 &trans_id,
@@ -313,35 +313,41 @@ async fn record_pending_purchase(
     price: i64,
     now: DateTime<Utc>,
 ) -> Result<(), AppError> {
-    let amount = price as f64;
     sqlx::query(
         "INSERT INTO transactions ( \
-            payment_reference, listing_id, buyer_id, seller_id, amount, status, \
+            payment_reference, listing_id, buyer_id, seller_id, amount, buyer_fee, status, \
             payout_status, payout_reference, commission_amount, created_at \
          ) \
-         VALUES ($1, $2, $3, $4, $5, 'pending_payment', 'pending', NULL, $6, $7) \
+         VALUES ($1, $2, $3, $4, $5, $6, 'pending_payment', 'pending', NULL, 0, $7) \
          ON CONFLICT (payment_reference) DO NOTHING",
     )
     .bind(trans_id)
     .bind(listing_id)
     .bind(buyer_id)
     .bind(seller_id)
-    .bind(amount)
-    .bind(commission_for(amount))
+    .bind(price as i32)
+    .bind(buyer_fee_for(price) as i32)
     .bind(now)
     .execute(pool)
     .await?;
     Ok(())
 }
 
-/// BookBridge keeps 5%; the seller's payout is rounded down to whole XAF.
-pub fn commission_for(amount: f64) -> f64 {
-    amount - (amount * 0.95).floor()
+/// Service fee percentage the buyer pays on top of the book price.
+pub const BUYER_FEE_PERCENT: i64 = 6;
+
+/// The buyer's service fee for a book `price`, rounded up to whole XAF.
+/// The seller receives the full price; this fee covers Fapshi's ~3% and
+/// BookBridge's ~3%.
+pub fn buyer_fee_for(price: i64) -> i64 {
+    (price.max(0) * BUYER_FEE_PERCENT + 99) / 100
 }
 
-/// What the seller receives on release. Fapshi rejects payouts below
-/// `MIN_AMOUNT_XAF`, so for small sales the commission shrinks to keep the
-/// payout at that minimum. `None` if the sale itself is below the minimum.
+/// What the seller receives on release: `amount` minus any stored
+/// commission. Purchases since #30 store no commission; older rows keep
+/// their 5%. Fapshi rejects payouts below `MIN_AMOUNT_XAF`, so for small
+/// sales the commission shrinks to keep the payout at that minimum. `None`
+/// if the sale itself is below the minimum.
 pub fn seller_payout(amount: f64, commission: f64) -> Option<f64> {
     let min = MIN_AMOUNT_XAF as f64;
     if amount < min {

@@ -380,7 +380,8 @@ pub async fn poll_pending_handler(
     let ten_minutes_ago = Utc::now() - chrono::Duration::minutes(10);
     
     let txs = sqlx::query(
-        "SELECT id, payment_reference, listing_id, buyer_id, seller_id, amount::float8 AS amount \
+        "SELECT id, payment_reference, listing_id, buyer_id, seller_id, \
+         (amount + buyer_fee)::float8 AS amount_paid \
          FROM transactions \
          WHERE status = 'pending_payment' AND created_at <= $1"
     )
@@ -396,7 +397,7 @@ pub async fn poll_pending_handler(
         let listing_id: Uuid = row.get("listing_id");
         let buyer_id: Uuid = row.get("buyer_id");
         let seller_id: Uuid = row.get("seller_id");
-        let amount: f64 = row.try_get::<Option<f64>, _>("amount")?.unwrap_or(0.0);
+        let amount: f64 = row.try_get::<Option<f64>, _>("amount_paid")?.unwrap_or(0.0);
 
         tracing::info!("Checking Fapshi status for transaction ref: {}", reference);
 

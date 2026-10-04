@@ -53,6 +53,7 @@ pub struct ResolveResponse {
 #[derive(Serialize)]
 pub struct DisputeSummary {
     pub transaction_id: Uuid,
+    /// Total the buyer paid: book price plus buyer fee.
     pub amount: i64,
     pub listing_title: Option<String>,
     pub buyer_name: Option<String>,
@@ -117,7 +118,7 @@ pub async fn list_disputes_handler(
     _admin: AdminUser,
 ) -> Result<Json<DisputeList>, AppError> {
     let rows = sqlx::query(
-        "SELECT t.id, t.amount::bigint AS amount, t.created_at, e.dispute_reason, \
+        "SELECT t.id, (t.amount + t.buyer_fee)::bigint AS amount, t.created_at, e.dispute_reason, \
                 e.updated_at AS disputed_at, l.title, b.full_name AS buyer_name, \
                 s.full_name AS seller_name, pp.phone AS payer_phone \
          FROM transactions t \
@@ -200,7 +201,8 @@ pub async fn refund_dispute_handler(
     }))
 }
 
-/// Refunds the buyer the full amount paid and marks the purchase `refunded`.
+/// Refunds the buyer the full amount paid (price plus buyer fee) and marks
+/// the purchase `refunded`.
 /// The listing stays `sold`; relisting is the seller's call.
 pub(crate) async fn refund_dispute(
     state: &AppState,
@@ -211,7 +213,7 @@ pub(crate) async fn refund_dispute(
     let _guard = claim(state, tx_id)?;
 
     let row = sqlx::query(
-        "SELECT t.listing_id, t.amount::bigint AS amount, t.payment_reference, \
+        "SELECT t.listing_id, (t.amount + t.buyer_fee)::bigint AS amount, t.payment_reference, \
                 t.status AS tx_status, e.status AS escrow_status, pp.phone AS payer_phone \
          FROM transactions t \
          JOIN escrow_transactions e ON e.transaction_id = t.id \

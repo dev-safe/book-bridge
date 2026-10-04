@@ -1,3 +1,4 @@
+import 'package:book_bridge/features/payments/domain/entities/buyer_fee.dart';
 import 'package:book_bridge/features/payments/domain/entities/payment_purpose.dart';
 import 'package:book_bridge/features/payments/presentation/viewmodels/payment_viewmodel.dart';
 import 'package:flutter/material.dart';
@@ -9,8 +10,9 @@ import 'package:book_bridge/features/reviews/presentation/widgets/review_dialog.
 import 'package:book_bridge/features/transactions/domain/entities/transaction_entity.dart';
 
 class PaymentBottomSheet extends StatefulWidget {
-  /// Shown to the user. What is actually charged is decided by the server
-  /// from [purpose].
+  /// Shown to the user (the book price for purchases; the 6% buyer fee is
+  /// added on top). What is actually charged is decided by the server from
+  /// [purpose].
   final int amount;
   final String title;
   final PaymentPurpose purpose;
@@ -31,6 +33,9 @@ class PaymentBottomSheet extends StatefulWidget {
 class _PaymentBottomSheetState extends State<PaymentBottomSheet> {
   final _phoneController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+
+  int get _buyerFee =>
+      widget.purpose is PurchasePayment ? buyerFeeFor(widget.amount) : 0;
 
   @override
   void dispose() {
@@ -82,8 +87,25 @@ class _PaymentBottomSheetState extends State<PaymentBottomSheet> {
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 8),
+                  if (_buyerFee > 0) ...[
+                    Text(
+                      AppLocalizations.of(
+                        context,
+                      )!.bookPriceLabel(widget.amount),
+                      textAlign: TextAlign.center,
+                    ),
+                    Text(
+                      AppLocalizations.of(
+                        context,
+                      )!.serviceFeeLabel(buyerFeePercent, _buyerFee),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 4),
+                  ],
                   Text(
-                    AppLocalizations.of(context)!.totalLabel(widget.amount),
+                    AppLocalizations.of(
+                      context,
+                    )!.totalLabel(widget.amount + _buyerFee),
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
