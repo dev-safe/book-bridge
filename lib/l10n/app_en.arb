@@ -542,5 +542,7 @@
   "idVerifyStatusRejected": "Not approved, tap to resubmit",
   "idVerifyRequiredToBuy": "Verify your identity before buying books.",
   "idVerifyNow": "Verify now",
-  "idVerifiedBadge": "ID verified"
+  "idVerifiedBadge": "ID verified",
+  "escrowReportProblem": "There's a problem",
+  "escrowConfirmReceipt": "Confirm receipt"
 }

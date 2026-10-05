@@ -134,6 +134,11 @@ class _TransactionItem extends StatelessWidget {
 
   const _TransactionItem({required this.transaction, required this.isPurchase});
 
+  static const _escrowButtonPadding = EdgeInsets.symmetric(
+    horizontal: 8,
+    vertical: 10,
+  );
+
   void _showLoadingOverlay(BuildContext context) {
     showDialog(
       context: context,
@@ -399,32 +404,51 @@ class _TransactionItem extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
               ],
+              // Equal-width buttons so long labels (e.g. French) never push
+              // past the card edge on narrow phones.
               Row(
-                mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  OutlinedButton.icon(
-                    onPressed: () => _showDisputeDialog(
-                      context,
-                      context.read<TransactionHistoryViewModel>(),
-                    ),
-                    icon: const Icon(Icons.info_outline, size: 16),
-                    label: const Text("There's a problem"),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: theme.colorScheme.error,
-                      side: BorderSide(color: theme.colorScheme.error),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () => _showDisputeDialog(
+                        context,
+                        context.read<TransactionHistoryViewModel>(),
+                      ),
+                      icon: const Icon(Icons.info_outline, size: 16),
+                      label: Text(
+                        l10n.escrowReportProblem,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: theme.colorScheme.error,
+                        side: BorderSide(color: theme.colorScheme.error),
+                        padding: _escrowButtonPadding,
+                        visualDensity: VisualDensity.compact,
+                        textStyle: theme.textTheme.labelLarge,
+                      ),
                     ),
                   ),
                   const SizedBox(width: 8),
-                  FilledButton.icon(
-                    onPressed: () => _showConfirmReceiptDialog(
-                      context,
-                      context.read<TransactionHistoryViewModel>(),
-                    ),
-                    icon: const Icon(Icons.check, size: 16),
-                    label: const Text("Confirm Receipt"),
-                    style: FilledButton.styleFrom(
-                      backgroundColor: AppTheme.growthGreen,
-                      foregroundColor: Colors.white,
+                  Expanded(
+                    child: FilledButton.icon(
+                      onPressed: () => _showConfirmReceiptDialog(
+                        context,
+                        context.read<TransactionHistoryViewModel>(),
+                      ),
+                      icon: const Icon(Icons.check, size: 16),
+                      label: Text(
+                        l10n.escrowConfirmReceipt,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: AppTheme.growthGreen,
+                        foregroundColor: Colors.white,
+                        padding: _escrowButtonPadding,
+                        visualDensity: VisualDensity.compact,
+                        textStyle: theme.textTheme.labelLarge,
+                      ),
                     ),
                   ),
                 ],
