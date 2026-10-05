@@ -318,7 +318,18 @@ async fn free_sellers_are_capped_at_three_available_listings() {
     // Non-available rows don't count against or trip the cap.
     insert_listing(&pool, seller, "sold").await.unwrap();
 
-    // Power sellers aren't capped.
+    // Power sellers aren't capped. Give the seller a real active subscription:
+    // expire_power_sellers(), run concurrently by another test, downgrades any
+    // power seller without one.
+    sqlx::query(
+        "INSERT INTO subscriptions (user_id, tier, status, fapshi_reference, amount, started_at, expires_at) \
+         VALUES ($1, 'power_seller', 'active', $2, 500, now(), now() + interval '30 days')",
+    )
+    .bind(seller)
+    .bind(trans_id())
+    .execute(&pool)
+    .await
+    .unwrap();
     sqlx::query("UPDATE profiles SET tier = 'power_seller' WHERE id = $1")
         .bind(seller)
         .execute(&pool)
@@ -328,6 +339,11 @@ async fn free_sellers_are_capped_at_three_available_listings() {
     insert_listing(&pool, seller, "available").await.unwrap();
 
     // Lapsing back to free keeps (grandfathers) the 5 listings but blocks new ones.
+    sqlx::query("UPDATE subscriptions SET status = 'expired' WHERE user_id = $1")
+        .bind(seller)
+        .execute(&pool)
+        .await
+        .unwrap();
     sqlx::query("UPDATE profiles SET tier = 'free' WHERE id = $1")
         .bind(seller)
         .execute(&pool)
