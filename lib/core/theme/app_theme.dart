@@ -25,6 +25,24 @@ class AppTheme {
   static const Color darkDivider = Color(0xFF2C2C2C);
   static const Color darkLightGray = Color(0xFF636E72);
 
+  /// Tab bars are placed in the app bar (blue in light mode, dark surface in
+  /// dark mode); Material 3's default primary-coloured label vanished there.
+  static TabBarThemeData get _appBarTabBarTheme => TabBarThemeData(
+    labelColor: Colors.white,
+    unselectedLabelColor: Colors.white70,
+    indicatorColor: bridgeOrange,
+    indicatorSize: TabBarIndicatorSize.tab,
+    dividerColor: Colors.transparent,
+    labelStyle: GoogleFonts.montserrat(
+      fontSize: 14,
+      fontWeight: FontWeight.w700,
+    ),
+    unselectedLabelStyle: GoogleFonts.montserrat(
+      fontSize: 14,
+      fontWeight: FontWeight.w500,
+    ),
+  );
+
   /// Returns the light theme for BookBridge.
   static ThemeData get lightTheme {
     return ThemeData(
@@ -56,6 +74,8 @@ class AppTheme {
           fontWeight: FontWeight.w700,
         ),
       ),
+      // Tabs sit in the app bar, so labels must contrast with it.
+      tabBarTheme: _appBarTabBarTheme,
       // Card theme
       cardTheme: CardThemeData(
         color: surface,
@@ -202,6 +222,8 @@ class AppTheme {
           fontWeight: FontWeight.w700,
         ),
       ),
+      // Tabs sit in the app bar, so labels must contrast with it.
+      tabBarTheme: _appBarTabBarTheme,
       // Card theme
       cardTheme: CardThemeData(
         color: darkSurface,

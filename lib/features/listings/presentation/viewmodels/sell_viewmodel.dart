@@ -490,14 +490,21 @@ class SellViewModel extends ChangeNotifier with AcademicFiltersMixin {
     );
   }
 
-  /// Picks an image from the gallery and appends it.
+  /// Picks one or more images from the gallery, up to the remaining slots.
   Future<void> pickImageFromGallery() async {
     if (!canAddImage) return;
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    final remaining = Listing.maxImages - _imageUrls.length;
+    final picked = await ImagePicker().pickMultiImage(limit: remaining);
+    await addImageFiles([for (final file in picked) File(file.path)]);
+  }
 
-    if (pickedFile != null) {
-      await addImageFile(File(pickedFile.path));
+  /// Uploads [files] in order. Pickers may ignore the limit, so this stops
+  /// at [Listing.maxImages]; it also stops at the first failed upload.
+  Future<void> addImageFiles(List<File> files) async {
+    for (final file in files) {
+      if (!canAddImage) return;
+      await addImageFile(file);
+      if (_sellState == SellState.error) return;
     }
   }
 

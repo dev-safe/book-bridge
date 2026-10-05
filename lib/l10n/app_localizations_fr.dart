@@ -1550,4 +1550,10 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get idVerifiedBadge => 'Identité vérifiée';
+
+  @override
+  String get escrowReportProblem => 'Il y a un problème';
+
+  @override
+  String get escrowConfirmReceipt => 'Confirmer la réception';
 }
