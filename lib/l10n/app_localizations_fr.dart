@@ -39,8 +39,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get supportCommunity => 'Soutenir la communauté\nBookBridge';
 
   @override
-  String get supportDescription =>
-      'Votre contribution nous aide à garder la plateforme gratuite et accessible à tous les étudiants.';
+  String get supportDescription => 'Votre contribution nous aide à garder la plateforme gratuite et accessible à tous les étudiants.';
 
   @override
   String get giveBooks => 'Donnez des livres, créez un impact';
@@ -124,8 +123,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get appBranding => 'BookBridge : Le savoir pour tous';
 
   @override
-  String get appTagline =>
-      'Démocratiser l\'accès à des livres abordables au Cameroun.';
+  String get appTagline => 'Démocratiser l\'accès à des livres abordables au Cameroun.';
 
   @override
   String get or => 'OU';
@@ -140,8 +138,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get resetPasswordTitle => 'Réinitialiser le mot de passe';
 
   @override
-  String get resetPasswordContent =>
-      'Entrez votre adresse e-mail pour recevoir un lien de réinitialisation.';
+  String get resetPasswordContent => 'Entrez votre adresse e-mail pour recevoir un lien de réinitialisation.';
 
   @override
   String get cancel => 'Annuler';
@@ -162,15 +159,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get passwordRequired => 'Le mot de passe est requis';
 
   @override
-  String get passwordTooShort =>
-      'Le mot de passe doit comporter au moins 6 caractères';
+  String get passwordTooShort => 'Le mot de passe doit comporter au moins 6 caractères';
 
   @override
   String get signUpSuccess => 'Inscription réussie ! Bienvenue.';
 
   @override
-  String get appMarketingHeadline =>
-      'Connecter les étudiants, les auteurs et les librairies pour mettre fin à la pauvreté de l\'apprentissage.';
+  String get appMarketingHeadline => 'Connecter les étudiants, les auteurs et les librairies pour mettre fin à la pauvreté de l\'apprentissage.';
 
   @override
   String get fullNameLabel => 'Nom complet';
@@ -218,15 +213,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get shareTextCondition => 'Condition';
 
   @override
-  String get shareTextDownload =>
-      'Téléchargez BookBridge pour plus de détails !';
+  String get shareTextDownload => 'Téléchargez BookBridge pour plus de détails !';
 
   @override
   String get whatsappNotAvailable => 'Aucun numéro WhatsApp disponible';
 
   @override
-  String get whatsappDefaultMessage =>
-      'Bonjour, j\'ai vu votre livre sur BookBridge et je suis intéressé(e) !';
+  String get whatsappDefaultMessage => 'Bonjour, j\'ai vu votre livre sur BookBridge et je suis intéressé(e) !';
 
   @override
   String get whatsappLaunchError => 'Impossible de lancer WhatsApp';
@@ -247,27 +240,22 @@ class AppLocalizationsFr extends AppLocalizations {
   String get failedToLoadListing => 'Échec du chargement de l\'annonce';
 
   @override
-  String get listingNotAvailableSnackBar =>
-      'Cette annonce n\'est plus disponible.';
+  String get listingNotAvailableSnackBar => 'Cette annonce n\'est plus disponible.';
 
   @override
   String get buyBackEligible => 'Éligible au rachat';
 
   @override
-  String get buyBackDescription =>
-      'Revendez ce livre à la plateforme quand vous aurez fini.';
+  String get buyBackDescription => 'Revendez ce livre à la plateforme quand vous aurez fini.';
 
   @override
-  String get sellerTypeIndividualDesc =>
-      'Cet étudiant vend pour financer son prochain semestre.';
+  String get sellerTypeIndividualDesc => 'Cet étudiant vend pour financer son prochain semestre.';
 
   @override
-  String get sellerTypeBookshopDesc =>
-      'Une librairie locale vérifiée soutenant la communauté.';
+  String get sellerTypeBookshopDesc => 'Une librairie locale vérifiée soutenant la communauté.';
 
   @override
-  String get sellerTypeAuthorDesc =>
-      'Directement de l\'auteur. Soutien à la créativité locale.';
+  String get sellerTypeAuthorDesc => 'Directement de l\'auteur. Soutien à la créativité locale.';
 
   @override
   String get descriptionLabel => 'DESCRIPTION';
@@ -285,12 +273,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get unknownLocation => 'Emplacement inconnu';
 
   @override
-  String get sellerTypeBookshopPromo =>
-      'Soutenir les entreprises locales démocratise l\'accès au savoir.';
+  String get sellerTypeBookshopPromo => 'Soutenir les entreprises locales démocratise l\'accès au savoir.';
 
   @override
-  String get sellerTypeAuthorPromo =>
-      'Soutenir les auteurs locaux favorise une culture d\'apprentissage dynamique.';
+  String get sellerTypeAuthorPromo => 'Soutenir les auteurs locaux favorise une culture d\'apprentissage dynamique.';
 
   @override
   String get contactSellerWhatsApp => 'Contacter le vendeur via WhatsApp';
@@ -389,8 +375,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get descriptionFieldLabel => 'Description';
 
   @override
-  String get descriptionFieldHint =>
-      'Décrivez le livre (édition, langue, etc.)';
+  String get descriptionFieldHint => 'Décrivez le livre (édition, langue, etc.)';
 
   @override
   String get bookConditionLabel => 'État du livre';
@@ -438,8 +423,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get eligibleForBuyBack => 'Éligible au rachat';
 
   @override
-  String get buyBackSwitchDesc =>
-      'Permettre aux étudiants de revendre ce livre une fois terminé.';
+  String get buyBackSwitchDesc => 'Permettre aux étudiants de revendre ce livre une fois terminé.';
 
   @override
   String get availableStockLabel => 'Stock disponible';
@@ -448,8 +432,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get stockHint => 'ex. 10';
 
   @override
-  String get locationInfo =>
-      'L\'annonce sera visible dans votre région actuelle';
+  String get locationInfo => 'L\'annonce sera visible dans votre région actuelle';
 
   @override
   String get updateListingButton => 'Mettre à jour l\'annonce';
@@ -505,8 +488,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get noBooksListedYet => 'Aucun livre répertorié';
 
   @override
-  String get startSellingPrompt =>
-      'Commencez à vendre en publiant votre premier livre !';
+  String get startSellingPrompt => 'Commencez à vendre en publiant votre premier livre !';
 
   @override
   String get listFirstBookButton => 'Publier votre premier livre';
@@ -524,8 +506,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get deleteListingTitle => 'Supprimer l\'annonce';
 
   @override
-  String get deleteListingConfirmation =>
-      'Êtes-vous sûr de vouloir supprimer cette annonce ? Cette action est irréversible.';
+  String get deleteListingConfirmation => 'Êtes-vous sûr de vouloir supprimer cette annonce ? Cette action est irréversible.';
 
   @override
   String get delete => 'Supprimer';
@@ -560,12 +541,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get backToHome => 'Retour à l\'accueil';
 
   @override
-  String get firstListingPrompt =>
-      'Soyez le premier à publier un livre dans votre région !';
+  String get firstListingPrompt => 'Soyez le premier à publier un livre dans votre région !';
 
   @override
-  String get tryAnotherCategory =>
-      'Essayez une autre catégorie ou effacez le filtre.';
+  String get tryAnotherCategory => 'Essayez une autre catégorie ou effacez le filtre.';
 
   @override
   String noBooksIn(Object category) {
@@ -623,8 +602,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get inviteFriends => 'Inviter des amis';
 
   @override
-  String get inviteMessage =>
-      'Rejoignez-moi sur BookBridge, la plateforme d\'échange de livres d\'occasion au Cameroun ! 📚✨\n\nTéléchargez ou visitez-nous sur : https://bookbridge.devsafe.cm/';
+  String get inviteMessage => 'Rejoignez-moi sur BookBridge, la plateforme d\'échange de livres d\'occasion au Cameroun ! 📚✨\n\nTéléchargez ou visitez-nous sur : https://bookbridge.devsafe.cm/';
 
   @override
   String get inviteSubject => 'Invitation à BookBridge';
@@ -657,8 +635,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get logoutConfirmTitle => 'Déconnexion';
 
   @override
-  String get logoutConfirmMessage =>
-      'Êtes-vous sûr de vouloir vous déconnecter ?';
+  String get logoutConfirmMessage => 'Êtes-vous sûr de vouloir vous déconnecter ?';
 
   @override
   String get profileUpdatedSuccess => 'Profil mis à jour avec succès !';
@@ -688,8 +665,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get justOneMoreStep => 'Encore une étape !';
 
   @override
-  String get completeProfileSubtitle =>
-      'Pour commencer à acheter et vendre, nous avons besoin de quelques détails supplémentaires pour aider les autres étudiants à vous trouver.';
+  String get completeProfileSubtitle => 'Pour commencer à acheter et vendre, nous avons besoin de quelques détails supplémentaires pour aider les autres étudiants à vous trouver.';
 
   @override
   String get numberRequired => 'Le numéro est requis';
@@ -706,8 +682,7 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get aboutDescription =>
-      'BookBridge est une plateforme d\'échange entre pairs conçue pour les étudiants au Cameroun. Notre mission est de rendre les ressources éducatives accessibles et abordables en connectant les étudiants qui souhaitent vendre leurs livres d\'occasion avec ceux qui en ont besoin.';
+  String get aboutDescription => 'BookBridge est une plateforme d\'échange entre pairs conçue pour les étudiants au Cameroun. Notre mission est de rendre les ressources éducatives accessibles et abordables en connectant les étudiants qui souhaitent vendre leurs livres d\'occasion avec ceux qui en ont besoin.';
 
   @override
   String get projectSourceCode => 'Code source du projet';
@@ -732,6 +707,9 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get poweredByDevSafe => 'Propulsé par DevSafe';
+
+  @override
   String get notifications => 'Notifications';
 
   @override
@@ -746,8 +724,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get noNotificationsYet => 'Aucune notification pour le moment';
 
   @override
-  String get notificationsEmptySubtitle =>
-      'Vous verrez ici les alertes concernant vos annonces, vos messages et votre activité.';
+  String get notificationsEmptySubtitle => 'Vous verrez ici les alertes concernant vos annonces, vos messages et votre activité.';
 
   @override
   String get myFavorites => 'Mes Favoris';
@@ -759,8 +736,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get noFavoritesYet => 'Aucun favori pour le moment';
 
   @override
-  String get favoritesEmptySubtitle =>
-      'Les livres que vous aimez apparaîtront ici.';
+  String get favoritesEmptySubtitle => 'Les livres que vous aimez apparaîtront ici.';
 
   @override
   String get exploreBooks => 'Explorer les livres';
@@ -769,8 +745,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get unknownError => 'Une erreur inconnue s\'est produite.';
 
   @override
-  String get passwordResetSent =>
-      'Le lien de réinitialisation du mot de passe a été envoyé !';
+  String get passwordResetSent => 'Le lien de réinitialisation du mot de passe a été envoyé !';
 
   @override
   String get cameroonFcfa => 'CAMEROUN • FCFA';
@@ -793,8 +768,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get weValueInput => 'Votre avis nous intéresse !';
 
   @override
-  String get feedbackSubtitle =>
-      'Dites-nous ce que vous aimez à propos de BookBridge ou ce que nous pouvons améliorer. Vos commentaires nous aident à construire une meilleure plateforme pour tous.';
+  String get feedbackSubtitle => 'Dites-nous ce que vous aimez à propos de BookBridge ou ce que nous pouvons améliorer. Vos commentaires nous aident à construire une meilleure plateforme pour tous.';
 
   @override
   String get feedbackHint => 'Tapez votre commentaire ici...';
@@ -803,15 +777,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get submitFeedback => 'Envoyer le commentaire';
 
   @override
-  String get feedbackAggrement =>
-      'En envoyant ce formulaire, vous acceptez que vos commentaires puissent être utilisés pour améliorer nos services.';
+  String get feedbackAggrement => 'En envoyant ce formulaire, vous acceptez que vos commentaires puissent être utilisés pour améliorer nos services.';
 
   @override
   String get getInTouch => 'Contactez-nous';
 
   @override
-  String get contactSubtitle =>
-      'Vous avez une question, un commentaire ou besoin d\'aide ? Nous sommes là pour vous aider à tirer le meilleur parti de BookBridge.';
+  String get contactSubtitle => 'Vous avez une question, un commentaire ou besoin d\'aide ? Nous sommes là pour vous aider à tirer le meilleur parti de BookBridge.';
 
   @override
   String get whatsappSupport => 'Support WhatsApp';
@@ -829,43 +801,37 @@ class AppLocalizationsFr extends AppLocalizations {
   String get privacyIntroTitle => '1. Introduction';
 
   @override
-  String get privacyIntroContent =>
-      'Bienvenue sur BookBridge. Nous accordons une grande importance à votre vie privée et nous nous engageons à protéger vos données personnelles. Cette politique de confidentialité vous informera sur la manière dont nous traitons vos données personnelles lorsque vous visitez notre application et vous informera sur vos droits en matière de confidentialité.';
+  String get privacyIntroContent => 'Bienvenue sur BookBridge. Nous accordons une grande importance à votre vie privée et nous nous engageons à protéger vos données personnelles. Cette politique de confidentialité vous informera sur la manière dont nous traitons vos données personnelles lorsque vous visitez notre application et vous informera sur vos droits en matière de confidentialité.';
 
   @override
   String get privacyCollectTitle => '2. Données que nous collectons';
 
   @override
-  String get privacyCollectContent =>
-      'Nous pouvons collecter, utiliser, stocker et transférer différents types de données personnelles vous concernant, que nous avons regroupées comme suit :\n\n• Données d\'identité : Nom, nom d\'utilisateur ou identifiant similaire.\n• Données de contact : Adresse e-mail et numéros de téléphone.\n• Données techniques : Adresse IP, données de connexion, type et version du navigateur, fuseau horaire et localisation.\n• Données de profil : Votre nom d\'utilisateur, votre mot de passe, les annonces que vous avez publiées, vos intérêts et vos favoris.';
+  String get privacyCollectContent => 'Nous pouvons collecter, utiliser, stocker et transférer différents types de données personnelles vous concernant, que nous avons regroupées comme suit :\n\n• Données d\'identité : Nom, nom d\'utilisateur ou identifiant similaire.\n• Données de contact : Adresse e-mail et numéros de téléphone.\n• Données techniques : Adresse IP, données de connexion, type et version du navigateur, fuseau horaire et localisation.\n• Données de profil : Votre nom d\'utilisateur, votre mot de passe, les annonces que vous avez publiées, vos intérêts et vos favoris.';
 
   @override
   String get privacyUseTitle => '3. Comment nous utilisons vos données';
 
   @override
-  String get privacyUseContent =>
-      'Nous n\'utilisons vos données personnelles que lorsque la loi nous y autorise. Le plus souvent, nous utiliserons vos données personnelles dans les circonstances suivantes :\n\n• Pour vous enregistrer en tant que nouvel utilisateur.\n• Pour faciliter la place de marché de pair à pair (mise en relation des acheteurs et des vendeurs).\n• Pour améliorer notre application, nos services et l\'expérience utilisateur.\n• Pour gérer notre relation avec vous.';
+  String get privacyUseContent => 'Nous n\'utilisons vos données personnelles que lorsque la loi nous y autorise. Le plus souvent, nous utiliserons vos données personnelles dans les circonstances suivantes :\n\n• Pour vous enregistrer en tant que nouvel utilisateur.\n• Pour faciliter la place de marché de pair à pair (mise en relation des acheteurs et des vendeurs).\n• Pour améliorer notre application, nos services et l\'expérience utilisateur.\n• Pour gérer notre relation avec vous.';
 
   @override
   String get privacySharingTitle => '4. Partage de données';
 
   @override
-  String get privacySharingContent =>
-      'Lorsque vous mettez un livre en vente, vos informations de contact seront partagées avec les acheteurs potentiels pour faciliter la transaction. Nous ne vendons pas vos données personnelles à des tiers à des fins de marketing.';
+  String get privacySharingContent => 'Lorsque vous mettez un livre en vente, vos informations de contact seront partagées avec les acheteurs potentiels pour faciliter la transaction. Nous ne vendons pas vos données personnelles à des tiers à des fins de marketing.';
 
   @override
   String get privacySecurityTitle => '5. Sécurité des données';
 
   @override
-  String get privacySecurityContent =>
-      'Nous avons mis en place des mesures de sécurité appropriées pour éviter que vos données personnelles ne soient accidentellement perdues, utilisées ou consultées de manière non autorisée, modifiées ou divulguées.';
+  String get privacySecurityContent => 'Nous avons mis en place des mesures de sécurité appropriées pour éviter que vos données personnelles ne soient accidentellement perdues, utilisées ou consultées de manière non autorisée, modifiées ou divulguées.';
 
   @override
   String get privacyRightsTitle => '6. Vos droits';
 
   @override
-  String get privacyRightsContent =>
-      'Vous avez le droit de demander l\'accès à vos données personnelles, leur correction ou leur suppression. Vous pouvez gérer la plupart de vos données directement via les paramètres de votre profil dans l\'application.';
+  String get privacyRightsContent => 'Vous avez le droit de demander l\'accès à vos données personnelles, leur correction ou leur suppression. Vous pouvez gérer la plupart de vos données directement via les paramètres de votre profil dans l\'application.';
 
   @override
   String lastUpdated(Object date) {
@@ -876,44 +842,37 @@ class AppLocalizationsFr extends AppLocalizations {
   String get termsAcceptanceTitle => '1. Acceptation des conditions';
 
   @override
-  String get termsAcceptanceContent =>
-      'En accédant à l\'application BookBridge ou en l\'utilisant, vous acceptez d\'être lié par ces conditions générales. Si vous n\'êtes pas d\'accord avec une partie de ces conditions, vous ne pouvez pas utiliser notre service.';
+  String get termsAcceptanceContent => 'En accédant à l\'application BookBridge ou en l\'utilisant, vous acceptez d\'être lié par ces conditions générales. Si vous n\'êtes pas d\'accord avec une partie de ces conditions, vous ne pouvez pas utiliser notre service.';
 
   @override
   String get termsMarketplaceTitle => '2. Règles de la place de marché';
 
   @override
-  String get termsMarketplaceContent =>
-      'BookBridge est une plateforme qui facilite la vente et l\'achat de livres d\'occasion entre utilisateurs. Nous ne sommes pas partie aux transactions réelles entre acheteurs et vendeurs.\n\n• Les vendeurs sont responsables de l\'exactitude de leurs annonces.\n• Les acheteurs sont responsables de la vérification de l\'état des livres avant l\'achat.\n• Toutes les transactions sont effectuées directement entre les utilisateurs.';
+  String get termsMarketplaceContent => 'BookBridge est une plateforme qui facilite la vente et l\'achat de livres d\'occasion entre utilisateurs. Nous ne sommes pas partie aux transactions réelles entre acheteurs et vendeurs.\n\n• Les vendeurs sont responsables de l\'exactitude de leurs annonces.\n• Les acheteurs sont responsables de la vérification de l\'état des livres avant l\'achat.\n• Toutes les transactions sont effectuées directement entre les utilisateurs.';
 
   @override
-  String get termsResponsibilitiesTitle =>
-      '3. Responsabilités de l\'utilisateur';
+  String get termsResponsibilitiesTitle => '3. Responsabilités de l\'utilisateur';
 
   @override
-  String get termsResponsibilitiesContent =>
-      'Vous devez fournir des informations exactes lors de la création d\'un compte et de la mise en vente de livres. Il vous est interdit de publier du contenu illégal, offensant ou portant atteinte aux droits d\'autrui.';
+  String get termsResponsibilitiesContent => 'Vous devez fournir des informations exactes lors de la création d\'un compte et de la mise en vente de livres. Il vous est interdit de publier du contenu illégal, offensant ou portant atteinte aux droits d\'autrui.';
 
   @override
   String get termsPaymentsTitle => '4. Paiements';
 
   @override
-  String get termsPaymentsContent =>
-      'Les paiements pour les livres sont généralement gérés en espèces à la livraison ou via un transfert direct d\'argent mobile entre l\'acheteur et le vendeur. BookBridge peut proposer des solutions de paiement intégrées (comme Fapshi) pour des services spécifiques ou des dons. Les vendeurs gratuits peuvent avoir jusqu\'à 3 annonces actives à la fois. L\'abonnement optionnel Vendeur Pro (500 FCFA pour 30 jours, payé via Fapshi) supprime cette limite ; il ne se renouvelle pas automatiquement et n\'est pas remboursable une fois activé.';
+  String get termsPaymentsContent => 'Les paiements pour les livres sont généralement gérés en espèces à la livraison ou via un transfert direct d\'argent mobile entre l\'acheteur et le vendeur. BookBridge peut proposer des solutions de paiement intégrées (comme Fapshi) pour des services spécifiques ou des dons. Les vendeurs gratuits peuvent avoir jusqu\'à 3 annonces actives à la fois. L\'abonnement optionnel Vendeur Pro (500 FCFA pour 30 jours, payé via Fapshi) supprime cette limite ; il ne se renouvelle pas automatiquement et n\'est pas remboursable une fois activé.';
 
   @override
   String get termsLiabilityTitle => '5. Limitation de responsabilité';
 
   @override
-  String get termsLiabilityContent =>
-      'BookBridge est fourni « tel quel » sans aucune garantie. Nous ne sommes pas responsables des litiges, pertes ou dommages découlant de votre utilisation de l\'application ou des transactions avec d\'autres utilisateurs.';
+  String get termsLiabilityContent => 'BookBridge est fourni « tel quel » sans aucune garantie. Nous ne sommes pas responsables des litiges, pertes ou dommages découlant de votre utilisation de l\'application ou des transactions avec d\'autres utilisateurs.';
 
   @override
   String get termsChangesTitle => '6. Modifications des conditions';
 
   @override
-  String get termsChangesContent =>
-      'Nous nous réservons le droit de modifier ces conditions à tout moment. Votre utilisation continue de l\'application après toute modification constitue votre acceptation des nouvelles conditions.';
+  String get termsChangesContent => 'Nous nous réservons le droit de modifier ces conditions à tout moment. Votre utilisation continue de l\'application après toute modification constitue votre acceptation des nouvelles conditions.';
 
   @override
   String get faqGeneralCategory => 'Général';
@@ -922,15 +881,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get faqWhatIsBookBridgeQ => 'Qu\'est-ce que BookBridge ?';
 
   @override
-  String get faqWhatIsBookBridgeA =>
-      'BookBridge est une place de marché de pair à pair conçue spécifiquement pour les étudiants au Cameroun afin d\'acheter et de vendre des livres physiques d\'occasion à des prix abordables.';
+  String get faqWhatIsBookBridgeA => 'BookBridge est une place de marché de pair à pair conçue spécifiquement pour les étudiants au Cameroun afin d\'acheter et de vendre des livres physiques d\'occasion à des prix abordables.';
 
   @override
   String get faqCreateAccountQ => 'Comment créer un compte ?';
 
   @override
-  String get faqCreateAccountA =>
-      'Vous pouvez vous inscrire à l\'aide de votre adresse e-mail ou vous connecter rapidement avec votre compte Google. Après vous être connecté, vous devrez compléter votre profil avec quelques détails comme votre localité et votre numéro Mobile Money.';
+  String get faqCreateAccountA => 'Vous pouvez vous inscrire à l\'aide de votre adresse e-mail ou vous connecter rapidement avec votre compte Google. Après vous être connecté, vous devrez compléter votre profil avec quelques détails comme votre localité et votre numéro Mobile Money.';
 
   @override
   String get faqBuyingCategory => 'Acheter des livres';
@@ -939,22 +896,19 @@ class AppLocalizationsFr extends AppLocalizations {
   String get faqHowToBuyQ => 'Comment acheter un livre ?';
 
   @override
-  String get faqHowToBuyA =>
-      'Parcourez les annonces sur l\'écran d\'accueil ou utilisez la barre de recherche. Lorsque vous trouvez un livre qui vous plaît, appuyez dessus pour voir les détails, puis utilisez le bouton « Contacter le vendeur » pour discuter avec lui afin d\'organiser l\'achat.';
+  String get faqHowToBuyA => 'Parcourez les annonces sur l\'écran d\'accueil ou utilisez la barre de recherche. Lorsque vous trouvez un livre qui vous plaît, appuyez dessus pour voir les détails, puis utilisez le bouton « Contacter le vendeur » pour discuter avec lui afin d\'organiser l\'achat.';
 
   @override
   String get faqHowToPayQ => 'Comment payer un livre ?';
 
   @override
-  String get faqHowToPayA =>
-      'La plupart des transactions se font directement entre l\'acheteur et le vendeur. Vous pouvez payer en espèces lors d\'une rencontre physique ou via Mobile Money si les deux parties sont d\'accord. Vérifiez toujours l\'état du livre avant de payer.';
+  String get faqHowToPayA => 'La plupart des transactions se font directement entre l\'acheteur et le vendeur. Vous pouvez payer en espèces lors d\'une rencontre physique ou via Mobile Money si les deux parties sont d\'accord. Vérifiez toujours l\'état du livre avant de payer.';
 
   @override
   String get faqNearbyBooksQ => 'Puis-je voir des livres près de chez moi ?';
 
   @override
-  String get faqNearbyBooksA =>
-      'Oui ! La section « Vos livres à proximité » sur l\'écran d\'accueil utilise votre position pour afficher les livres disponibles dans votre voisinage immédiat, triés par distance.';
+  String get faqNearbyBooksA => 'Oui ! La section « Vos livres à proximité » sur l\'écran d\'accueil utilise votre position pour afficher les livres disponibles dans votre voisinage immédiat, triés par distance.';
 
   @override
   String get faqSellingCategory => 'Vendre des livres';
@@ -963,40 +917,34 @@ class AppLocalizationsFr extends AppLocalizations {
   String get faqHowToListQ => 'Comment mettre un livre en vente ?';
 
   @override
-  String get faqHowToListA =>
-      'Appuyez sur le bouton « Vendre » dans la barre de navigation inférieure. Téléchargez une photo claire du livre, entrez le titre, l\'auteur, le prix et l\'état, puis soumettez l\'annonce.';
+  String get faqHowToListA => 'Appuyez sur le bouton « Vendre » dans la barre de navigation inférieure. Téléchargez une photo claire du livre, entrez le titre, l\'auteur, le prix et l\'état, puis soumettez l\'annonce.';
 
   @override
   String get faqSellingFeesQ => 'Y a-t-il des frais de vente ?';
 
   @override
-  String get faqSellingFeesA =>
-      'La mise en vente de livres sur BookBridge est gratuite, et les vendeurs reçoivent le prix de vente complet. Les acheteurs paient des frais de service de 6 % en plus du prix du livre au moment du paiement, ce qui couvre les frais de mobile money et permet à BookBridge de fonctionner.';
+  String get faqSellingFeesA => 'La mise en vente de livres sur BookBridge est gratuite, et les vendeurs reçoivent le prix de vente complet. Les acheteurs paient des frais de service de 6 % en plus du prix du livre au moment du paiement, ce qui couvre les frais de mobile money et permet à BookBridge de fonctionner.';
 
   @override
   String get faqBuyBackEligibleQ => 'Qu\'est-ce que le « Rachat éligible » ?';
 
   @override
-  String get faqBuyBackEligibleA =>
-      'Certaines annonces provenant de librairies vérifiées ou de la plateforme elle-même peuvent être éligibles au rachat. Cela signifie que vous pouvez revendre le livre à la source à un prix prédéterminé une fois que vous en avez terminé avec lui.';
+  String get faqBuyBackEligibleA => 'Certaines annonces provenant de librairies vérifiées ou de la plateforme elle-même peuvent être éligibles au rachat. Cela signifie que vous pouvez revendre le livre à la source à un prix prédéterminé une fois que vous en avez terminé avec lui.';
 
   @override
   String get faqSafetyCategory => 'Sécurité et confiance';
 
   @override
-  String get faqTrustworthySellerQ =>
-      'Comment savoir si un vendeur est digne de confiance ?';
+  String get faqTrustworthySellerQ => 'Comment savoir si un vendeur est digne de confiance ?';
 
   @override
-  String get faqTrustworthySellerA =>
-      'Recherchez le badge « Vérifié » sur les annonces. Pour les étudiants individuels, nous encourageons les rencontres dans des lieux publics et sûrs, comme le campus de votre école ou une bibliothèque fréquentée, pour conclure les transactions.';
+  String get faqTrustworthySellerA => 'Recherchez le badge « Vérifié » sur les annonces. Pour les étudiants individuels, nous encourageons les rencontres dans des lieux publics et sûrs, comme le campus de votre école ou une bibliothèque fréquentée, pour conclure les transactions.';
 
   @override
   String get faqProblemQ => 'Que dois-je faire en cas de problème ?';
 
   @override
-  String get faqProblemA =>
-      'Si vous rencontrez des problèmes avec une transaction ou un autre utilisateur, veuillez utiliser les options \"Commentaires\" ou \"Contactez-nous\" de votre profil pour le signaler à notre équipe.';
+  String get faqProblemA => 'Si vous rencontrez des problèmes avec une transaction ou un autre utilisateur, veuillez utiliser les options \"Commentaires\" ou \"Contactez-nous\" de votre profil pour le signaler à notre équipe.';
 
   @override
   String totalLabel(Object amount) {
@@ -1032,8 +980,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get initiatingTransaction => 'Initiation de la transaction...';
 
   @override
-  String get confirmPaymentPrompt =>
-      'Veuillez confirmer la demande de paiement sur votre téléphone !';
+  String get confirmPaymentPrompt => 'Veuillez confirmer la demande de paiement sur votre téléphone !';
 
   @override
   String get iHavePaid => 'J\'ai payé';
@@ -1072,12 +1019,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get boostListing => 'Booster l\'annonce';
 
   @override
-  String get boostListingDesc =>
-      'Boostez votre annonce en tête de liste pendant 7 jours';
+  String get boostListingDesc => 'Boostez votre annonce en tête de liste pendant 7 jours';
 
   @override
-  String get boostListingSuccess =>
-      'Annonce boostée avec succès ! Elle sera priorisée dans les recherches.';
+  String get boostListingSuccess => 'Annonce boostée avec succès ! Elle sera priorisée dans les recherches.';
 
   @override
   String get boostListingPrice => 'Prix du Boost : 500 FCFA';
@@ -1092,8 +1037,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get noConversations => 'Aucune discussion pour le moment';
 
   @override
-  String get startConversationPrompt =>
-      'Envoyez un message à un vendeur pour commencer une discussion.';
+  String get startConversationPrompt => 'Envoyez un message à un vendeur pour commencer une discussion.';
 
   @override
   String get typeMessage => 'Écrivez un message...';
@@ -1126,8 +1070,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get noTransactionsYet => 'Aucune transaction pour le moment';
 
   @override
-  String get transactionsEmptySubtitle =>
-      'L\'historique de vos livres achetés et vendus apparaîtra ici.';
+  String get transactionsEmptySubtitle => 'L\'historique de vos livres achetés et vendus apparaîtra ici.';
 
   @override
   String get orderId => 'ID de transaction';
@@ -1160,8 +1103,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get rateYourExperience => 'Évaluez votre expérience';
 
   @override
-  String get howWasTransaction =>
-      'Comment s\'est passée votre transaction pour';
+  String get howWasTransaction => 'Comment s\'est passée votre transaction pour';
 
   @override
   String get leaveAComment => 'Laissez un commentaire (facultatif)...';
@@ -1170,14 +1112,34 @@ class AppLocalizationsFr extends AppLocalizations {
   String get reviewSubmit => 'Envoyer l\'avis';
 
   @override
-  String get reviewLaterHint =>
-      'Vous pourrez laisser un avis plus tard depuis votre historique de transactions.';
+  String get reviewLaterHint => 'Vous pourrez laisser un avis plus tard depuis votre historique de transactions.';
 
   @override
   String get leaveAReview => 'Laisser un avis';
 
   @override
   String get darkMode => 'Mode sombre';
+
+  @override
+  String get chatSafetyTitle => 'Reste en sécurité dans les discussions';
+
+  @override
+  String get chatSafetyBody => 'Avant d\'envoyer ton premier message :\n\n• Ne partage jamais ton adresse, tes mots de passe ou ton code Mobile Money.\n• Rencontre-toi uniquement dans des lieux publics fréquentés, comme ton campus, et préviens un parent ou tuteur avant d\'y aller.\n• Garde les paiements dans le séquestre BookBridge — ne paie jamais en dehors de l\'application.\n• Si quelqu\'un te met mal à l\'aise, arrête de répondre, signale-le et parles-en à un adulte de confiance.';
+
+  @override
+  String get chatSafetyAccept => 'J\'ai compris';
+
+  @override
+  String get themeLight => 'Clair';
+
+  @override
+  String get themeDark => 'Sombre';
+
+  @override
+  String get themeSystem => 'Système';
+
+  @override
+  String get appearance => 'Apparence';
 
   @override
   String get systemDefault => 'Par défaut du système';
@@ -1219,8 +1181,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get meetupTipsTitle => 'Organiser une Rencontre';
 
   @override
-  String get meetupTipsSubtitle =>
-      'Échangez toujours vos livres dans des espaces publics et inspectez-les avant de payer.';
+  String get meetupTipsSubtitle => 'Échangez toujours vos livres dans des espaces publics et inspectez-les avant de payer.';
 
   @override
   String get viewSafetyGuidelines => 'Voir les directives de sécurité';
@@ -1229,8 +1190,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get campusMeetupZones => 'Zones de Rencontre Vérifiées';
 
   @override
-  String get campusMeetupZonesDesc =>
-      'Emplacements pré-approuvés et très visibles sur votre campus.';
+  String get campusMeetupZonesDesc => 'Emplacements pré-approuvés et très visibles sur votre campus.';
 
   @override
   String get openInMaps => 'Ouvrir dans Maps';
@@ -1269,8 +1229,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get selectSubjectHint => 'Choisir la matière';
 
   @override
-  String get selectSchoolOptionalHint =>
-      'Choisir l\'établissement (facultatif)';
+  String get selectSchoolOptionalHint => 'Choisir l\'établissement (facultatif)';
 
   @override
   String get searchSchoolsHint => 'Rechercher un établissement';
@@ -1300,8 +1259,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get subjectRequired => 'Veuillez choisir une matière';
 
   @override
-  String get noListingsMatchFilters =>
-      'Aucun livre ne correspond à ces filtres';
+  String get noListingsMatchFilters => 'Aucun livre ne correspond à ces filtres';
 
   @override
   String get radiusAny => 'Toute distance';
@@ -1321,12 +1279,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get yourLocation => 'Votre position';
 
   @override
-  String get noBooksWithinRadius =>
-      'Aucun livre avec un lieu de retrait dans cette zone';
+  String get noBooksWithinRadius => 'Aucun livre avec un lieu de retrait dans cette zone';
 
   @override
-  String get mapNeedsLocation =>
-      'Activez la localisation dans les Paramètres pour voir les livres proches sur la carte.';
+  String get mapNeedsLocation => 'Activez la localisation dans les Paramètres pour voir les livres proches sur la carte.';
 
   @override
   String get coverPhotoLabel => 'Couverture';
@@ -1351,8 +1307,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get meetupSpotFieldLabel => 'Lieu de rencontre (facultatif)';
 
   @override
-  String get meetupSpotFieldHint =>
-      'ex. Portail principal, Amphi 700, entrée de la bibliothèque';
+  String get meetupSpotFieldHint => 'ex. Portail principal, Amphi 700, entrée de la bibliothèque';
 
   @override
   String get meetupSuggestionsLabel => 'Lieux sûrs suggérés';
@@ -1367,15 +1322,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get meetupPinRemove => 'Retirer le repère';
 
   @override
-  String get meetupSafetyHint =>
-      'Choisissez un lieu public fréquenté du campus. Ne partagez jamais votre adresse. Convenez des changements dans le chat.';
+  String get meetupSafetyHint => 'Choisissez un lieu public fréquenté du campus. Ne partagez jamais votre adresse. Convenez des changements dans le chat.';
 
   @override
   String get meetupPinPickerTitle => 'Choisir le lieu de rencontre';
 
   @override
-  String get meetupPinPickerHint =>
-      'Touchez la carte pour placer le repère, puis touchez Confirmer.';
+  String get meetupPinPickerHint => 'Touchez la carte pour placer le repère, puis touchez Confirmer.';
 
   @override
   String get meetupPinConfirm => 'Confirmer';
@@ -1393,8 +1346,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get shareTextSchool => 'École';
 
   @override
-  String get shareTextViewListing =>
-      'Voir les photos et acheter en toute sécurité sur BookBridge :';
+  String get shareTextViewListing => 'Voir les photos et acheter en toute sécurité sur BookBridge :';
 
   @override
   String get powerSellerBadge => 'Vendeur Pro';
@@ -1403,48 +1355,40 @@ class AppLocalizationsFr extends AppLocalizations {
   String get powerSellerCardTitle => 'Devenir Vendeur Pro';
 
   @override
-  String get powerSellerCardSubtitle =>
-      'Annonces illimitées · 500 FCFA / 30 jours';
+  String get powerSellerCardSubtitle => 'Annonces illimitées · 500 FCFA / 30 jours';
 
   @override
-  String get powerSellerUpgradeError =>
-      'Impossible de lancer la mise à niveau. Veuillez réessayer.';
+  String get powerSellerUpgradeError => 'Impossible de lancer la mise à niveau. Veuillez réessayer.';
 
   @override
-  String get freeTierLimitReached =>
-      'Les vendeurs gratuits peuvent avoir jusqu\'à 3 annonces actives. Passez Vendeur Pro depuis votre Profil pour des annonces illimitées.';
+  String get freeTierLimitReached => 'Les vendeurs gratuits peuvent avoir jusqu\'à 3 annonces actives. Passez Vendeur Pro depuis votre Profil pour des annonces illimitées.';
 
   @override
   String get ageDeclarationTitle => 'Avant de continuer';
 
   @override
-  String get ageDeclarationSubtitle =>
-      'BookBridge implique des achats et des ventes avec de l\'argent réel. Veuillez indiquer la déclaration qui vous correspond.';
+  String get ageDeclarationSubtitle => 'BookBridge implique des achats et des ventes avec de l\'argent réel. Veuillez indiquer la déclaration qui vous correspond.';
 
   @override
   String get ageDeclarationAdult => 'Je déclare avoir 18 ans ou plus.';
 
   @override
-  String get ageDeclarationGuardian =>
-      'Je déclare qu\'un parent ou tuteur effectue les achats en mon nom.';
+  String get ageDeclarationGuardian => 'Je déclare qu\'un parent ou tuteur effectue les achats en mon nom.';
 
   @override
-  String get ageDeclarationNotVerified =>
-      'Ceci est une auto-déclaration. BookBridge ne vérifie pas votre âge ; vous êtes responsable de l\'exactitude de votre réponse.';
+  String get ageDeclarationNotVerified => 'Ceci est une auto-déclaration. BookBridge ne vérifie pas votre âge ; vous êtes responsable de l\'exactitude de votre réponse.';
 
   @override
   String get ageDeclarationContinue => 'Confirmer et continuer';
 
   @override
-  String get ageDeclarationError =>
-      'Impossible d\'enregistrer votre déclaration. Veuillez réessayer.';
+  String get ageDeclarationError => 'Impossible d\'enregistrer votre déclaration. Veuillez réessayer.';
 
   @override
   String get idVerifyTitle => 'Vérifiez votre identité';
 
   @override
-  String get idVerifySubtitle =>
-      'Pour acheter des livres sur BookBridge, un administrateur doit vérifier votre pièce d\'identité. Vos photos servent uniquement à cette vérification et sont supprimées ensuite.';
+  String get idVerifySubtitle => 'Pour acheter des livres sur BookBridge, un administrateur doit vérifier votre pièce d\'identité. Vos photos servent uniquement à cette vérification et sont supprimées ensuite.';
 
   @override
   String get idVerifyDobLabel => 'Date de naissance';
@@ -1453,31 +1397,25 @@ class AppLocalizationsFr extends AppLocalizations {
   String get idVerifyDobHint => 'Touchez pour choisir votre date de naissance';
 
   @override
-  String get idVerifyTooYoung =>
-      'Vous devez avoir au moins 10 ans pour utiliser BookBridge.';
+  String get idVerifyTooYoung => 'Vous devez avoir au moins 10 ans pour utiliser BookBridge.';
 
   @override
   String get idVerifyDocSchoolId => 'Photo de votre carte scolaire';
 
   @override
-  String get idVerifyDocCni =>
-      'Photo de votre Carte Nationale d\'Identité (CNI)';
+  String get idVerifyDocCni => 'Photo de votre Carte Nationale d\'Identité (CNI)';
 
   @override
-  String get idVerifyDocGuardianCni =>
-      'Photo de la CNI de votre parent ou tuteur';
+  String get idVerifyDocGuardianCni => 'Photo de la CNI de votre parent ou tuteur';
 
   @override
-  String get idVerifyGuardianPhoneLabel =>
-      'Numéro Mobile Money du parent ou tuteur';
+  String get idVerifyGuardianPhoneLabel => 'Numéro Mobile Money du parent ou tuteur';
 
   @override
-  String get idVerifyGuardianPhoneInvalid =>
-      'Entrez un numéro camerounais valide de 9 chiffres commençant par 6.';
+  String get idVerifyGuardianPhoneInvalid => 'Entrez un numéro camerounais valide de 9 chiffres commençant par 6.';
 
   @override
-  String get idVerifyGuardianNote =>
-      'Comme vous avez moins de 15 ans, vos achats doivent être payés depuis ce numéro et vos ventes y seront versées.';
+  String get idVerifyGuardianNote => 'Comme vous avez moins de 15 ans, vos achats doivent être payés depuis ce numéro et vos ventes y seront versées.';
 
   @override
   String get idVerifyAddPhoto => 'Ajouter une photo';
@@ -1492,8 +1430,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get idVerifySubmit => 'Envoyer pour vérification';
 
   @override
-  String get idVerifySubmitted =>
-      'Envoyé. Nous vérifierons votre pièce d\'identité sous peu.';
+  String get idVerifySubmitted => 'Envoyé. Nous vérifierons votre pièce d\'identité sous peu.';
 
   @override
   String idVerifyError(String error) {
@@ -1504,15 +1441,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get idVerifyPendingTitle => 'En cours de vérification';
 
   @override
-  String get idVerifyPendingBody =>
-      'Un administrateur vérifie votre pièce d\'identité. Vous pourrez acheter des livres dès qu\'elle sera approuvée.';
+  String get idVerifyPendingBody => 'Un administrateur vérifie votre pièce d\'identité. Vous pourrez acheter des livres dès qu\'elle sera approuvée.';
 
   @override
   String get idVerifyVerifiedTitle => 'Identité vérifiée';
 
   @override
-  String get idVerifyVerifiedBody =>
-      'Votre pièce d\'identité a été vérifiée. Vous pouvez acheter et vendre sur BookBridge.';
+  String get idVerifyVerifiedBody => 'Votre pièce d\'identité a été vérifiée. Vous pouvez acheter et vendre sur BookBridge.';
 
   @override
   String get idVerifyRejectedTitle => 'Vérification non approuvée';
@@ -1523,8 +1458,7 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get idVerifyRejectedBody =>
-      'Veuillez envoyer de nouvelles photos nettes ci-dessous.';
+  String get idVerifyRejectedBody => 'Veuillez envoyer de nouvelles photos nettes ci-dessous.';
 
   @override
   String get idVerifyTile => 'Vérification d\'identité';
@@ -1542,8 +1476,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get idVerifyStatusRejected => 'Non approuvée, touchez pour renvoyer';
 
   @override
-  String get idVerifyRequiredToBuy =>
-      'Vérifiez votre identité avant d\'acheter des livres.';
+  String get idVerifyRequiredToBuy => 'Vérifiez votre identité avant d\'acheter des livres.';
 
   @override
   String get idVerifyNow => 'Vérifier maintenant';

@@ -203,8 +203,8 @@ class _ConversationTile extends StatelessWidget {
               ),
               child: Text(
                 '${conversation.unreadCount}',
-                style: const TextStyle(
-                  color: Colors.white,
+                style: TextStyle(
+                  color: theme.colorScheme.onPrimary,
                   fontSize: 11,
                   fontWeight: FontWeight.bold,
                 ),

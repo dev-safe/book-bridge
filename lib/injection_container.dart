@@ -105,7 +105,10 @@ Future<void> setupDependencyInjection() async {
   getIt.registerSingleton<SupabaseClient>(supabase);
 
   // Core Presentation
-  getIt.registerLazySingleton<ThemeViewModel>(() => ThemeViewModel());
+  // Resolved lazily, after SharedPreferences is registered below.
+  getIt.registerLazySingleton<ThemeViewModel>(
+    () => ThemeViewModel(prefs: getIt<SharedPreferences>()),
+  );
 
   // Auth Feature - Data Layer
   getIt.registerSingleton<SupabaseAuthDataSource>(

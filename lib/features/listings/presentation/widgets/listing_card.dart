@@ -64,20 +64,19 @@ class ListingCard extends StatelessWidget {
                   ? Image.network(
                       listing.imageUrl,
                       fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) =>
-                          const Center(
-                            child: Icon(
-                              Icons.broken_image,
-                              size: 32,
-                              color: Colors.grey,
-                            ),
-                          ),
+                      errorBuilder: (context, error, stackTrace) => Center(
+                        child: Icon(
+                          Icons.broken_image,
+                          size: 32,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
                     )
-                  : const Center(
+                  : Center(
                       child: Icon(
                         Icons.book_rounded,
                         size: 48,
-                        color: Colors.grey,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                     ),
             ),

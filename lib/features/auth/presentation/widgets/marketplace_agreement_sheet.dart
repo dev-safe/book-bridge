@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:book_bridge/core/theme/app_theme.dart';
 
 /// A bottom sheet modal that displays the BookBridge Marketplace Agreement.
 ///
@@ -38,9 +39,9 @@ class _MarketplaceAgreementSheetState
       maxChildSize: 0.97,
       builder: (context, scrollController) {
         return Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
           ),
           child: Column(
             children: [
@@ -89,7 +90,12 @@ class _MarketplaceAgreementSheetState
                           ),
                           Text(
                             'Please read carefully before joining',
-                            style: TextStyle(fontSize: 12, color: Colors.grey),
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurfaceVariant,
+                            ),
                           ),
                         ],
                       ),
@@ -111,7 +117,7 @@ class _MarketplaceAgreementSheetState
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildWelcomeBanner(primaryColor),
+                      _buildWelcomeBanner(AppTheme.scholarBlue),
                       const SizedBox(height: 20),
                       _buildSection(
                         icon: Icons.shopping_bag_outlined,
@@ -189,14 +195,18 @@ class _MarketplaceAgreementSheetState
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: Colors.grey.shade100,
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.surfaceContainerHighest,
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: const Text(
+                        child: Text(
                           'These terms apply to all users of BookBridge. By agreeing, you confirm you are a student aged 10 to 22 or a parent/guardian acting for one. You must verify your identity before buying or receiving payouts, and users aged 10 to 14 pay and get paid only through a parent\'s or guardian\'s Mobile Money number.',
                           style: TextStyle(
                             fontSize: 11,
-                            color: Colors.grey,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
                             fontStyle: FontStyle.italic,
                           ),
                           textAlign: TextAlign.center,
@@ -238,7 +248,7 @@ class _MarketplaceAgreementSheetState
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: _agreed
-                                ? const Icon(
+                                ? Icon(
                                     Icons.check,
                                     size: 16,
                                     color: Colors.white,
@@ -246,12 +256,12 @@ class _MarketplaceAgreementSheetState
                                 : null,
                           ),
                           const SizedBox(width: 12),
-                          const Expanded(
+                          Expanded(
                             child: Text(
                               'I have read and agree to the BookBridge Marketplace Agreement and understand how the service fee and payouts work.',
                               style: TextStyle(
                                 fontSize: 13,
-                                color: Colors.black87,
+                                color: Theme.of(context).colorScheme.onSurface,
                                 height: 1.4,
                               ),
                             ),
@@ -275,9 +285,13 @@ class _MarketplaceAgreementSheetState
                                 borderRadius: BorderRadius.circular(12),
                               ),
                             ),
-                            child: const Text(
+                            child: Text(
                               'Cancel',
-                              style: TextStyle(color: Colors.grey),
+                              style: TextStyle(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
+                              ),
                             ),
                           ),
                         ),
@@ -295,7 +309,9 @@ class _MarketplaceAgreementSheetState
                                   : null,
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: primaryColor,
-                                foregroundColor: Colors.white,
+                                foregroundColor: Theme.of(
+                                  context,
+                                ).colorScheme.onPrimary,
                                 padding: const EdgeInsets.symmetric(
                                   vertical: 14,
                                 ),
@@ -391,7 +407,7 @@ class _MarketplaceAgreementSheetState
       decoration: BoxDecoration(
         color: highlight
             ? const Color(0xFF2E7D32).withValues(alpha: 0.05)
-            : Colors.grey.shade50,
+            : Theme.of(context).colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(12),
         border: highlight
             ? Border.all(
@@ -422,9 +438,9 @@ class _MarketplaceAgreementSheetState
           const SizedBox(height: 10),
           Text(
             content,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 13,
-              color: Colors.black87,
+              color: Theme.of(context).colorScheme.onSurface,
               height: 1.6,
             ),
           ),

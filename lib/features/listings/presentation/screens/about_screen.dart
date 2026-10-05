@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -71,11 +72,18 @@ class AboutScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 8),
-            Text(
-              AppLocalizations.of(context)!.version('1.1.0'),
-              style: TextStyle(
-                fontSize: 14,
-                color: Theme.of(context).textTheme.bodySmall?.color,
+            FutureBuilder<PackageInfo>(
+              future: PackageInfo.fromPlatform(),
+              builder: (context, snapshot) => Text(
+                snapshot.hasData
+                    ? AppLocalizations.of(
+                        context,
+                      )!.version(snapshot.data!.version)
+                    : '',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Theme.of(context).textTheme.bodySmall?.color,
+                ),
               ),
             ),
             const SizedBox(height: 32),
@@ -137,6 +145,19 @@ class AboutScreen extends StatelessWidget {
               style: TextStyle(
                 fontSize: 12,
                 color: Theme.of(context).textTheme.bodySmall?.color,
+              ),
+            ),
+            const SizedBox(height: 8),
+            TextButton(
+              key: const Key('poweredByDevSafe'),
+              onPressed: () => _launchUrl('https://www.devsafe.cm'),
+              child: Text(
+                AppLocalizations.of(context)!.poweredByDevSafe,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
               ),
             ),
           ],

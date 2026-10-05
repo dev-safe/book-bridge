@@ -34,7 +34,7 @@ class ContactUsScreen extends StatelessWidget {
         title: Text(AppLocalizations.of(context)!.contactUs),
         foregroundColor: Colors.white,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: Icon(Icons.arrow_back),
           onPressed: () => context.pop(),
         ),
       ),
@@ -95,10 +95,10 @@ class ContactUsScreen extends StatelessWidget {
             Center(
               child: Text(
                 AppLocalizations.of(context)!.availableHours,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
-                  color: Colors.grey,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ),
             ),

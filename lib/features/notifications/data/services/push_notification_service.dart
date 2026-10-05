@@ -25,7 +25,7 @@ class PushNotificationService {
 
     if (settings.authorizationStatus == AuthorizationStatus.authorized) {
       if (kDebugMode) {
-        print('User granted permission');
+        debugPrint('User granted permission');
       }
 
       // iOS: Show notification banner even when foregrounded
@@ -142,7 +142,7 @@ class PushNotificationService {
     // This will be called when the app is in the background or killed.
     // Ensure Firebase is initialized here if needed.
     if (kDebugMode) {
-      print("Handling a background message: ${message.messageId}");
+      debugPrint('Handling a background message: ${message.messageId}');
     }
   }
 }

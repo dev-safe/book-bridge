@@ -4,6 +4,9 @@ import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:book_bridge/features/chat/presentation/viewmodels/chat_viewmodel.dart';
 import 'package:book_bridge/features/chat/domain/entities/message.dart';
+import 'package:book_bridge/features/chat/presentation/widgets/chat_safety_reminder.dart';
+import 'package:book_bridge/features/auth/presentation/viewmodels/auth_viewmodel.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:book_bridge/features/payments/presentation/viewmodels/payment_viewmodel.dart';
 import 'package:book_bridge/features/payments/domain/entities/payment_purpose.dart';
 import 'package:book_bridge/features/payments/presentation/widgets/payment_bottom_sheet.dart';
@@ -73,6 +76,13 @@ class _ChatScreenState extends State<ChatScreen> {
   Future<void> _send() async {
     final text = _controller.text;
     if (text.trim().isEmpty) return;
+    final mayChat = await ChatSafetyReminder.ensureAcknowledged(
+      context: context,
+      user: context.read<AuthViewModel>().currentUser,
+      userId: _currentUserId,
+      prefs: getIt<SharedPreferences>(),
+    );
+    if (!mayChat || !mounted) return;
     _controller.clear();
     await context.read<ChatViewModel>().sendMessage(
       listingId: widget.listingId,

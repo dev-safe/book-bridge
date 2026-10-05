@@ -217,7 +217,11 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.search_off_rounded, size: 80, color: Colors.grey),
+          Icon(
+            Icons.search_off_rounded,
+            size: 80,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
           const SizedBox(height: 24),
           Text(
             isFiltered
@@ -233,7 +237,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 ? AppLocalizations.of(context)!.tryAnotherCategory
                 : AppLocalizations.of(context)!.firstListingPrompt,
             textAlign: TextAlign.center,
-            style: const TextStyle(color: Colors.grey),
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           ),
           if (isFiltered) ...[
             const SizedBox(height: 24),
@@ -261,10 +267,10 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(
+          Icon(
             Icons.filter_alt_off_rounded,
             size: 80,
-            color: Colors.grey,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
           const SizedBox(height: 24),
           Text(
@@ -954,7 +960,7 @@ class _HomeScreenState extends State<HomeScreen> {
       Category(
         name: AppLocalizations.of(context)!.all,
         icon: Icons.grid_view_rounded,
-        color: Colors.grey,
+        color: Theme.of(context).colorScheme.onSurfaceVariant,
       ),
       ...appCategories,
     ];

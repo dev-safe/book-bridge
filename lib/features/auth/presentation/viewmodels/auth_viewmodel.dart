@@ -1,6 +1,4 @@
-import 'dart:typed_data';
-
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:book_bridge/features/auth/domain/entities/user.dart';
 import 'package:book_bridge/features/auth/domain/usecases/sign_up_usecase.dart';
 import 'package:book_bridge/features/auth/domain/usecases/sign_in_usecase.dart';
@@ -53,7 +51,6 @@ class AuthViewModel extends ChangeNotifier {
     required this.signInWithGoogleUseCase,
     required this.repository,
   }) {
-    debugPrint('AuthViewModel: Initializing...');
     _initializeAuth();
   }
 
@@ -63,48 +60,31 @@ class AuthViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      debugPrint(
-        'AuthViewModel: [INIT] Checking current user (with 10s timeout)...',
-      );
-
       final result = await getCurrentUserUseCase().timeout(
         const Duration(seconds: 10),
         onTimeout: () {
-          debugPrint(
-            'AuthViewModel: [INIT] TIMEOUT occurred during auth check.',
-          );
           throw Exception('Authentication check timed out');
         },
       );
 
       result.fold(
         (failure) {
-          debugPrint(
-            'AuthViewModel: [INIT] No current user found or error: ${failure.message}',
-          );
           _authState = AuthState.unauthenticated;
           _currentUser = null;
         },
         (user) {
-          debugPrint(
-            'AuthViewModel: [INIT] User authenticated successfully: ${user.fullName}',
-          );
           _authState = AuthState.authenticated;
           _currentUser = user;
         },
       );
     } catch (e) {
-      debugPrint(
-        'AuthViewModel: [INIT] Critical error during initialization: $e',
-      );
+      if (kDebugMode) debugPrint('AuthViewModel: init failed: $e');
       _authState = AuthState.unauthenticated;
       _currentUser = null;
     }
 
-    debugPrint('AuthViewModel: [INIT] Setting up auth change listener...');
     _listenToAuthChanges();
 
-    debugPrint('AuthViewModel: [INIT] Finalizing state: $_authState');
     notifyListeners();
   }
 
@@ -112,10 +92,10 @@ class AuthViewModel extends ChangeNotifier {
   Future<void> refreshUser() async {
     final result = await getCurrentUserUseCase();
     result.fold(
-      (failure) =>
-          debugPrint('AuthViewModel: Refresh failed: ${failure.message}'),
+      (failure) {
+        if (kDebugMode) debugPrint('AuthViewModel: refresh failed');
+      },
       (user) {
-        debugPrint('AuthViewModel: User refreshed: ${user.fullName}');
         _currentUser = user;
         notifyListeners();
       },
@@ -126,22 +106,17 @@ class AuthViewModel extends ChangeNotifier {
   void _listenToAuthChanges() {
     repository.authStateChanges.listen(
       (user) {
-        debugPrint(
-          'AuthViewModel: [UPDATE] Auth state change detected. User: ${user?.fullName ?? 'null'}',
-        );
         if (user != null) {
-          debugPrint('AuthViewModel: [UPDATE] Switching to authenticated');
           _authState = AuthState.authenticated;
           _currentUser = user;
         } else {
-          debugPrint('AuthViewModel: [UPDATE] Switching to unauthenticated');
           _authState = AuthState.unauthenticated;
           _currentUser = null;
         }
         notifyListeners();
       },
-      onError: (error) {
-        debugPrint('AuthViewModel: [UPDATE] Stream error: $error');
+      onError: (Object error) {
+        if (kDebugMode) debugPrint('AuthViewModel: auth stream error: $error');
       },
     );
   }

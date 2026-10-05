@@ -43,23 +43,11 @@ async fn verify_webhook_auth(pool: &PgPool, headers: &HeaderMap) -> Result<(), A
         }
     }
 
-
-
-
-
-    let mut headers_debug = std::collections::HashMap::new();
-    for (k, v) in headers.iter() {
-        if let Ok(val) = v.to_str() {
-            // Mask the actual sensitive values but show prefix/length for verification
-            let masked = if val.len() > 8 {
-                format!("{}... (len: {})", &val[..8], val.len())
-            } else {
-                "***".to_string()
-            };
-            headers_debug.insert(k.as_str().to_string(), masked);
-        }
-    }
-    tracing::warn!("Unauthorized webhook request: invalid credentials or headers. Received headers: {:?}", headers_debug);
+    let header_names: Vec<&str> = headers.keys().map(|k| k.as_str()).collect();
+    tracing::warn!(
+        "Unauthorized webhook request: invalid credentials. Header names: {:?}",
+        header_names
+    );
     Err(AppError::Unauthorized("Invalid authentication credentials".to_string()))
 }
 

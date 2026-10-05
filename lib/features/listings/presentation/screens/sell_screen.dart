@@ -775,10 +775,10 @@ class _SellScreenState extends State<SellScreen> {
                     ),
                     value: viewModel.isBuyBackEligible,
                     onChanged: viewModel.setIsBuyBackEligible,
-                    activeTrackColor: AppTheme.scholarBlue.withValues(
-                      alpha: 0.5,
-                    ),
-                    activeThumbColor: AppTheme.scholarBlue,
+                    activeTrackColor: Theme.of(
+                      context,
+                    ).colorScheme.primary.withValues(alpha: 0.5),
+                    activeThumbColor: Theme.of(context).colorScheme.primary,
                   ),
                   const SizedBox(height: 16),
                   // Stock Count (for non-individuals)
@@ -822,10 +822,10 @@ class _SellScreenState extends State<SellScreen> {
                   // Location info
                   Row(
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.location_on,
                         size: 16,
-                        color: Colors.grey,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                       const SizedBox(width: 8),
                       Text(

@@ -1,7 +1,7 @@
+import 'package:flutter/foundation.dart';
 import 'package:book_bridge/features/payments/domain/entities/payment_purpose.dart';
 import 'package:book_bridge/features/payments/domain/usecases/collect_payment_usecase.dart';
 import 'package:book_bridge/features/payments/domain/usecases/get_payment_status_usecase.dart';
-import 'package:flutter/material.dart';
 
 enum PaymentState { initial, processing, pendingUser, success, failure }
 
@@ -62,7 +62,7 @@ class PaymentViewModel extends ChangeNotifier {
     result.fold(
       (failure) {
         // Don't change state to failure if it's just a check error
-        debugPrint('Status check error: ${failure.message}');
+        if (kDebugMode) debugPrint('Status check error: ${failure.message}');
       },
       (status) {
         if (status == 'SUCCESSFUL') {
