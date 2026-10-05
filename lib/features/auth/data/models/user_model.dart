@@ -68,6 +68,27 @@ class UserModel extends User {
     );
   }
 
+  /// Columns of the `public_profiles` view, the only profile data readable
+  /// for other users (`profiles` itself is owner-only under RLS).
+  static const String publicProfileColumns =
+      'id, full_name, locality, avatar_url, rating, review_count, '
+      'trust_score, trust_level, completed_deals_count, created_at, tier, '
+      'id_verified';
+
+  /// Creates a UserModel for another user from a `public_profiles` row.
+  ///
+  /// Contact, age and ID details are never exposed for other users, so
+  /// email is empty and only the verified/unverified status is known.
+  factory UserModel.fromPublicProfile(Map<String, dynamic> json) {
+    return UserModel.fromJson({
+      ...json,
+      'email': '',
+      'id_verification_status': json['id_verified'] == true
+          ? 'verified'
+          : 'unverified',
+    });
+  }
+
   /// Converts the UserModel to JSON.
   ///
   /// This method is used when sending data to Supabase.

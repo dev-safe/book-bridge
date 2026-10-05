@@ -400,8 +400,27 @@ class SupabaseAuthDataSource {
     }
   }
 
-  /// Retrieves user profile by ID.
+  /// Fetches another user's public profile (e.g. a seller).
+  ///
+  /// Reads `public_profiles`: `profiles` is owner-only under RLS, so querying
+  /// it for someone else returns no rows.
   Future<UserModel> getUserById(String userId) async {
-    return _fetchUserProfile(userId);
+    try {
+      final response = await supabaseClient
+          .from('public_profiles')
+          .select(UserModel.publicProfileColumns)
+          .eq('id', userId)
+          .maybeSingle();
+      if (response == null) {
+        throw NotFoundException(message: 'User profile not found');
+      }
+      return UserModel.fromPublicProfile(response);
+    } on NotFoundException {
+      rethrow;
+    } on PostgrestException catch (e) {
+      throw ServerException(message: e.message);
+    } catch (e) {
+      throw ServerException(message: e.toString());
+    }
   }
 }

@@ -515,5 +515,7 @@
   "idVerifyStatusRejected": "Non approuvée, touchez pour renvoyer",
   "idVerifyRequiredToBuy": "Vérifiez votre identité avant d'acheter des livres.",
   "idVerifyNow": "Vérifier maintenant",
-  "idVerifiedBadge": "Identité vérifiée"
+  "idVerifiedBadge": "Identité vérifiée",
+  "escrowReportProblem": "Il y a un problème",
+  "escrowConfirmReceipt": "Confirmer la réception"
 }

@@ -1532,4 +1532,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get idVerifiedBadge => 'ID verified';
+
+  @override
+  String get escrowReportProblem => 'There\'s a problem';
+
+  @override
+  String get escrowConfirmReceipt => 'Confirm receipt';
 }

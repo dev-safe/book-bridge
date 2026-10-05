@@ -2911,6 +2911,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'ID verified'**
   String get idVerifiedBadge;
+
+  /// No description provided for @escrowReportProblem.
+  ///
+  /// In en, this message translates to:
+  /// **'There\'s a problem'**
+  String get escrowReportProblem;
+
+  /// No description provided for @escrowConfirmReceipt.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm receipt'**
+  String get escrowConfirmReceipt;
 }
 
 class _AppLocalizationsDelegate
