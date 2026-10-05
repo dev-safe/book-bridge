@@ -42,7 +42,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
         automaticallyImplyLeading: false, // User must complete profile
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout),
+            icon: Icon(Icons.logout),
             onPressed: () => context.read<AuthViewModel>().signOut(),
           ),
         ],
@@ -66,7 +66,9 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                   const SizedBox(height: 8),
                   Text(
                     AppLocalizations.of(context)!.completeProfileSubtitle,
-                    style: const TextStyle(color: Colors.grey),
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
                   ),
                   const SizedBox(height: 32),
 
@@ -81,7 +83,9 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                     decoration: InputDecoration(
                       hintText: AppLocalizations.of(context)!.localityHint,
                       filled: true,
-                      fillColor: Colors.grey.shade100,
+                      fillColor: Theme.of(
+                        context,
+                      ).colorScheme.surfaceContainerHighest,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide.none,
@@ -108,7 +112,9 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                     decoration: InputDecoration(
                       hintText: AppLocalizations.of(context)!.whatsappHint,
                       filled: true,
-                      fillColor: Colors.grey.shade100,
+                      fillColor: Theme.of(
+                        context,
+                      ).colorScheme.surfaceContainerHighest,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide.none,
@@ -133,19 +139,10 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                       onPressed: profileViewModel.isLoading
                           ? null
                           : () async {
-                              debugPrint(
-                                'CompleteProfileScreen: "Complete Setup" clicked.',
-                              );
                               if (_formKey.currentState?.validate() ?? false) {
-                                debugPrint(
-                                  'CompleteProfileScreen: Form validated.',
-                                );
                                 final authViewModel = context
                                     .read<AuthViewModel>();
                                 final user = authViewModel.currentUser;
-                                debugPrint(
-                                  'CompleteProfileScreen: Current User: ${user?.id}',
-                                );
                                 if (user != null) {
                                   final messenger = ScaffoldMessenger.of(
                                     context,
@@ -163,9 +160,6 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
 
                                   if (profileViewModel.profileState ==
                                       ProfileState.error) {
-                                    debugPrint(
-                                      'CompleteProfileScreen: Update error: ${profileViewModel.errorMessage}',
-                                    );
                                     if (mounted) {
                                       messenger.showSnackBar(
                                         SnackBar(
@@ -178,28 +172,19 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                                       );
                                     }
                                   } else {
-                                    debugPrint(
-                                      'CompleteProfileScreen: Update successful, refreshing Auth user...',
-                                    );
                                     await authViewModel.refreshUser();
                                     if (context.mounted) {
                                       GoRouter.of(context).go('/home');
                                     }
                                   }
-                                } else {
-                                  debugPrint(
-                                    'CompleteProfileScreen: Error - User is null.',
-                                  );
-                                }
-                              } else {
-                                debugPrint(
-                                  'CompleteProfileScreen: Form validation failed.',
-                                );
-                              }
+                                } else {}
+                              } else {}
                             },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Theme.of(context).colorScheme.primary,
-                        foregroundColor: Colors.white,
+                        foregroundColor: Theme.of(
+                          context,
+                        ).colorScheme.onPrimary,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),

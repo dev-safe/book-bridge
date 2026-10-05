@@ -70,7 +70,7 @@ class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
           shape: const CircleBorder(),
           elevation: 0,
           backgroundColor: Colors.transparent, // Use gradient from Container
-          foregroundColor: Colors.white,
+          foregroundColor: theme.colorScheme.onPrimary,
           child: const Icon(Icons.add, size: 32),
         ),
       ),

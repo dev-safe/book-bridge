@@ -211,7 +211,12 @@ class _IdVerificationScreenState extends State<IdVerificationScreen> {
           ),
           const SizedBox(height: 24),
         ],
-        Text(l10n.idVerifySubtitle, style: const TextStyle(color: Colors.grey)),
+        Text(
+          l10n.idVerifySubtitle,
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+        ),
         const SizedBox(height: 24),
         InkWell(
           onTap: submitting ? null : _pickDob,
@@ -222,7 +227,7 @@ class _IdVerificationScreenState extends State<IdVerificationScreen> {
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
-              suffixIcon: const Icon(Icons.calendar_today),
+              suffixIcon: Icon(Icons.calendar_today),
             ),
             child: Text(
               _dob == null
@@ -276,7 +281,10 @@ class _IdVerificationScreenState extends State<IdVerificationScreen> {
             const SizedBox(height: 8),
             Text(
               l10n.idVerifyGuardianNote,
-              style: const TextStyle(color: Colors.grey, fontSize: 13),
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                fontSize: 13,
+              ),
             ),
           ],
         ],
@@ -287,7 +295,7 @@ class _IdVerificationScreenState extends State<IdVerificationScreen> {
             onPressed: !_canSubmit || submitting ? null : _submit,
             style: ElevatedButton.styleFrom(
               backgroundColor: Theme.of(context).colorScheme.primary,
-              foregroundColor: Colors.white,
+              foregroundColor: Theme.of(context).colorScheme.onPrimary,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -378,7 +386,7 @@ class _PhotoSlot extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(fontWeight: FontWeight.w600)),
+        Text(label, style: TextStyle(fontWeight: FontWeight.w600)),
         const SizedBox(height: 8),
         InkWell(
           onTap: onTap,
@@ -395,10 +403,10 @@ class _PhotoSlot extends StatelessWidget {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.add_a_photo,
                           size: 32,
-                          color: Colors.grey,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                         const SizedBox(height: 8),
                         Text(addLabel),

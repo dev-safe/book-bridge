@@ -84,9 +84,9 @@ class _SafetyGuidelinesScreenState extends State<SafetyGuidelinesScreen> {
             // Header Banner
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.primary,
-                borderRadius: const BorderRadius.only(
+              decoration: const BoxDecoration(
+                color: AppTheme.scholarBlue,
+                borderRadius: BorderRadius.only(
                   bottomLeft: Radius.circular(24),
                   bottomRight: Radius.circular(24),
                 ),
@@ -139,7 +139,7 @@ class _SafetyGuidelinesScreenState extends State<SafetyGuidelinesScreen> {
                     context,
                     title: l10n.safeMeetupLocations,
                     icon: Icons.place_rounded,
-                    color: AppTheme.scholarBlue,
+                    color: Theme.of(context).colorScheme.primary,
                     items: [
                       'Meet in busy, highly populated campus zones during daylight hours.',
                       'Never meet in isolated areas, dark corridors, or off-campus private rooms.',
@@ -470,7 +470,8 @@ class _SafetyGuidelinesScreenState extends State<SafetyGuidelinesScreen> {
                                       style: FilledButton.styleFrom(
                                         backgroundColor:
                                             theme.colorScheme.primary,
-                                        foregroundColor: Colors.white,
+                                        foregroundColor:
+                                            theme.colorScheme.onPrimary,
                                         shape: RoundedRectangleBorder(
                                           borderRadius: BorderRadius.circular(
                                             10,

@@ -24,7 +24,10 @@ class SellerRatingBadge extends StatelessWidget {
         const SizedBox(width: 4),
         Text(
           '($reviewCount)',
-          style: TextStyle(color: Colors.grey[600], fontSize: 12),
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+            fontSize: 12,
+          ),
         ),
       ],
     );

@@ -120,7 +120,9 @@ class MyApp extends StatelessWidget {
             debugShowCheckedModeBanner: false,
             theme: AppTheme.lightTheme,
             darkTheme: AppTheme.darkTheme,
-            themeMode: themeViewModel.themeMode, // Added themeMode
+            themeMode: themeViewModel.themeMode,
+            themeAnimationDuration: const Duration(milliseconds: 300),
+            themeAnimationCurve: Curves.easeInOut,
             routerConfig: appRouter,
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,

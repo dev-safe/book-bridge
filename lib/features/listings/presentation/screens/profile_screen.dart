@@ -221,28 +221,70 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Consumer<ThemeViewModel>(
                     builder: (context, themeViewModel, child) {
                       final l10n = AppLocalizations.of(context)!;
-                      final isDarkMode =
-                          themeViewModel.themeMode == ThemeMode.dark ||
-                          (themeViewModel.themeMode == ThemeMode.system &&
-                              MediaQuery.of(context).platformBrightness ==
-                                  Brightness.dark);
-                      return SwitchListTile(
-                        secondary: Icon(
-                          isDarkMode ? Icons.dark_mode : Icons.light_mode,
-                          color: Theme.of(context).primaryColor,
+                      return Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(
+                                  Theme.of(context).brightness ==
+                                          Brightness.dark
+                                      ? Icons.dark_mode_outlined
+                                      : Icons.light_mode_outlined,
+                                  size: 22,
+                                  color: Theme.of(
+                                    context,
+                                  ).iconTheme.color?.withValues(alpha: 0.8),
+                                ),
+                                const SizedBox(width: 16),
+                                Text(
+                                  l10n.appearance,
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w500,
+                                    color: Theme.of(
+                                      context,
+                                    ).textTheme.bodyLarge?.color,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            SizedBox(
+                              width: double.infinity,
+                              child: SegmentedButton<ThemeMode>(
+                                key: const Key('themeModeSelector'),
+                                showSelectedIcon: false,
+                                segments: [
+                                  ButtonSegment(
+                                    value: ThemeMode.light,
+                                    icon: const Icon(Icons.light_mode_outlined),
+                                    label: Text(l10n.themeLight),
+                                  ),
+                                  ButtonSegment(
+                                    value: ThemeMode.dark,
+                                    icon: const Icon(Icons.dark_mode_outlined),
+                                    label: Text(l10n.themeDark),
+                                  ),
+                                  ButtonSegment(
+                                    value: ThemeMode.system,
+                                    icon: const Icon(
+                                      Icons.brightness_auto_outlined,
+                                    ),
+                                    label: Text(l10n.themeSystem),
+                                  ),
+                                ],
+                                selected: {themeViewModel.themeMode},
+                                onSelectionChanged: (selection) =>
+                                    themeViewModel.setThemeMode(
+                                      selection.first,
+                                    ),
+                              ),
+                            ),
+                          ],
                         ),
-                        title: Text(l10n.darkMode),
-                        subtitle: Text(
-                          themeViewModel.themeMode == ThemeMode.system
-                              ? l10n.systemDefault
-                              : l10n.manual,
-                        ),
-                        value: isDarkMode,
-                        onChanged: (value) {
-                          themeViewModel.setThemeMode(
-                            value ? ThemeMode.dark : ThemeMode.light,
-                          );
-                        },
                       );
                     },
                   ),
@@ -362,7 +404,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     user.fullName.isNotEmpty
                         ? user.fullName[0].toUpperCase()
                         : user.email[0].toUpperCase(),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 32,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
@@ -383,11 +425,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.location_on, size: 16, color: Colors.grey),
+              Icon(
+                Icons.location_on,
+                size: 16,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
               const SizedBox(width: 4),
               Text(
                 user.locality ?? AppLocalizations.of(context)!.unknownLocation,
-                style: const TextStyle(color: Colors.grey, fontSize: 14),
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  fontSize: 14,
+                ),
               ),
             ],
           ),
@@ -406,7 +455,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               context,
               vm.userListings.length.toString(),
               AppLocalizations.of(context)!.activeBooks,
-              AppTheme.scholarBlue,
+              Theme.of(context).colorScheme.primary,
             ),
           ),
           Container(height: 40, width: 1, color: Colors.grey[300]),
@@ -449,9 +498,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
         const SizedBox(height: 4),
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 12,
-            color: Colors.grey,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
             fontWeight: FontWeight.w500,
           ),
         ),
@@ -587,8 +636,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
           value: value,
           onChanged: onChanged,
           contentPadding: EdgeInsets.only(left: indent ? 40 : 20, right: 20),
-          activeTrackColor: AppTheme.scholarBlue.withValues(alpha: 0.5),
-          activeThumbColor: AppTheme.scholarBlue,
+          activeTrackColor: Theme.of(
+            context,
+          ).colorScheme.primary.withValues(alpha: 0.5),
+          activeThumbColor: Theme.of(context).colorScheme.primary,
         ),
         if (!isLast)
           Padding(
@@ -725,7 +776,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: Colors.grey[100],
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
                 shape: BoxShape.circle,
               ),
               child: FaIcon(icon, color: color, size: 24),
@@ -735,7 +786,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               label,
               style: TextStyle(
                 fontSize: 10,
-                color: Colors.grey[600],
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -894,7 +945,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     color: Theme.of(context).colorScheme.primary,
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.coffee, color: Colors.white),
+                  child: Icon(
+                    Icons.coffee,
+                    color: Theme.of(context).colorScheme.onPrimary,
+                  ),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -912,7 +966,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       const SizedBox(height: 4),
                       Text(
                         AppLocalizations.of(context)!.supportDescription,
-                        style: TextStyle(fontSize: 13, color: Colors.grey[700]),
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
                       ),
                     ],
                   ),

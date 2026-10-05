@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:book_bridge/core/utils/geo_radius.dart';
 import 'package:book_bridge/features/listings/domain/entities/listing.dart';
@@ -320,7 +320,7 @@ class HomeViewModel extends ChangeNotifier with AcademicFiltersMixin {
       _currentPosition = await Geolocator.getCurrentPosition();
       notifyListeners();
     } catch (e) {
-      debugPrint('Error fetching location: $e');
+      if (kDebugMode) debugPrint('Error fetching location: $e');
     }
   }
 }

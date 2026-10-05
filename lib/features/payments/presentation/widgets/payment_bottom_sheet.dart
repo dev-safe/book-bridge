@@ -133,9 +133,11 @@ class _PaymentBottomSheetState extends State<PaymentBottomSheet> {
           ),
           child: Container(
             padding: const EdgeInsets.all(24),
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface,
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(20),
+              ),
             ),
             child: SingleChildScrollView(
               child: Column(
@@ -173,7 +175,7 @@ class _PaymentBottomSheetState extends State<PaymentBottomSheet> {
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
-                      color: Theme.of(context).primaryColor,
+                      color: Theme.of(context).colorScheme.primary,
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -288,8 +290,12 @@ class _PaymentBottomSheetState extends State<PaymentBottomSheet> {
                         Navigator.pop(context);
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.grey[200],
-                        foregroundColor: Colors.black,
+                        backgroundColor: Theme.of(
+                          context,
+                        ).colorScheme.surfaceContainerHighest,
+                        foregroundColor: Theme.of(
+                          context,
+                        ).colorScheme.onSurface,
                       ),
                       child: Text(AppLocalizations.of(context)!.continueButton),
                     ),
@@ -386,7 +392,10 @@ class _ReviewPromptState extends State<_ReviewPrompt> {
       return Text(
         AppLocalizations.of(context)!.reviewLaterHint,
         textAlign: TextAlign.center,
-        style: TextStyle(color: Colors.grey[600], fontSize: 13),
+        style: TextStyle(
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+          fontSize: 13,
+        ),
       );
     }
 

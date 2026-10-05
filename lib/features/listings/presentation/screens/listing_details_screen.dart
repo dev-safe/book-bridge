@@ -595,7 +595,9 @@ class _ListingDetailsScreenState extends State<ListingDetailsScreen> {
                                                               'author'
                                                         ? Icons.history_edu
                                                         : Icons.person,
-                                                    color: AppTheme.scholarBlue,
+                                                    color: Theme.of(
+                                                      context,
+                                                    ).colorScheme.primary,
                                                   ),
                                         )
                                       : Icon(
@@ -604,7 +606,9 @@ class _ListingDetailsScreenState extends State<ListingDetailsScreen> {
                                               : listing.sellerType == 'author'
                                               ? Icons.history_edu
                                               : Icons.person,
-                                          color: AppTheme.scholarBlue,
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.primary,
                                         ),
                                 ),
                               ),
@@ -904,9 +908,9 @@ class _ListingDetailsScreenState extends State<ListingDetailsScreen> {
                       );
                     },
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: AppTheme.scholarBlue,
-                      side: const BorderSide(
-                        color: AppTheme.scholarBlue,
+                      foregroundColor: Theme.of(context).colorScheme.primary,
+                      side: BorderSide(
+                        color: Theme.of(context).colorScheme.primary,
                         width: 1.5,
                       ),
                       shape: RoundedRectangleBorder(

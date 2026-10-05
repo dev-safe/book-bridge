@@ -60,25 +60,17 @@ final appRouter = GoRouter(
     final authState = authViewModel.authState;
     final location = state.matchedLocation;
 
-    debugPrint('Router: Redirect check: loc=$location, state=$authState');
-
     // While initializing or loading, stay on current page (usually slash)
     if (authState == AuthState.initial || authState == AuthState.loading) {
-      debugPrint('Router: Still loading auth, staying on $location');
       return null;
     }
 
     final isAuthenticated = authViewModel.isAuthenticated;
     final isGoingToAuth = location == '/sign-in' || location == '/sign-up';
 
-    debugPrint(
-      'Router: AuthStatus: authenticated=$isAuthenticated, isGoingToAuth=$isGoingToAuth',
-    );
-
     // If not authenticated and not going to auth screen, redirect to sign-in
     if (!isAuthenticated && !isGoingToAuth) {
       _rememberDeepLink(location);
-      debugPrint('Router: Redirecting unauthenticated user to /sign-in');
       return '/sign-in';
     }
 
@@ -87,7 +79,6 @@ final appRouter = GoRouter(
       // 1. Check if profile is incomplete
       if (!authViewModel.isProfileComplete && location != '/complete-profile') {
         _rememberDeepLink(location);
-        debugPrint('Router: Redirecting to /complete-profile');
         return '/complete-profile';
       }
 
@@ -96,7 +87,6 @@ final appRouter = GoRouter(
           !authViewModel.hasAgeDeclaration &&
           location != '/age-declaration') {
         _rememberDeepLink(location);
-        debugPrint('Router: Redirecting to /age-declaration');
         return '/age-declaration';
       }
 
@@ -109,12 +99,10 @@ final appRouter = GoRouter(
               location == '/age-declaration')) {
         final pending = _pendingDeepLink;
         _pendingDeepLink = null;
-        debugPrint('Router: Redirecting to ${pending ?? '/home'}');
         return pending ?? '/home';
       }
     }
 
-    debugPrint('Router: No redirection needed for $location');
     return null;
   },
   refreshListenable: di.getIt<AuthViewModel>(),
