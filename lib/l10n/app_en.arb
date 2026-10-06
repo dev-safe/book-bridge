@@ -560,6 +560,5 @@
   "@ordersToConfirm": {"placeholders": {"count": {"type": "int"}}},
   "ordersToHandOver": "{count, plural, =1{1 sale: hand over the book to get paid} other{{count} sales: hand over the books to get paid}}",
   "@ordersToHandOver": {"placeholders": {"count": {"type": "int"}}},
-  "viewOrders": "View orders",
-  "priceTitle": "Price"
+  "viewOrders": "View orders"
 }

@@ -19,7 +19,6 @@ void main() {
           supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
             bottomNavigationBar: ListingBuyerBar(
-              priceFcfa: 2500,
               isAvailable: isAvailable,
               onChat: () => chatTaps++,
               onBuy: () => buyTaps++,
@@ -28,15 +27,12 @@ void main() {
         ),
       );
 
-  testWidgets('available listing shows price, chat and buy actions', (
+  testWidgets('available listing shows message and buy actions', (
     tester,
   ) async {
     await pumpBar(tester, isAvailable: true);
 
-    expect(find.text('Price'), findsOneWidget);
-    expect(find.text('2500 FCFA'), findsOneWidget);
-
-    await tester.tap(find.byIcon(Icons.chat_bubble_outline));
+    await tester.tap(find.text('Message Seller'));
     await tester.tap(find.text('Buy Now'));
 
     expect(chatTaps, 1);
@@ -46,7 +42,7 @@ void main() {
   testWidgets('sold listing hides chat and disables buy', (tester) async {
     await pumpBar(tester, isAvailable: false);
 
-    expect(find.byIcon(Icons.chat_bubble_outline), findsNothing);
+    expect(find.text('Message Seller'), findsNothing);
     expect(find.text('SOLD'), findsOneWidget);
 
     await tester.tap(find.text('SOLD'));

@@ -1523,7 +1523,4 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get viewOrders => 'View orders';
-
-  @override
-  String get priceTitle => 'Price';
 }

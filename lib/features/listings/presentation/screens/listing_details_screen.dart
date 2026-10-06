@@ -836,7 +836,6 @@ class _ListingDetailsScreenState extends State<ListingDetailsScreen> {
         authVM.currentUser == null ? context.push('/sign-in') : action();
 
     return ListingBuyerBar(
-      priceFcfa: listing.priceFcfa,
       isAvailable: listing.status == 'available',
       onChat: () => requireSignIn(() => _openChat(context, listing)),
       onBuy: () => requireSignIn(() => _openPayment(context, listing)),

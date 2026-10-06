@@ -3,19 +3,17 @@ import 'package:book_bridge/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 /// Compact sticky action row shown to buyers on the listing details screen:
-/// price on the left, a chat shortcut and the primary Buy call-to-action.
+/// a "Message Seller" button next to the primary Buy call-to-action.
 ///
-/// When [isAvailable] is false the chat shortcut is hidden and the Buy button
-/// is disabled with a "SOLD" label.
+/// When [isAvailable] is false the message button is hidden and the Buy
+/// button is disabled with a "SOLD" label.
 class ListingBuyerBar extends StatelessWidget {
-  final int priceFcfa;
   final bool isAvailable;
   final VoidCallback onChat;
   final VoidCallback onBuy;
 
   const ListingBuyerBar({
     super.key,
-    required this.priceFcfa,
     required this.isAvailable,
     required this.onChat,
     required this.onBuy,
@@ -25,13 +23,11 @@ class ListingBuyerBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Expanded(flex: 4, child: _PriceBlock(priceFcfa: priceFcfa)),
         if (isAvailable) ...[
-          _ChatButton(onPressed: onChat),
+          Expanded(child: _MessageButton(onPressed: onChat)),
           const SizedBox(width: 10),
         ],
         Expanded(
-          flex: 5,
           child: _BuyButton(isAvailable: isAvailable, onPressed: onBuy),
         ),
       ],
@@ -39,70 +35,32 @@ class ListingBuyerBar extends StatelessWidget {
   }
 }
 
-class _PriceBlock extends StatelessWidget {
-  final int priceFcfa;
-
-  const _PriceBlock({required this.priceFcfa});
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          l10n.priceTitle,
-          style: TextStyle(
-            fontSize: 12,
-            color: theme.colorScheme.onSurfaceVariant,
-          ),
-        ),
-        FittedBox(
-          fit: BoxFit.scaleDown,
-          alignment: Alignment.centerLeft,
-          child: Text(
-            l10n.priceFormat(priceFcfa),
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w800,
-              color: theme.colorScheme.primary,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _ChatButton extends StatelessWidget {
+class _MessageButton extends StatelessWidget {
   final VoidCallback onPressed;
 
-  const _ChatButton({required this.onPressed});
+  const _MessageButton({required this.onPressed});
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
     final primary = Theme.of(context).colorScheme.primary;
     return SizedBox(
-      width: 52,
       height: 52,
-      child: Tooltip(
-        message: l10n.messageSeller,
-        child: OutlinedButton(
-          onPressed: onPressed,
-          style: OutlinedButton.styleFrom(
-            padding: EdgeInsets.zero,
-            foregroundColor: primary,
-            side: BorderSide(color: primary, width: 1.5),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
+      child: OutlinedButton.icon(
+        onPressed: onPressed,
+        style: OutlinedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          foregroundColor: primary,
+          side: BorderSide(color: primary, width: 1.5),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
           ),
-          child: Icon(
-            Icons.chat_bubble_outline,
-            semanticLabel: l10n.messageSeller,
+        ),
+        icon: const Icon(Icons.chat_bubble_outline, size: 20),
+        label: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            AppLocalizations.of(context)!.messageSeller,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
           ),
         ),
       ),
