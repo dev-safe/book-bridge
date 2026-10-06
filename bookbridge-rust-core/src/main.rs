@@ -9,12 +9,13 @@ use tokio::net::TcpListener;
 
 use bookbridge_rust_core::auth::require_internal_auth;
 use bookbridge_rust_core::config::AppConfig;
+use bookbridge_rust_core::push::PushService;
 use bookbridge_rust_core::rate_limit::{limit_by_ip, RateLimits};
+use bookbridge_rust_core::routes::account::account_routes;
 use bookbridge_rust_core::routes::admin::admin_routes;
 use bookbridge_rust_core::routes::buyer::buyer_routes;
 use bookbridge_rust_core::routes::escrow::{poll_pending_handler, process_releases_handler};
 use bookbridge_rust_core::routes::health::health_handler;
-use bookbridge_rust_core::push::PushService;
 use bookbridge_rust_core::routes::payments::payment_routes;
 use bookbridge_rust_core::routes::push::dispatch_push_handler;
 use bookbridge_rust_core::routes::subscriptions::subscription_routes;
@@ -75,6 +76,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .merge(payment_routes())
         .merge(admin_routes())
         .merge(subscription_routes())
+        .merge(account_routes())
         .layer(middleware::from_fn_with_state(state.clone(), limit_by_ip));
 
     let app = Router::new()

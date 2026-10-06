@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:book_bridge/core/constants/feature_flags.dart';
 import 'package:book_bridge/core/theme/app_theme.dart';
 import 'package:book_bridge/l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
@@ -164,6 +165,11 @@ class TermsScreen extends StatelessWidget {
     );
   }
 
+  static const _paidFeatureTerms =
+      '• Power Seller: 500 XAF for 30 days, unlocking unlimited active '
+      'listings. It is a one-off payment, not an automatic renewal.\n'
+      '• Listing boost: 500 XAF for 7 days of higher visibility.\n';
+
   List<_TermSection> _sections(BuildContext context) {
     final primary = Theme.of(context).colorScheme.primary;
     final secondary = Theme.of(context).colorScheme.secondary;
@@ -191,9 +197,7 @@ class TermsScreen extends StatelessWidget {
             '• Fees: the buyer pays the listed price plus a 6% service fee. '
             'The seller receives 100% of the listed price.\n'
             '• Free sellers may have up to 3 active listings at a time.\n'
-            '• Power Seller: 500 XAF for 30 days, unlocking unlimited active '
-            'listings. It is a one-off payment, not an automatic renewal.\n'
-            '• Listing boost: 500 XAF for 7 days of higher visibility.\n\n'
+            '${kDigitalPaymentsEnabled ? _paidFeatureTerms : ''}\n'
             'Sellers must describe each book honestly (title, edition, '
             'condition) and must only list books they own and can hand over.',
       ),

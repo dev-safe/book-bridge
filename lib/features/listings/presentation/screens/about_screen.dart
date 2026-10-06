@@ -1,3 +1,4 @@
+import 'package:book_bridge/core/constants/feature_flags.dart';
 import 'package:book_bridge/core/constants/contact_links.dart';
 import 'package:book_bridge/core/utils/external_links.dart';
 import 'package:book_bridge/features/payments/presentation/widgets/donation_sheet.dart';
@@ -97,14 +98,16 @@ class AboutScreen extends StatelessWidget {
             const SizedBox(height: 48),
 
             // Links Section
-            _buildLinkTile(
-              context,
-              icon: Icons.favorite_rounded,
-              title: AppLocalizations.of(context)!.supportCommunity,
-              subtitle: AppLocalizations.of(context)!.supportDescription,
-              onTap: () => showDonationSheet(context),
-            ),
-            const SizedBox(height: 16),
+            if (kDigitalPaymentsEnabled) ...[
+              _buildLinkTile(
+                context,
+                icon: Icons.favorite_rounded,
+                title: AppLocalizations.of(context)!.supportCommunity,
+                subtitle: AppLocalizations.of(context)!.supportDescription,
+                onTap: () => showDonationSheet(context),
+              ),
+              const SizedBox(height: 16),
+            ],
             _buildLinkTile(
               context,
               icon: FontAwesomeIcons.whatsapp.data,

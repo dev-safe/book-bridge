@@ -1,3 +1,4 @@
+import 'package:book_bridge/core/constants/feature_flags.dart';
 import 'package:book_bridge/features/listings/presentation/widgets/listing_buyer_bar.dart';
 import 'package:book_bridge/features/listings/presentation/widgets/listing_image_carousel.dart';
 import 'package:flutter/material.dart';
@@ -753,6 +754,10 @@ class _ListingDetailsScreenState extends State<ListingDetailsScreen> {
   Widget? _buildBottomBar(ListingDetailsViewModel viewModel) {
     final listing = viewModel.listing;
     if (listing == null) return null;
+    // The owner's bar only offers a paid boost.
+    final isOwner =
+        context.watch<AuthViewModel>().currentUser?.id == listing.sellerId;
+    if (isOwner && !kDigitalPaymentsEnabled) return null;
 
     return Container(
       padding: EdgeInsets.fromLTRB(

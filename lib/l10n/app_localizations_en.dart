@@ -638,6 +638,33 @@ class AppLocalizationsEn extends AppLocalizations {
   String get logoutConfirmMessage => 'Are you sure you want to logout?';
 
   @override
+  String get deleteAccount => 'Delete account';
+
+  @override
+  String get deleteAccountTitle => 'Delete your account?';
+
+  @override
+  String get deleteAccountMessage => 'This permanently deletes your profile, listings, photos, messages, favourites and ID documents, and signs you out on every device.\n\nRecords of past purchases and payments are kept without your name, for accounting and dispute purposes.';
+
+  @override
+  String get deleteAccountConfirmCheckbox => 'I understand this cannot be undone';
+
+  @override
+  String get deleteAccountInProgress => 'Deleting your account… this can take up to a minute.';
+
+  @override
+  String get deleteAccountSuccess => 'Your account has been deleted.';
+
+  @override
+  String get deleteAccountActiveOrdersTitle => 'Order in progress';
+
+  @override
+  String get deleteAccountActiveOrders => 'You have an order in progress. Finish or cancel it before deleting your account.';
+
+  @override
+  String get deleteAccountError => 'We couldn\'t delete your account. Please try again, or email contact@devsafe.cm.';
+
+  @override
   String get profileUpdatedSuccess => 'Profile updated successfully!';
 
   @override
@@ -1361,7 +1388,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get powerSellerUpgradeError => 'Could not start the upgrade. Please try again.';
 
   @override
-  String get freeTierLimitReached => 'Free sellers can have up to 3 active listings. Upgrade to Power Seller on your Profile for unlimited listings.';
+  String get freeTierLimitReached => 'Free sellers can have up to 3 active listings. Remove or sell one of your listings to post another.';
+
+  @override
+  String get freeTierLimitUpgradeHint => 'Upgrade to Power Seller on your Profile for unlimited listings.';
 
   @override
   String get ageDeclarationTitle => 'Before you continue';

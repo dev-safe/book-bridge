@@ -1,5 +1,5 @@
 <script>
-	const LAST_UPDATED = '6 October 2026';
+	const LAST_UPDATED = '18 October 2026';
 	const CONTACT_EMAIL = 'contact@devsafe.cm';
 </script>
 
@@ -100,8 +100,14 @@
 			<li>Chat messages are deleted automatically after 7 days.</li>
 			<li>ID photos are deleted as soon as the review is complete.</li>
 			<li>Transaction records are kept as long as needed for disputes, accounting and legal obligations.</li>
-			<li>Other account data is kept while your account is active and deleted when you ask us to delete your account.</li>
+			<li>Other account data is kept while your account is active and deleted when you delete your account.</li>
 		</ul>
+		<p>
+			When you delete your account, your profile, ID data, photos, messages and sign-in details are
+			deleted. Records of purchases, payments, ratings and feedback are kept without your name for
+			accounting and dispute purposes. See <a href="/delete-account">Delete your account</a> for the
+			full list.
+		</p>
 
 		<h2>9. Security</h2>
 		<p>
@@ -112,7 +118,9 @@
 		<h2>10. Your rights</h2>
 		<p>
 			Under Cameroon Law No. 2024/017 you have the right to access, correct and delete your personal
-			data, and to object to or restrict its processing. To use these rights, or to ask a question
+			data, and to object to or restrict its processing. You can delete your account at any time from
+			the Profile tab in the app (see <a href="/delete-account">Delete your account</a>). To use
+			your other rights, or to ask a question
 			about this policy, email
 			<a href="mailto:{CONTACT_EMAIL}">{CONTACT_EMAIL}</a>. Parents and guardians can make requests on
 			behalf of a child.

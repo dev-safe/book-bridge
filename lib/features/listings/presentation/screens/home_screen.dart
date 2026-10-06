@@ -1,3 +1,4 @@
+import 'package:book_bridge/core/constants/feature_flags.dart';
 import 'package:book_bridge/core/presentation/widgets/notification_icon.dart';
 import 'package:book_bridge/core/presentation/widgets/offline_banner.dart';
 import 'package:book_bridge/features/listings/domain/entities/listing.dart';
@@ -548,32 +549,34 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: _buildNearbyCard(),
                 ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: _buildDonationCard(context),
-                ),
+                if (kDigitalPaymentsEnabled)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: _buildDonationCard(context),
+                  ),
               ],
             ),
           ),
           const SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: List.generate(2, (index) {
-              final theme = Theme.of(context);
-              return AnimatedContainer(
-                duration: const Duration(milliseconds: 300),
-                margin: const EdgeInsets.symmetric(horizontal: 4),
-                height: 6,
-                width: _currentPromoPage == index ? 20 : 6,
-                decoration: BoxDecoration(
-                  color: _currentPromoPage == index
-                      ? theme.colorScheme.primary
-                      : theme.colorScheme.primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(3),
-                ),
-              );
-            }),
-          ),
+          if (kDigitalPaymentsEnabled)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(2, (index) {
+                final theme = Theme.of(context);
+                return AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  height: 6,
+                  width: _currentPromoPage == index ? 20 : 6,
+                  decoration: BoxDecoration(
+                    color: _currentPromoPage == index
+                        ? theme.colorScheme.primary
+                        : theme.colorScheme.primary.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(3),
+                  ),
+                );
+              }),
+            ),
           const SizedBox(height: 4),
         ],
       ),

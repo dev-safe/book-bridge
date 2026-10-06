@@ -104,6 +104,7 @@
       <div class="link-column">
         <h3>Legal</h3>
         <a href="/privacy">Privacy Policy</a>
+        <a href="/delete-account">Delete Account</a>
         <a href="/terms">Terms of Service</a>
       </div>
     </div>
