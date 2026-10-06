@@ -1,7 +1,7 @@
 name: book_bridge
 description: "A peer-to-peer marketplace for Cameroonian students to buy and sell used physical books."
 publish_to: "none"
-version: 1.6.0+6
+version: 1.6.1+7
 
 environment:
   sdk: ^3.10.7

@@ -4,6 +4,10 @@
 -- auth.users, auth.uid() and the Supabase API roles. Triggers, RLS policies and the
 -- tables the service never reads are left out.
 --
+-- Tables only account deletion touches (favorites, wishlists, reviews,
+-- boost_payments, donations, feedback) carry production's columns and
+-- foreign keys (captured 2026-10-18).
+--
 -- Load it into a throwaway local Postgres, apply the migrations newer than
 -- this snapshot (20261003000000_admin_dispute_resolution.sql onwards), loading
 -- supabase_extensions_stub.sql before 20261008000000_push_notifications.sql,
@@ -25,9 +29,22 @@ end $$;
 
 create schema if not exists auth;
 create table auth.users (
-  id    uuid primary key,
-  email text
+  id                 uuid primary key,
+  email              text,
+  phone              text,
+  encrypted_password text,
+  raw_user_meta_data jsonb,
+  banned_until       timestamptz,
+  deleted_at         timestamptz
 );
+
+-- Supabase Auth tables account deletion clears. refresh_tokens.user_id is
+-- varchar in Supabase Auth.
+create table auth.identities      (id uuid primary key default gen_random_uuid(), user_id uuid not null);
+create table auth.sessions        (id uuid primary key default gen_random_uuid(), user_id uuid not null);
+create table auth.mfa_factors     (id uuid primary key default gen_random_uuid(), user_id uuid not null);
+create table auth.one_time_tokens (id uuid primary key default gen_random_uuid(), user_id uuid not null);
+create table auth.refresh_tokens  (id bigserial primary key, user_id varchar(255));
 
 -- Stub so migrations that define RLS policies load; the service role the
 -- tests connect as bypasses RLS anyway.
@@ -137,4 +154,56 @@ create table public.platform_stats (
   total_money_saved_fcfa bigint default 0,
   total_co2_avoided_kg   double precision default 0,
   updated_at             timestamptz default now()
+);
+
+create table public.favorites (
+  id         uuid primary key default gen_random_uuid(),
+  user_id    uuid not null references auth.users (id) on delete cascade,
+  listing_id uuid not null references public.listings (id) on delete cascade,
+  created_at timestamptz default now()
+);
+
+create table public.wishlists (
+  id         uuid primary key default gen_random_uuid(),
+  user_id    uuid not null references public.profiles (id) on delete cascade,
+  listing_id uuid not null references public.listings (id) on delete cascade,
+  created_at timestamptz default now()
+);
+
+create table public.reviews (
+  id             uuid primary key default gen_random_uuid(),
+  reviewer_id    uuid not null references auth.users (id),
+  reviewee_id    uuid not null references auth.users (id),
+  listing_id     uuid not null references public.listings (id),
+  transaction_id uuid not null,
+  rating         smallint not null,
+  comment        text,
+  created_at     timestamptz default now()
+);
+
+create table public.boost_payments (
+  id                uuid primary key default gen_random_uuid(),
+  listing_id        uuid not null references public.listings (id) on delete cascade,
+  user_id           uuid not null references auth.users (id) on delete cascade,
+  amount            integer not null,
+  duration_days     integer not null,
+  payment_reference text not null,
+  status            text not null default 'pending',
+  created_at        timestamptz default now()
+);
+
+create table public.donations (
+  id                uuid primary key default gen_random_uuid(),
+  user_id           uuid references auth.users (id) on delete set null,
+  amount            integer not null,
+  payment_reference text not null,
+  status            text not null default 'pending',
+  created_at        timestamptz default now()
+);
+
+create table public.feedback (
+  id         uuid primary key default gen_random_uuid(),
+  user_id    uuid references auth.users (id) on delete set null,
+  content    text not null,
+  created_at timestamptz default now()
 );

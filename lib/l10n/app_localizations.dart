@@ -1319,6 +1319,60 @@ abstract class AppLocalizations {
   /// **'Are you sure you want to logout?'**
   String get logoutConfirmMessage;
 
+  /// No description provided for @deleteAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete account'**
+  String get deleteAccount;
+
+  /// No description provided for @deleteAccountTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete your account?'**
+  String get deleteAccountTitle;
+
+  /// No description provided for @deleteAccountMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'This permanently deletes your profile, listings, photos, messages, favourites and ID documents, and signs you out on every device.\n\nRecords of past purchases and payments are kept without your name, for accounting and dispute purposes.'**
+  String get deleteAccountMessage;
+
+  /// No description provided for @deleteAccountConfirmCheckbox.
+  ///
+  /// In en, this message translates to:
+  /// **'I understand this cannot be undone'**
+  String get deleteAccountConfirmCheckbox;
+
+  /// No description provided for @deleteAccountInProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Deleting your account… this can take up to a minute.'**
+  String get deleteAccountInProgress;
+
+  /// No description provided for @deleteAccountSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Your account has been deleted.'**
+  String get deleteAccountSuccess;
+
+  /// No description provided for @deleteAccountActiveOrdersTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Order in progress'**
+  String get deleteAccountActiveOrdersTitle;
+
+  /// No description provided for @deleteAccountActiveOrders.
+  ///
+  /// In en, this message translates to:
+  /// **'You have an order in progress. Finish or cancel it before deleting your account.'**
+  String get deleteAccountActiveOrders;
+
+  /// No description provided for @deleteAccountError.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t delete your account. Please try again, or email contact@devsafe.cm.'**
+  String get deleteAccountError;
+
   /// No description provided for @profileUpdatedSuccess.
   ///
   /// In en, this message translates to:
@@ -2720,8 +2774,14 @@ abstract class AppLocalizations {
   /// No description provided for @freeTierLimitReached.
   ///
   /// In en, this message translates to:
-  /// **'Free sellers can have up to 3 active listings. Upgrade to Power Seller on your Profile for unlimited listings.'**
+  /// **'Free sellers can have up to 3 active listings. Remove or sell one of your listings to post another.'**
   String get freeTierLimitReached;
+
+  /// No description provided for @freeTierLimitUpgradeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Upgrade to Power Seller on your Profile for unlimited listings.'**
+  String get freeTierLimitUpgradeHint;
 
   /// No description provided for @ageDeclarationTitle.
   ///

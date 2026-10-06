@@ -1,3 +1,4 @@
+import 'package:book_bridge/core/constants/feature_flags.dart';
 import 'package:book_bridge/core/theme/app_theme.dart';
 import 'dart:math';
 import 'package:flutter/material.dart';
@@ -297,7 +298,7 @@ class _SellScreenState extends State<SellScreen> {
           SnackBar(
             content: Text(
               isFreeTierLimitError(sellViewModel.errorMessage)
-                  ? AppLocalizations.of(context)!.freeTierLimitReached
+                  ? _freeTierLimitMessage(AppLocalizations.of(context)!)
                   : sellViewModel.errorMessage!,
             ),
             backgroundColor: Theme.of(context).colorScheme.error,
@@ -306,6 +307,11 @@ class _SellScreenState extends State<SellScreen> {
       sellViewModel.clearState(); // Clear error after showing
     }
   }
+
+  static String _freeTierLimitMessage(AppLocalizations l10n) =>
+      kDigitalPaymentsEnabled
+      ? '${l10n.freeTierLimitReached} ${l10n.freeTierLimitUpgradeHint}'
+      : l10n.freeTierLimitReached;
 
   /// Shows a dialog for selecting image source (gallery or camera).
   void _showImageSelectionDialog(

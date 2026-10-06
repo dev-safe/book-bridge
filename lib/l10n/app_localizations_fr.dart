@@ -638,6 +638,33 @@ class AppLocalizationsFr extends AppLocalizations {
   String get logoutConfirmMessage => 'Êtes-vous sûr de vouloir vous déconnecter ?';
 
   @override
+  String get deleteAccount => 'Supprimer le compte';
+
+  @override
+  String get deleteAccountTitle => 'Supprimer votre compte ?';
+
+  @override
+  String get deleteAccountMessage => 'Cette action supprime définitivement votre profil, vos annonces, photos, messages, favoris et pièces d\'identité, et vous déconnecte de tous vos appareils.\n\nL\'historique des achats et paiements est conservé sans votre nom, à des fins comptables et de gestion des litiges.';
+
+  @override
+  String get deleteAccountConfirmCheckbox => 'Je comprends que cette action est irréversible';
+
+  @override
+  String get deleteAccountInProgress => 'Suppression de votre compte… cela peut prendre jusqu\'à une minute.';
+
+  @override
+  String get deleteAccountSuccess => 'Votre compte a été supprimé.';
+
+  @override
+  String get deleteAccountActiveOrdersTitle => 'Commande en cours';
+
+  @override
+  String get deleteAccountActiveOrders => 'Vous avez une commande en cours. Terminez-la ou annulez-la avant de supprimer votre compte.';
+
+  @override
+  String get deleteAccountError => 'Impossible de supprimer votre compte. Réessayez ou écrivez à contact@devsafe.cm.';
+
+  @override
   String get profileUpdatedSuccess => 'Profil mis à jour avec succès !';
 
   @override
@@ -1361,7 +1388,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get powerSellerUpgradeError => 'Impossible de lancer la mise à niveau. Veuillez réessayer.';
 
   @override
-  String get freeTierLimitReached => 'Les vendeurs gratuits peuvent avoir jusqu\'à 3 annonces actives. Passez Vendeur Pro depuis votre Profil pour des annonces illimitées.';
+  String get freeTierLimitReached => 'Les vendeurs gratuits peuvent avoir jusqu\'à 3 annonces actives. Retirez ou vendez une annonce pour en publier une autre.';
+
+  @override
+  String get freeTierLimitUpgradeHint => 'Passez Vendeur Pro depuis votre Profil pour des annonces illimitées.';
 
   @override
   String get ageDeclarationTitle => 'Avant de continuer';
