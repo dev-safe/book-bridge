@@ -101,6 +101,90 @@ impl SupabaseAuth {
             )))
         }
     }
+
+    /// Lists the files directly inside `folder` that the token's owner can
+    /// see, as full object paths (`folder/name`). Sub-folders are skipped.
+    pub async fn list_storage_folder(
+        &self,
+        access_token: &str,
+        bucket: &str,
+        folder: &str,
+    ) -> Result<Vec<String>, AppError> {
+        let mut paths = Vec::new();
+        let mut offset = 0;
+        loop {
+            let response = self
+                .http
+                .post(format!("{}/storage/v1/object/list/{bucket}", self.base_url))
+                .header("apikey", &self.anon_key)
+                .bearer_auth(access_token)
+                .json(&serde_json::json!({
+                    "prefix": folder,
+                    "limit": STORAGE_LIST_PAGE,
+                    "offset": offset,
+                }))
+                .send()
+                .await
+                .map_err(|e| AppError::AuthService(format!("storage request failed: {e}")))?;
+            if !response.status().is_success() {
+                return Err(AppError::AuthService(format!(
+                    "storage list returned status {}",
+                    response.status()
+                )));
+            }
+            let entries: Vec<StorageEntry> = response
+                .json()
+                .await
+                .map_err(|e| AppError::AuthService(format!("unexpected storage list: {e}")))?;
+            let page_len = entries.len();
+            offset += page_len;
+            // Folders come back with a null id.
+            paths.extend(
+                entries
+                    .into_iter()
+                    .filter(|e| e.id.is_some())
+                    .map(|e| format!("{folder}/{}", e.name)),
+            );
+            if page_len < STORAGE_LIST_PAGE {
+                return Ok(paths);
+            }
+        }
+    }
+
+    /// Deletes every file in `folder`, then lists it again: Storage silently
+    /// skips objects RLS hides from the token, so an empty listing is the
+    /// only proof the delete worked.
+    pub async fn purge_storage_folder(
+        &self,
+        access_token: &str,
+        bucket: &str,
+        folder: &str,
+    ) -> Result<(), AppError> {
+        let paths = self
+            .list_storage_folder(access_token, bucket, folder)
+            .await?;
+        self.delete_storage_objects(access_token, bucket, &paths)
+            .await?;
+        let left = self
+            .list_storage_folder(access_token, bucket, folder)
+            .await?;
+        if left.is_empty() {
+            Ok(())
+        } else {
+            Err(AppError::AuthService(format!(
+                "{} object(s) could not be deleted from {bucket}",
+                left.len()
+            )))
+        }
+    }
+}
+
+const STORAGE_LIST_PAGE: usize = 1000;
+
+#[derive(Deserialize)]
+struct StorageEntry {
+    name: String,
+    id: Option<serde_json::Value>,
 }
 
 /// Extracts the token from an `Authorization: Bearer <token>` header.

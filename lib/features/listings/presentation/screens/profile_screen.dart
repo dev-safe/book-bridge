@@ -1,7 +1,10 @@
 import 'package:book_bridge/core/constants/contact_links.dart';
+import 'package:book_bridge/core/constants/feature_flags.dart';
 import 'package:book_bridge/core/utils/external_links.dart';
 import 'package:book_bridge/core/theme/app_theme.dart';
 import 'package:book_bridge/features/auth/presentation/viewmodels/auth_viewmodel.dart';
+import 'package:book_bridge/features/auth/data/datasources/rust_account_data_source.dart';
+import 'package:book_bridge/features/auth/presentation/widgets/delete_account_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
@@ -164,12 +167,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
               children: [
                 _buildHeader(context, user),
                 _buildStatsSection(context, profileViewModel),
-                _buildDonationCard(context, user),
-                if (!user.isPowerSeller)
-                  PowerSellerUpgradeCard(
-                    onTap: _startPowerSellerUpgrade,
-                    loading: _upgrading,
-                  ),
+                if (kDigitalPaymentsEnabled) ...[
+                  _buildDonationCard(context, user),
+                  if (!user.isPowerSeller)
+                    PowerSellerUpgradeCard(
+                      onTap: _startPowerSellerUpgrade,
+                      loading: _upgrading,
+                    ),
+                ],
                 const Divider(height: 1),
                 _buildMenuSection(
                   context,
@@ -369,6 +374,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     onTap: () => context.push('/about'),
                     // Hidden admin entry; the server rejects non-admins.
                     onLongPress: () => context.push('/admin'),
+                  ),
+                  _buildMenuItem(
+                    context,
+                    icon: Icons.delete_forever_outlined,
+                    title: AppLocalizations.of(context)!.deleteAccount,
+                    textColor: Colors.red,
+                    onTap: () => confirmAndDeleteAccount(
+                      context,
+                      deleteAccount:
+                          getIt<RustAccountDataSource>().deleteAccount,
+                      onDeleted: context.read<AuthViewModel>().signOut,
+                    ),
                   ),
                   _buildMenuItem(
                     context,

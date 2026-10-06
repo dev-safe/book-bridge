@@ -7,7 +7,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 /// Authenticated JSON client for the BookBridge Rust core service.
 ///
 /// Every request carries the signed-in user's Supabase access token. A 401
-/// becomes [AuthAppException]; other failures become [ServerException] with
+/// becomes [AuthAppException], a 409 becomes [ConflictException]; other
+/// failures become [ServerException] with
 /// the service's `{"error": ...}` message when it sends one.
 class RustCoreClient {
   /// Render's free tier can take close to a minute to wake from sleep.
@@ -90,6 +91,11 @@ class RustCoreClient {
       if (response.statusCode == 401) {
         throw AuthAppException(
           message: 'Your session has expired. Please sign in again.',
+        );
+      }
+      if (response.statusCode == 409) {
+        throw ConflictException(
+          message: '$failurePrefix: ${_errorMessage(response)}',
         );
       }
       if (response.statusCode != 200) {

@@ -1,5 +1,23 @@
 # CHANGELOG
 
+## 1.6.1 - October 18, 2026
+
+Google Play compliance release.
+
+### Added
+
+- **In-app account deletion** (Profile → Delete account): deletes the profile, ID documents, photos, messages, favourites and sign-in details, and signs out every device. Purchase, payment and rating records are kept without the user's name. Blocked while an order, dispute or reservation is in progress. Served by the new Rust endpoint `POST /account/delete`.
+- Public **Delete your account** page at `/delete-account` on the website, linked from the footer and the Privacy Policy.
+
+### Changed
+
+- **Power Seller, listing boosts and donations are hidden** in Play builds, because Google Play requires Play Billing for digital goods. Re-enable with `--dart-define=ENABLE_DIGITAL_PAYMENTS=true`. Book purchases (escrow) are unchanged. The 3-active-listing limit for free sellers no longer suggests upgrading.
+- Privacy Policy updated with in-app deletion and what is kept after deletion.
+
+### Database
+
+- `20261018000000_id_documents_owner_delete.sql`: users can delete their own ID documents (needed by account deletion). Run it **before** deploying the Rust service.
+
 ## 1.6.0 - October 6, 2026
 
 ### Added

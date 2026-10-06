@@ -82,6 +82,7 @@ import 'package:book_bridge/features/safety/domain/usecases/get_campus_zones_use
 import 'package:book_bridge/features/safety/presentation/viewmodels/safety_viewmodel.dart';
 import 'package:book_bridge/features/admin/data/datasources/rust_admin_data_source.dart';
 import 'package:book_bridge/features/subscriptions/data/datasources/rust_subscription_data_source.dart';
+import 'package:book_bridge/features/auth/data/datasources/rust_account_data_source.dart';
 import 'package:book_bridge/features/admin/data/repositories/admin_repository_impl.dart';
 import 'package:book_bridge/features/admin/domain/repositories/admin_repository.dart';
 import 'package:book_bridge/features/admin/presentation/viewmodels/admin_viewmodel.dart';
@@ -345,6 +346,11 @@ Future<void> setupDependencyInjection() async {
   // Power Seller subscription (payment happens on the web upgrade page)
   getIt.registerLazySingleton<RustSubscriptionDataSource>(
     () => RustSubscriptionDataSource(getIt<RustCoreClient>()),
+  );
+
+  // Account deletion (Play Store requirement)
+  getIt.registerLazySingleton<RustAccountDataSource>(
+    () => RustAccountDataSource(getIt<RustCoreClient>()),
   );
 
   // Admin Feature (disputes, unmatched payments, ID reviews; the server
