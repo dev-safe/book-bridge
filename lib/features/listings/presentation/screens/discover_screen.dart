@@ -92,26 +92,35 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                       Container(
                         height: 56,
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: Theme.of(context).colorScheme.surfaceContainer,
                           borderRadius: BorderRadius.circular(12),
-                          // No border needed for white on blue
                         ),
                         child: TextField(
                           controller: _searchController,
-                          style: const TextStyle(color: Colors.black),
-                          cursorColor: Colors.black,
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurface,
+                          ),
+                          cursorColor: Theme.of(context).colorScheme.primary,
                           decoration: InputDecoration(
                             hintText: AppLocalizations.of(context)!.searchHint,
-                            hintStyle: const TextStyle(color: Colors.grey),
-                            prefixIcon: const Icon(
+                            hintStyle: TextStyle(
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurfaceVariant,
+                            ),
+                            prefixIcon: Icon(
                               Icons.search,
-                              color: Colors.grey,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurfaceVariant,
                             ),
                             suffixIcon: _searchController.text.isNotEmpty
                                 ? IconButton(
-                                    icon: const Icon(
+                                    icon: Icon(
                                       Icons.clear,
-                                      color: Colors.grey,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onSurfaceVariant,
                                     ),
                                     onPressed: () {
                                       _searchController.clear();
@@ -120,6 +129,10 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                                     },
                                   )
                                 : null,
+                            filled: true,
+                            fillColor: Theme.of(
+                              context,
+                            ).colorScheme.surfaceContainer,
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
                               borderSide: BorderSide.none,
