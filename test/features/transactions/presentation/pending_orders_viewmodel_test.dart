@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:book_bridge/core/error/failures.dart';
 import 'package:book_bridge/features/transactions/domain/entities/transaction_entity.dart';
 import 'package:book_bridge/features/transactions/domain/usecases/get_user_transactions_usecase.dart';
@@ -106,6 +108,40 @@ void main() {
       await viewModel.refresh('u1');
 
       expect(notifications, 1);
+    });
+
+    test('switching user resets counts and ignores failures', () async {
+      stub(purchases: Right([_tx('1', 'held')]));
+      await viewModel.refresh('u1');
+      when(
+        () => useCase.purchases('u2'),
+      ).thenAnswer((_) async => const Left(ServerFailure(message: 'offline')));
+      when(
+        () => useCase.sales('u2'),
+      ).thenAnswer((_) async => const Left(ServerFailure(message: 'offline')));
+
+      await viewModel.refresh('u2');
+
+      expect(viewModel.totalCount, 0);
+    });
+
+    test('drops a late result from the previous user', () async {
+      final pending = Completer<Either<Failure, List<TransactionEntity>>>();
+      when(() => useCase.purchases('u1')).thenAnswer((_) => pending.future);
+      when(
+        () => useCase.sales('u1'),
+      ).thenAnswer((_) async => Right([_tx('9', 'held')]));
+      when(
+        () => useCase.purchases('u2'),
+      ).thenAnswer((_) async => const Right([]));
+      when(() => useCase.sales('u2')).thenAnswer((_) async => const Right([]));
+
+      final first = viewModel.refresh('u1');
+      await viewModel.refresh('u2');
+      pending.complete(Right([_tx('1', 'held')]));
+      await first;
+
+      expect(viewModel.totalCount, 0);
     });
 
     test('clear resets counts', () async {

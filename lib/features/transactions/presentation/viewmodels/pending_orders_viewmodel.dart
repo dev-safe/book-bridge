@@ -13,7 +13,12 @@ class PendingOrdersViewModel extends ChangeNotifier {
 
   int _purchasesToConfirm = 0;
   int _salesInEscrow = 0;
-  bool _isRefreshing = false;
+
+  /// The user the current counts belong to.
+  String? _userId;
+
+  /// The user a fetch is currently in flight for, if any.
+  String? _refreshingFor;
 
   /// Purchases paid into escrow that the buyer still has to confirm.
   int get purchasesToConfirm => _purchasesToConfirm;
@@ -27,15 +32,21 @@ class PendingOrdersViewModel extends ChangeNotifier {
 
   Future<void> refresh(String? userId) async {
     if (userId == null || userId.isEmpty) {
-      _update(0, 0);
+      clear();
       return;
     }
-    if (_isRefreshing) return;
-    _isRefreshing = true;
+    if (userId != _userId) {
+      // Never show another account's counts, even briefly.
+      _userId = userId;
+      _update(0, 0);
+    }
+    if (_refreshingFor == userId) return;
+    _refreshingFor = userId;
     try {
       final purchasesResult = await useCase.purchases(userId);
       final salesResult = await useCase.sales(userId);
-      // Keep the previous counts on failure rather than flashing to zero.
+      if (_userId != userId) return;
+      // Keep this user's previous counts on failure rather than flashing to 0.
       final purchases = purchasesResult.fold(
         (_) => _purchasesToConfirm,
         _countHeld,
@@ -43,11 +54,14 @@ class PendingOrdersViewModel extends ChangeNotifier {
       final sales = salesResult.fold((_) => _salesInEscrow, _countHeld);
       _update(purchases, sales);
     } finally {
-      _isRefreshing = false;
+      if (_refreshingFor == userId) _refreshingFor = null;
     }
   }
 
-  void clear() => _update(0, 0);
+  void clear() {
+    _userId = null;
+    _update(0, 0);
+  }
 
   int _countHeld(List<TransactionEntity> items) =>
       items.where((t) => t.status == _heldStatus).length;
