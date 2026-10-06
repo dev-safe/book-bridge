@@ -4,7 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// ViewModel responsible for managing the application's theme mode.
 ///
 /// The selected mode is persisted so it survives app restarts. Defaults to
-/// following the system setting.
+/// light mode until the user picks another option.
 class ThemeViewModel extends ChangeNotifier {
   static const String prefsKey = 'theme_mode';
 
@@ -36,7 +36,7 @@ class ThemeViewModel extends ChangeNotifier {
   static ThemeMode _decode(String? value) {
     return ThemeMode.values.firstWhere(
       (m) => m.name == value,
-      orElse: () => ThemeMode.system,
+      orElse: () => ThemeMode.light,
     );
   }
 }

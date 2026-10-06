@@ -68,7 +68,7 @@ class _SellerTrustCardState extends State<SellerTrustCard>
   }
 
   // Helper to map trust level to display styling
-  _TierStyle _getTierStyle(String level) {
+  _TierStyle _getTierStyle(String level, ThemeData theme) {
     switch (level) {
       case 'Master':
         return _TierStyle(
@@ -88,15 +88,15 @@ class _SellerTrustCardState extends State<SellerTrustCard>
         return _TierStyle(
           name: 'Scholar (Verified Bookworm)',
           badgeIcon: '📘',
-          color: const Color(0xFF1A4D8C), // Scholar Blue
-          bgColor: const Color(0xFF1A4D8C).withValues(alpha: 0.1),
+          color: theme.colorScheme.primary,
+          bgColor: theme.colorScheme.primary.withValues(alpha: 0.12),
         );
       default:
         return _TierStyle(
           name: 'Seedling (Debutant)',
           badgeIcon: '🌱',
-          color: Colors.grey[600]!,
-          bgColor: Colors.grey[200]!,
+          color: theme.colorScheme.onSurfaceVariant,
+          bgColor: theme.colorScheme.surfaceContainerHighest,
         );
     }
   }
@@ -148,7 +148,7 @@ class _SellerTrustCardState extends State<SellerTrustCard>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final style = _getTierStyle(widget.seller.trustLevel);
+    final style = _getTierStyle(widget.seller.trustLevel, theme);
     final nextMilestone = _getNextMilestoneText(
       widget.seller.completedDealsCount,
       widget.seller.rating ?? 0.0,

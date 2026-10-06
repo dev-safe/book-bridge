@@ -1160,7 +1160,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get moneySaved => 'FCFA Saved';
 
   @override
-  String get co2Saved => 'Tonnes CO2';
+  String get co2Saved => 'CO₂ Avoided';
 
   @override
   String get safetyGuidelinesTitle => 'Safety Guidelines';
@@ -1489,4 +1489,38 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get escrowConfirmReceipt => 'Confirm receipt';
+
+  @override
+  String get linkOpenError => 'Could not open link';
+
+  @override
+  String get myOrders => 'My orders';
+
+  @override
+  String get ordersNeedAction => 'Orders need your attention';
+
+  @override
+  String ordersToConfirm(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count purchases: confirm you received the books',
+      one: '1 purchase: confirm you received the book',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String ordersToHandOver(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count sales: hand over the books to get paid',
+      one: '1 sale: hand over the book to get paid',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get viewOrders => 'View orders';
 }

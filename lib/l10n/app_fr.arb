@@ -419,7 +419,7 @@
   "socialImpactTitle": "Mission Sociale",
   "booksCirculated": "Circulés",
   "moneySaved": "FCFA Économisés",
-  "co2Saved": "Tonnes CO2",
+  "co2Saved": "CO₂ évité",
   "safetyGuidelinesTitle": "Directives de Sécurité",
   "safeMeetupLocations": "Lieux de Rencontre Sécurisés",
   "whatToCheck": "Ce qu'il faut Vérifier",
@@ -525,5 +525,11 @@
   "idVerifyNow": "Vérifier maintenant",
   "idVerifiedBadge": "Identité vérifiée",
   "escrowReportProblem": "Il y a un problème",
-  "escrowConfirmReceipt": "Confirmer la réception"
+  "escrowConfirmReceipt": "Confirmer la réception",
+  "linkOpenError": "Impossible d'ouvrir le lien",
+  "myOrders": "Mes commandes",
+  "ordersNeedAction": "Des commandes attendent votre action",
+  "ordersToConfirm": "{count, plural, =1{1 achat : confirmez la réception du livre} other{{count} achats : confirmez la réception des livres}}",
+  "ordersToHandOver": "{count, plural, =1{1 vente : remettez le livre pour être payé} other{{count} ventes : remettez les livres pour être payé}}",
+  "viewOrders": "Voir les commandes"
 }

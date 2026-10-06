@@ -117,7 +117,7 @@ class _MarketplaceAgreementSheetState
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildWelcomeBanner(AppTheme.scholarBlue),
+                      _buildWelcomeBanner(AppTheme.headerColor(context)),
                       const SizedBox(height: 20),
                       _buildSection(
                         icon: Icons.shopping_bag_outlined,

@@ -422,7 +422,7 @@
   "socialImpactTitle": "Social Venture Mission",
   "booksCirculated": "Circulated",
   "moneySaved": "FCFA Saved",
-  "co2Saved": "Tonnes CO2",
+  "co2Saved": "CO₂ Avoided",
   "safetyGuidelinesTitle": "Safety Guidelines",
   "safeMeetupLocations": "Safe Meetup Locations",
   "whatToCheck": "What to Check",
@@ -552,5 +552,13 @@
   "idVerifyNow": "Verify now",
   "idVerifiedBadge": "ID verified",
   "escrowReportProblem": "There's a problem",
-  "escrowConfirmReceipt": "Confirm receipt"
+  "escrowConfirmReceipt": "Confirm receipt",
+  "linkOpenError": "Could not open link",
+  "myOrders": "My orders",
+  "ordersNeedAction": "Orders need your attention",
+  "ordersToConfirm": "{count, plural, =1{1 purchase: confirm you received the book} other{{count} purchases: confirm you received the books}}",
+  "@ordersToConfirm": {"placeholders": {"count": {"type": "int"}}},
+  "ordersToHandOver": "{count, plural, =1{1 sale: hand over the book to get paid} other{{count} sales: hand over the books to get paid}}",
+  "@ordersToHandOver": {"placeholders": {"count": {"type": "int"}}},
+  "viewOrders": "View orders"
 }

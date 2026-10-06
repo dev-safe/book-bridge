@@ -1,30 +1,18 @@
+import 'package:book_bridge/core/constants/contact_links.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:book_bridge/l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:book_bridge/core/utils/external_links.dart';
 
 class ContactUsScreen extends StatelessWidget {
   const ContactUsScreen({super.key});
 
-  Future<void> _launchUrl(String urlString) async {
-    final Uri url = Uri.parse(urlString);
-    if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
-      throw Exception('Could not launch $url');
-    }
-  }
-
-  Future<void> _launchWhatsApp() async {
-    const phoneNumber = '237675010547'; // Adding Cameroon country code
-    final url = 'https://wa.me/$phoneNumber';
-    await _launchUrl(url);
-  }
-
-  Future<void> _launchEmail() async {
-    const email = 'verlaberinyuy8@gmail.com';
+  Future<void> _launchEmail(BuildContext context) async {
+    const email = ContactLinks.supportEmail;
     const subject = 'BookBridge Support';
     final url = 'mailto:$email?subject=${Uri.encodeComponent(subject)}';
-    await _launchUrl(url);
+    await openExternalUrl(context, url);
   }
 
   @override
@@ -65,18 +53,20 @@ class ContactUsScreen extends StatelessWidget {
               context,
               icon: FontAwesomeIcons.whatsapp.data,
               title: AppLocalizations.of(context)!.whatsappSupport,
-              subtitle: AppLocalizations.of(context)!.chatDirectly,
+              subtitle:
+                  '${AppLocalizations.of(context)!.chatDirectly}\n${ContactLinks.supportWhatsAppDisplay}',
               color: Colors.green,
-              onTap: _launchWhatsApp,
+              onTap: () =>
+                  openExternalUrl(context, ContactLinks.supportWhatsAppUrl),
             ),
             const SizedBox(height: 16),
             _buildContactCard(
               context,
               icon: Icons.email_outlined,
               title: AppLocalizations.of(context)!.emailUs,
-              subtitle: 'verlaberinyuy8@gmail.com',
+              subtitle: ContactLinks.supportEmail,
               color: Colors.redAccent,
-              onTap: _launchEmail,
+              onTap: () => _launchEmail(context),
             ),
             const SizedBox(height: 16),
             _buildContactCard(
@@ -87,9 +77,7 @@ class ContactUsScreen extends StatelessWidget {
                 context,
               )!.connectWithAuthor('Verla Berinyuy'),
               color: const Color(0xFF0077B5),
-              onTap: () => _launchUrl(
-                'https://www.linkedin.com/in/verla-berinyuy-15b1262a5/',
-              ),
+              onTap: () => openExternalUrl(context, ContactLinks.linkedInUrl),
             ),
             const SizedBox(height: 48),
             Center(

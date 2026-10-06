@@ -241,10 +241,10 @@ class _PaymentBottomSheetState extends State<PaymentBottomSheet> {
                       textAlign: TextAlign.center,
                     ),
                   ] else if (viewModel.state == PaymentState.pendingUser) ...[
-                    const Icon(
+                    Icon(
                       Icons.touch_app_outlined,
                       size: 64,
-                      color: Colors.blue,
+                      color: Theme.of(context).colorScheme.primary,
                     ),
                     const SizedBox(height: 16),
                     Text(

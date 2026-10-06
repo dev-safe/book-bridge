@@ -78,8 +78,10 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                           colors: [
-                            AppTheme.scholarBlue,
-                            AppTheme.scholarBlue.withValues(alpha: 0.8),
+                            AppTheme.headerColor(context),
+                            AppTheme.headerColor(
+                              context,
+                            ).withValues(alpha: 0.8),
                           ],
                         ),
                       ),

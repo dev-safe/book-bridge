@@ -1,3 +1,4 @@
+import 'package:book_bridge/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -135,8 +136,8 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: [
-                Theme.of(context).colorScheme.primary,
-                Theme.of(context).colorScheme.primaryContainer,
+                AppTheme.headerColor(context),
+                AppTheme.headerColor(context).withValues(alpha: 0.85),
               ],
             ),
           ),
