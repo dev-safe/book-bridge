@@ -14,6 +14,10 @@ import 'package:book_bridge/l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
 import 'package:book_bridge/core/theme/app_theme.dart';
 import 'package:book_bridge/injection_container.dart';
+import 'package:book_bridge/features/moderation/domain/entities/blocked_user.dart';
+import 'package:book_bridge/features/moderation/presentation/viewmodels/moderation_viewmodel.dart';
+import 'package:book_bridge/features/moderation/presentation/widgets/moderation_actions.dart';
+import 'package:book_bridge/features/moderation/presentation/widgets/moderation_menu.dart';
 
 /// Full-screen real-time chat thread for a specific listing conversation.
 class ChatScreen extends StatefulWidget {
@@ -157,6 +161,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 ),
               ),
             ),
+          ModerationMenu(user: _otherUser, iconColor: Colors.white),
         ],
       ),
       body: Column(
@@ -237,7 +242,9 @@ class _ChatScreenState extends State<ChatScreen> {
                   vertical: 8,
                 ),
                 child: Text(
-                  vm.sendError!,
+                  vm.sendBlocked
+                      ? AppLocalizations.of(context)!.chatSendBlocked
+                      : vm.sendError!,
                   style: TextStyle(color: theme.colorScheme.onErrorContainer),
                 ),
               );
@@ -245,8 +252,43 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
 
           // ─── Input Bar ─────────────────────────────────────────────────
-          _buildInputBar(theme),
+          context.select<ModerationViewModel, bool>(
+                (vm) => vm.isBlocked(widget.otherUserId),
+              )
+              ? _buildBlockedBar(theme)
+              : _buildInputBar(theme),
         ],
+      ),
+    );
+  }
+
+  BlockedUser get _otherUser =>
+      BlockedUser(id: widget.otherUserId, name: widget.otherUserName);
+
+  Widget _buildBlockedBar(ThemeData theme) {
+    return SafeArea(
+      child: Container(
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surfaceContainerHighest,
+          border: Border(
+            top: BorderSide(color: theme.colorScheme.outlineVariant),
+          ),
+        ),
+        padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                AppLocalizations.of(context)!.chatBlockedBanner,
+                style: theme.textTheme.bodyMedium,
+              ),
+            ),
+            TextButton(
+              onPressed: () => ModerationActions.unblock(context, _otherUser),
+              child: Text(AppLocalizations.of(context)!.unblockUser),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -1577,4 +1577,94 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get viewOrders => 'View orders';
+
+  @override
+  String get moreOptions => 'More options';
+
+  @override
+  String get reportListing => 'Report listing';
+
+  @override
+  String get reportSeller => 'Report seller';
+
+  @override
+  String get reportUser => 'Report user';
+
+  @override
+  String get blockUser => 'Block user';
+
+  @override
+  String get unblockUser => 'Unblock';
+
+  @override
+  String get reportTitle => 'Why are you reporting this?';
+
+  @override
+  String get reportReasonSpam => 'Spam or misleading';
+
+  @override
+  String get reportReasonScam => 'Scam or fraud';
+
+  @override
+  String get reportReasonInappropriate => 'Inappropriate or offensive content';
+
+  @override
+  String get reportReasonHarassment => 'Harassment or abuse';
+
+  @override
+  String get reportReasonProhibited => 'Prohibited or counterfeit item';
+
+  @override
+  String get reportReasonOther => 'Something else';
+
+  @override
+  String get reportDetailsHint => 'Add details (optional)';
+
+  @override
+  String get reportSubmit => 'Send report';
+
+  @override
+  String get reportSent => 'Thanks. Our team will review your report.';
+
+  @override
+  String get reportLimitReached => 'You have sent too many reports today. Please try again tomorrow.';
+
+  @override
+  String get moderationFailed => 'That didn\'t work. Check your connection and try again.';
+
+  @override
+  String blockConfirmTitle(String name) {
+    return 'Block $name?';
+  }
+
+  @override
+  String get blockConfirmBody => 'You won\'t see their listings or chats, and neither of you can message the other. You can unblock them from your profile.';
+
+  @override
+  String get blockConfirm => 'Block';
+
+  @override
+  String userBlocked(String name) {
+    return '$name is blocked.';
+  }
+
+  @override
+  String userUnblocked(String name) {
+    return '$name is unblocked.';
+  }
+
+  @override
+  String get blockedUsersTitle => 'Blocked users';
+
+  @override
+  String get blockedUsersEmpty => 'You haven\'t blocked anyone.';
+
+  @override
+  String get blockedUserFallbackName => 'This user';
+
+  @override
+  String get chatBlockedBanner => 'You blocked this user. Unblock them to send messages.';
+
+  @override
+  String get chatSendBlocked => 'You can\'t message this user.';
 }

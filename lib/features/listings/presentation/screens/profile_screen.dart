@@ -369,6 +369,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   _buildMenuItem(
                     context,
+                    icon: Icons.block,
+                    title: AppLocalizations.of(context)!.blockedUsersTitle,
+                    onTap: () => context.push('/blocked-users'),
+                  ),
+                  _buildMenuItem(
+                    context,
                     icon: Icons.info_outline_rounded,
                     title: AppLocalizations.of(context)!.aboutBookBridge,
                     onTap: () => context.push('/about'),

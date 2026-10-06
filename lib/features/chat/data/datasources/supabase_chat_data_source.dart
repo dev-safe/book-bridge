@@ -1,6 +1,7 @@
 import 'package:book_bridge/core/error/exceptions.dart';
 import 'package:book_bridge/features/chat/data/models/message_model.dart';
 import 'package:book_bridge/features/chat/domain/entities/conversation.dart';
+import 'package:book_bridge/features/moderation/domain/blocked_users_cache.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Data source for chat operations using Supabase.
@@ -10,7 +11,10 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 class SupabaseChatDataSource {
   final SupabaseClient supabaseClient;
 
-  SupabaseChatDataSource({required this.supabaseClient});
+  /// Conversations with these users are hidden.
+  final BlockedUsersCache? blockedUsers;
+
+  SupabaseChatDataSource({required this.supabaseClient, this.blockedUsers});
 
   String get _currentUserId => supabaseClient.auth.currentUser!.id;
 
@@ -53,6 +57,12 @@ class SupabaseChatDataSource {
         'content': content,
         'is_read': false,
       });
+    } on PostgrestException catch (e) {
+      // Raised by the reject_blocked_message trigger.
+      if (e.message.startsWith('blocked')) {
+        throw MessagingBlockedException(message: e.message);
+      }
+      throw ServerException(message: 'Failed to send message: ${e.message}');
     } catch (e) {
       throw ServerException(message: 'Failed to send message: $e');
     }
@@ -104,6 +114,7 @@ class SupabaseChatDataSource {
         final otherUserId = row['sender_id'] == _currentUserId
             ? row['receiver_id'] as String
             : row['sender_id'] as String;
+        if (blockedUsers?.contains(otherUserId) ?? false) continue;
         final key = '${row['listing_id']}_$otherUserId';
         if (!convMap.containsKey(key)) {
           convMap[key] = {

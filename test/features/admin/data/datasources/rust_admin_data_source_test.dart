@@ -276,6 +276,67 @@ void main() {
     });
   });
 
+  group('content reports', () {
+    const reportId = '33333333-2222-4333-8444-555555555555';
+
+    test('reports parses the list', () async {
+      final ds = build(
+        (_) => ok({
+          'reports': [
+            {
+              'id': reportId,
+              'reason': 'scam',
+              'details': 'Asked for payment upfront',
+              'created_at': '2026-10-19T10:00:00Z',
+              'reporter_name': 'Ama',
+              'listing_id': 'listing-1',
+              'listing_title': 'Physics F5',
+              'listing_status': 'available',
+              'reported_user_id': 'seller-1',
+              'reported_user_name': 'Bob',
+            },
+          ],
+        }),
+      );
+
+      final reports = await ds.reports();
+
+      expect(requests.single.url.path, '/admin/reports');
+      final report = reports.single;
+      expect(report.id, reportId);
+      expect(report.reason, 'scam');
+      expect(report.isAboutListing, isTrue);
+      expect(report.listingTitle, 'Physics F5');
+      expect(report.reportedUserName, 'Bob');
+      expect(report.createdAt, isNotNull);
+    });
+
+    test('reports rejects a report without an id', () async {
+      final ds = build(
+        (_) => ok({
+          'reports': [
+            {'reason': 'spam'},
+          ],
+        }),
+      );
+
+      await expectLater(ds.reports(), throwsA(isA<ServerException>()));
+    });
+
+    test('dismiss and remove-listing POST the note', () async {
+      final ds = build((_) => ok({'ok': true}));
+
+      await ds.dismissReport(reportId, 'Not a violation');
+      await ds.removeReportedListing(reportId, 'Counterfeit');
+
+      expect(requests[0].method, 'POST');
+      expect(requests[0].url.path, '/admin/reports/$reportId/dismiss');
+      expect(jsonDecode(requests[0].body), {'note': 'Not a violation'});
+      expect(requests[1].url.path, '/admin/reports/$reportId/remove-listing');
+      expect(jsonDecode(requests[1].body), {'note': 'Counterfeit'});
+    });
+  });
+
   test('a 409 from a second click surfaces the server message', () async {
     final ds = build(
       (_) => http.Response(

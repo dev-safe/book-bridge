@@ -86,6 +86,11 @@ import 'package:book_bridge/features/auth/data/datasources/rust_account_data_sou
 import 'package:book_bridge/features/admin/data/repositories/admin_repository_impl.dart';
 import 'package:book_bridge/features/admin/domain/repositories/admin_repository.dart';
 import 'package:book_bridge/features/admin/presentation/viewmodels/admin_viewmodel.dart';
+import 'package:book_bridge/features/moderation/data/datasources/supabase_moderation_data_source.dart';
+import 'package:book_bridge/features/moderation/data/repositories/moderation_repository_impl.dart';
+import 'package:book_bridge/features/moderation/domain/blocked_users_cache.dart';
+import 'package:book_bridge/features/moderation/domain/repositories/moderation_repository.dart';
+import 'package:book_bridge/features/moderation/presentation/viewmodels/moderation_viewmodel.dart';
 
 /// Service locator for dependency injection.
 ///
@@ -163,6 +168,23 @@ Future<void> setupDependencyInjection() async {
     ),
   );
 
+  // Moderation: the blocked-users cache is shared with listings and chat.
+  getIt.registerSingleton<BlockedUsersCache>(BlockedUsersCache());
+  getIt.registerLazySingleton<SupabaseModerationDataSource>(
+    () => SupabaseModerationDataSource(supabaseClient: getIt<SupabaseClient>()),
+  );
+  getIt.registerLazySingleton<ModerationRepository>(
+    () => ModerationRepositoryImpl(
+      dataSource: getIt<SupabaseModerationDataSource>(),
+    ),
+  );
+  getIt.registerLazySingleton<ModerationViewModel>(
+    () => ModerationViewModel(
+      repository: getIt<ModerationRepository>(),
+      cache: getIt<BlockedUsersCache>(),
+    ),
+  );
+
   // Listings Feature - Data Layer
   getIt.registerSingleton<SupabaseStorageDataSource>(
     SupabaseStorageDataSource(supabaseClient: getIt<SupabaseClient>()),
@@ -172,6 +194,7 @@ Future<void> setupDependencyInjection() async {
     SupabaseListingsDataSource(
       supabaseClient: getIt<SupabaseClient>(),
       storageDataSource: getIt<SupabaseStorageDataSource>(),
+      blockedUsers: getIt<BlockedUsersCache>(),
     ),
   );
 
@@ -406,7 +429,10 @@ Future<void> setupDependencyInjection() async {
 
   // Chat Feature
   getIt.registerLazySingleton<SupabaseChatDataSource>(
-    () => SupabaseChatDataSource(supabaseClient: getIt<SupabaseClient>()),
+    () => SupabaseChatDataSource(
+      supabaseClient: getIt<SupabaseClient>(),
+      blockedUsers: getIt<BlockedUsersCache>(),
+    ),
   );
 
   getIt.registerLazySingleton<ChatRepository>(

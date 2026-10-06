@@ -114,7 +114,7 @@ async fn delete_personal_rows(
     tx: &mut Transaction<'_, Postgres>,
     user_id: Uuid,
 ) -> Result<(), AppError> {
-    const STATEMENTS: [&str; 11] = [
+    const STATEMENTS: [&str; 14] = [
         // Payer phone numbers, keyed by the user's payment references.
         "DELETE FROM payment_payers WHERE payment_reference IN ( \
              SELECT payment_reference FROM transactions WHERE buyer_id = $1 \
@@ -133,6 +133,10 @@ async fn delete_personal_rows(
         // Star ratings stay so other sellers keep their reputation.
         "UPDATE reviews SET comment = NULL WHERE reviewer_id = $1 AND comment IS NOT NULL",
         "UPDATE feedback SET user_id = NULL WHERE user_id = $1",
+        "DELETE FROM user_blocks WHERE blocker_id = $1 OR blocked_id = $1",
+        // Reports stay for moderation history, without the deleted user.
+        "UPDATE content_reports SET reporter_id = NULL WHERE reporter_id = $1",
+        "UPDATE content_reports SET reported_user_id = NULL WHERE reported_user_id = $1",
         "DELETE FROM profiles_private WHERE id = $1",
     ];
     for sql in STATEMENTS {

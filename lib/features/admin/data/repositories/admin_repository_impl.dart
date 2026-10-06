@@ -60,6 +60,20 @@ class AdminRepositoryImpl implements AdminRepository {
       _done(() => _dataSource.rejectId(userId, note));
 
   @override
+  Future<Either<Failure, List<ContentReport>>> reports() =>
+      _guard(() => _dataSource.reports());
+
+  @override
+  Future<Either<Failure, Unit>> dismissReport(String reportId, String note) =>
+      _done(() => _dataSource.dismissReport(reportId, note));
+
+  @override
+  Future<Either<Failure, Unit>> removeReportedListing(
+    String reportId,
+    String note,
+  ) => _done(() => _dataSource.removeReportedListing(reportId, note));
+
+  @override
   Future<Either<Failure, String>> idPhotoUrl(String path) =>
       _guard(() => _dataSource.idPhotoUrl(path));
 

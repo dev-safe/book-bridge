@@ -5,6 +5,7 @@ import 'package:book_bridge/features/listings/data/models/listing_model.dart';
 import 'package:book_bridge/features/listings/data/datasources/supabase_storage_data_source.dart';
 import 'package:book_bridge/features/listings/domain/entities/academic_lookups.dart';
 import 'package:book_bridge/features/listings/domain/entities/book_condition.dart';
+import 'package:book_bridge/features/moderation/domain/blocked_users_cache.dart';
 import 'package:book_bridge/features/subscriptions/domain/subscription_constants.dart';
 
 /// Data source for listing operations using Supabase PostgreSQL and Storage.
@@ -22,10 +23,16 @@ class SupabaseListingsDataSource {
   final SupabaseClient supabaseClient;
   final SupabaseStorageDataSource storageDataSource;
 
+  /// Sellers whose listings are hidden from the feed and search.
+  final BlockedUsersCache? blockedUsers;
+
   SupabaseListingsDataSource({
     required this.supabaseClient,
     required this.storageDataSource,
+    this.blockedUsers,
   });
+
+  Set<String> get _blockedIds => blockedUsers?.ids ?? const {};
 
   /// Fetches all academic categories.
   Future<List<Map<String, dynamic>>> getCategories() async {
@@ -98,6 +105,10 @@ class SupabaseListingsDataSource {
       }
       if (filters.schoolId != null) {
         query = query.eq('school_id', filters.schoolId!);
+      }
+      final blocked = _blockedIds;
+      if (blocked.isNotEmpty) {
+        query = query.not('seller_id', 'in', blocked.toList());
       }
 
       final response = await query
@@ -176,11 +187,14 @@ class SupabaseListingsDataSource {
       // search_listings applies _limit internally, before PostgREST filters
       // run. Widen the RPC window when filtering so matches aren't cut off,
       // then apply the caller's limit after filtering.
+      final blocked = _blockedIds;
       var request = supabaseClient.rpc(
         'search_listings',
         params: {
           'query': query,
-          '_limit': filters.isEmpty ? limit : _filteredSearchWindow,
+          '_limit': filters.isEmpty && blocked.isEmpty
+              ? limit
+              : _filteredSearchWindow,
           '_offset': 0,
         },
       );
@@ -192,6 +206,9 @@ class SupabaseListingsDataSource {
       }
       if (filters.schoolId != null) {
         request = request.eq('school_id', filters.schoolId!);
+      }
+      if (blocked.isNotEmpty) {
+        request = request.not('seller_id', 'in', blocked.toList());
       }
 
       final response = await request

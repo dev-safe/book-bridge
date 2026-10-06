@@ -15,6 +15,7 @@ class AdminViewModel extends ChangeNotifier {
   List<AdminDispute> _disputes = const [];
   List<UnmatchedPayment> _unmatched = const [];
   List<IdVerificationSubmission> _idSubmissions = const [];
+  List<ContentReport> _reports = const [];
   String? _error;
   String? _busyId;
 
@@ -22,6 +23,7 @@ class AdminViewModel extends ChangeNotifier {
   List<AdminDispute> get disputes => _disputes;
   List<UnmatchedPayment> get unmatched => _unmatched;
   List<IdVerificationSubmission> get idSubmissions => _idSubmissions;
+  List<ContentReport> get reports => _reports;
 
   /// Why the screen is denied, or why the last load failed.
   String? get error => _error;
@@ -52,14 +54,21 @@ class AdminViewModel extends ChangeNotifier {
       _repository.disputes(),
       _repository.unmatchedPayments(),
       _repository.idVerifications(),
+      _repository.reports(),
     ]);
     final disputes = results[0] as Either<Failure, List<AdminDispute>>;
     final unmatched = results[1] as Either<Failure, List<UnmatchedPayment>>;
     final ids = results[2] as Either<Failure, List<IdVerificationSubmission>>;
+    final reports = results[3] as Either<Failure, List<ContentReport>>;
     _disputes = disputes.getOrElse(() => _disputes);
     _unmatched = unmatched.getOrElse(() => _unmatched);
     _idSubmissions = ids.getOrElse(() => _idSubmissions);
-    _error = _message(disputes) ?? _message(unmatched) ?? _message(ids);
+    _reports = reports.getOrElse(() => _reports);
+    _error =
+        _message(disputes) ??
+        _message(unmatched) ??
+        _message(ids) ??
+        _message(reports);
     _state = AdminLoadState.loaded;
     notifyListeners();
   }
@@ -91,6 +100,12 @@ class AdminViewModel extends ChangeNotifier {
 
   Future<String?> rejectId(String userId, String note) =>
       _act(userId, () => _repository.rejectId(userId, note));
+
+  Future<String?> dismissReport(String reportId, String note) =>
+      _act(reportId, () => _repository.dismissReport(reportId, note));
+
+  Future<String?> removeReportedListing(String reportId, String note) =>
+      _act(reportId, () => _repository.removeReportedListing(reportId, note));
 
   /// Resolves to a short-lived photo URL; throws the failure message.
   Future<String> idPhotoUrl(String path) async {

@@ -1,11 +1,12 @@
 import 'package:book_bridge/features/admin/domain/entities/admin_cases.dart';
 import 'package:book_bridge/features/admin/presentation/viewmodels/admin_viewmodel.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
-/// Internal tool for resolving disputes and unmatched payments and reviewing
-/// ID submissions. Opened by
+/// Internal tool for resolving disputes and unmatched payments, reviewing
+/// ID submissions and acting on user reports. Opened by
 /// long-pressing "About BookBridge" on the profile screen; the server
 /// decides who may use it. English-only, like the rest of the admin tooling.
 class AdminScreen extends StatelessWidget {
@@ -15,7 +16,7 @@ class AdminScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final vm = context.watch<AdminViewModel>();
     return DefaultTabController(
-      length: 3,
+      length: 4,
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Admin'),
@@ -28,7 +29,9 @@ class AdminScreen extends StatelessWidget {
                     Tab(text: 'Disputes (${vm.disputes.length})'),
                     Tab(text: 'Unmatched (${vm.unmatched.length})'),
                     Tab(text: 'IDs (${vm.idSubmissions.length})'),
+                    Tab(text: 'Reports (${vm.reports.length})'),
                   ],
+                  isScrollable: true,
                 ),
         ),
         body: switch (vm.state) {
@@ -78,6 +81,13 @@ class AdminScreen extends StatelessWidget {
                       children: [
                         for (final s in vm.idSubmissions)
                           _IdSubmissionCard(submission: s),
+                      ],
+                    ),
+                    _CaseList(
+                      empty: 'No open reports',
+                      onRefresh: vm.refresh,
+                      children: [
+                        for (final r in vm.reports) _ReportCard(report: r),
                       ],
                     ),
                   ],
@@ -390,6 +400,101 @@ class _IdSubmissionCard extends StatelessWidget {
                         ),
                   child: const Text('Approve'),
                 ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+String _reasonLabel(String reason) => switch (reason) {
+  'spam' => 'Spam',
+  'scam' => 'Scam or fraud',
+  'inappropriate' => 'Inappropriate content',
+  'harassment' => 'Harassment',
+  'prohibited' => 'Prohibited item',
+  _ => 'Other',
+};
+
+class _ReportCard extends StatelessWidget {
+  final ContentReport report;
+
+  const _ReportCard({required this.report});
+
+  @override
+  Widget build(BuildContext context) {
+    final vm = context.watch<AdminViewModel>();
+    final busy = vm.busyId != null;
+    final r = report;
+    final theme = Theme.of(context);
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(_reasonLabel(r.reason), style: theme.textTheme.titleMedium),
+            const SizedBox(height: 4),
+            if (r.isAboutListing)
+              Text(
+                'Listing: ${r.listingTitle ?? 'deleted'}'
+                '${r.listingStatus == null ? '' : ' (${r.listingStatus})'}',
+              ),
+            Text(
+              '${r.isAboutListing ? 'Seller' : 'User'}: '
+              '${r.reportedUserName ?? 'unknown'}',
+            ),
+            Text('Reported by: ${r.reporterName ?? 'deleted account'}'),
+            Text('Received: ${_when(r.createdAt)}'),
+            if (r.details != null && r.details!.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Text('"${r.details}"', style: theme.textTheme.bodyMedium),
+            ],
+            if (r.reportedUserId != null)
+              SelectableText(
+                'User ${r.reportedUserId}',
+                style: theme.textTheme.bodySmall,
+              ),
+            const SizedBox(height: 8),
+            if (vm.busyId == r.id) const LinearProgressIndicator(),
+            OverflowBar(
+              alignment: MainAxisAlignment.end,
+              spacing: 8,
+              children: [
+                if (r.listingId != null)
+                  TextButton(
+                    onPressed: () => context.push('/listing/${r.listingId}'),
+                    child: const Text('View listing'),
+                  ),
+                OutlinedButton(
+                  onPressed: busy
+                      ? null
+                      : () => _resolve(
+                          context,
+                          title: 'Dismiss report',
+                          consequence:
+                              'Closes this report without changing anything.',
+                          run: (note, _) => vm.dismissReport(r.id, note),
+                        ),
+                  child: const Text('Dismiss'),
+                ),
+                if (r.isAboutListing && r.listingStatus != 'removed')
+                  FilledButton(
+                    onPressed: busy
+                        ? null
+                        : () => _resolve(
+                            context,
+                            title: 'Remove listing',
+                            consequence:
+                                'Takes the listing off the market and closes '
+                                'every open report about it.',
+                            run: (note, _) =>
+                                vm.removeReportedListing(r.id, note),
+                          ),
+                    child: const Text('Remove listing'),
+                  ),
               ],
             ),
           ],

@@ -1,5 +1,6 @@
 import 'package:book_bridge/features/transactions/presentation/viewmodels/pending_orders_viewmodel.dart';
 import 'package:flutter/material.dart';
+import 'package:book_bridge/features/moderation/presentation/viewmodels/moderation_viewmodel.dart';
 import 'package:book_bridge/l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -113,6 +114,9 @@ class MyApp extends StatelessWidget {
         ),
         ChangeNotifierProvider<PendingOrdersViewModel>.value(
           value: di.getIt<PendingOrdersViewModel>(),
+        ),
+        ChangeNotifierProvider<ModerationViewModel>.value(
+          value: di.getIt<ModerationViewModel>(),
         ),
       ],
       child: Consumer2<LocaleViewModel, ThemeViewModel>(

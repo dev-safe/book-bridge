@@ -1,3 +1,4 @@
+import 'package:book_bridge/core/error/exceptions.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:book_bridge/features/chat/domain/repositories/chat_repository.dart';
@@ -120,6 +121,26 @@ void main() {
 
       // Assert
       expect(viewModel.isSending, false);
+      expect(viewModel.sendError, isNotNull);
+      expect(viewModel.sendBlocked, isFalse);
+    });
+
+    test('flags a send refused because of a block', () async {
+      when(
+        () => mockRepository.sendMessage(
+          listingId: any(named: 'listingId'),
+          receiverId: any(named: 'receiverId'),
+          content: any(named: 'content'),
+        ),
+      ).thenThrow(MessagingBlockedException(message: 'blocked'));
+
+      await viewModel.sendMessage(
+        listingId: tListingId,
+        receiverId: tReceiverId,
+        content: tContent,
+      );
+
+      expect(viewModel.sendBlocked, isTrue);
       expect(viewModel.sendError, isNotNull);
     });
   });
