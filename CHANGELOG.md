@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 1.6.2 - October 6, 2026
+
+### Changed
+
+- **Android package name is now `cm.devsafe.bookbridge`** because `com.bookbridge.app` is already taken on Google Play. Installs as a new app; earlier sideloaded APKs (`com.bookbridge.app`) are not upgraded in place. Firebase and Google Sign-In are registered for the new package, and `assetlinks.json` lists both packages so book links keep opening in either app.
+
 ## 1.6.1 - October 18, 2026
 
 Google Play compliance release.

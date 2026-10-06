@@ -51,7 +51,7 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyDWynbZRHUeSPwLrMasGNBL6D6Ti3JvgJY',
-    appId: '1:243422993063:android:97feef1bd71c5194d91982',
+    appId: '1:243422993063:android:7ef0f14ff199b9c8d91982',
     messagingSenderId: '243422993063',
     projectId: 'bookbridge-c12fa',
     storageBucket: 'bookbridge-c12fa.firebasestorage.app',

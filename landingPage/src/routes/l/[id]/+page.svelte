@@ -16,7 +16,7 @@
 	const listing = $derived(data.listing);
 	const shareUrl = $derived(`${SITE_URL}/l/${data.id}`);
 	const intentUrl = $derived(
-		`intent://bookbridge.devsafe.cm/l/${data.id}#Intent;scheme=https;package=com.bookbridge.app;S.browser_fallback_url=${encodeURIComponent(APP_DOWNLOAD_LINK)};end`
+		`intent://bookbridge.devsafe.cm/l/${data.id}#Intent;scheme=https;package=cm.devsafe.bookbridge;S.browser_fallback_url=${encodeURIComponent(APP_DOWNLOAD_LINK)};end`
 	);
 	const priceLabel = $derived(
 		listing ? `${new Intl.NumberFormat('fr-FR').format(listing.priceFcfa)} FCFA` : ''

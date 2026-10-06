@@ -7,12 +7,17 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:243422993063:android:97feef1bd71c5194d91982",
+        "mobilesdk_app_id": "1:243422993063:android:7ef0f14ff199b9c8d91982",
         "android_client_info": {
-          "package_name": "com.bookbridge.app"
+          "package_name": "cm.devsafe.bookbridge"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "243422993063-fcodfv17q5rk7nfuuq4nuaarfh5b4qc1.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyDWynbZRHUeSPwLrMasGNBL6D6Ti3JvgJY"
@@ -20,7 +25,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "243422993063-fcodfv17q5rk7nfuuq4nuaarfh5b4qc1.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }
