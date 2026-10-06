@@ -3,6 +3,8 @@
 	const CONTACT_EMAIL = 'contact@devsafe.cm';
 	const EMAIL_SUBJECT = 'Delete my BookBridge account';
 	const mailto = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(EMAIL_SUBJECT)}`;
+	const PARTIAL_SUBJECT = 'Delete some of my BookBridge data';
+	const partialMailto = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(PARTIAL_SUBJECT)}`;
 </script>
 
 <svelte:head>
@@ -20,7 +22,8 @@
 
 		<p>
 			You can delete your BookBridge account and the personal data linked to it at any time. Deletion
-			is permanent and cannot be undone.
+			is permanent and cannot be undone. If you only want to remove some of your data, see
+			<a href="#delete-some-data">Delete some of your data and keep your account</a>.
 		</p>
 
 		<h2>Delete it in the app</h2>
@@ -44,6 +47,31 @@
 			Email <a href={mailto}>{CONTACT_EMAIL}</a> from the email address you use for BookBridge, with
 			the subject "{EMAIL_SUBJECT}". We will confirm the request is yours and delete your account
 			within 30 days. A parent or guardian can ask on behalf of a child.
+		</p>
+
+		<h2 id="delete-some-data">Delete some of your data and keep your account</h2>
+		<p>You can remove some data yourself at any time in the app:</p>
+		<ul>
+			<li>
+				<strong>Listings:</strong> go to <strong>Profile</strong> → <strong>My Books</strong> and
+				delete a listing. It disappears from BookBridge straight away. To have its photos erased from
+				our storage too, email us as described below.
+			</li>
+			<li>
+				<strong>Favourites:</strong> tap the heart on a book to remove it from your favourites.
+			</li>
+			<li>
+				<strong>Profile details:</strong> go to <strong>Profile</strong> →
+				<strong>Edit Profile</strong> to clear your Mobile Money number, locality or school, or change
+				your name and photo.
+			</li>
+		</ul>
+		<p>
+			To delete anything else, such as your ID verification photos, chat messages, listing photos or
+			profile photo,
+			email <a href={partialMailto}>{CONTACT_EMAIL}</a> from the email address you use for BookBridge
+			with the subject "{PARTIAL_SUBJECT}" and tell us what to delete. We will confirm the request is
+			yours and delete it within 30 days. Data we must keep for the reasons below is not deleted.
 		</p>
 
 		<h2>What we delete</h2>
