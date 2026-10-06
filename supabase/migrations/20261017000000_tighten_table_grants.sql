@@ -36,9 +36,23 @@ revoke all on public.transactions from anon;
 revoke insert, update, delete on public.transactions from authenticated;
 
 -- 3. reviews: public read, authenticated insert only.
-revoke insert, update, delete on public.reviews from anon;
-revoke update, delete on public.reviews from authenticated;
+-- reviews and boost_payments predate the migration history, so guard them
+-- for databases rebuilt from migrations alone (e.g. CI).
+do $$
+begin
+  if to_regclass('public.reviews') is not null then
+    revoke insert, update, delete on public.reviews from anon;
+    revoke update, delete on public.reviews from authenticated;
+  end if;
+end
+$$;
 
 -- 4. boost_payments: owners may read their own rows; no client writes.
-revoke all on public.boost_payments from anon;
-revoke insert, update, delete on public.boost_payments from authenticated;
+do $$
+begin
+  if to_regclass('public.boost_payments') is not null then
+    revoke all on public.boost_payments from anon;
+    revoke insert, update, delete on public.boost_payments from authenticated;
+  end if;
+end
+$$;
