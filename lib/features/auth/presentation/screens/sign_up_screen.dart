@@ -91,7 +91,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         preferredSize: const Size.fromHeight(60),
         child: SafeArea(
           child: Container(
-            color: AppTheme.scholarBlue,
+            color: AppTheme.headerColor(context),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Row(
               children: [

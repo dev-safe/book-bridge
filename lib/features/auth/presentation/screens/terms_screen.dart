@@ -12,7 +12,7 @@ class TermsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    const primaryColor = AppTheme.scholarBlue;
+    final primaryColor = AppTheme.headerColor(context);
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,

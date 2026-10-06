@@ -361,7 +361,7 @@ class ListingCard extends StatelessWidget {
         color = const Color(0xFF1ABC9C);
         break;
       case BookCondition.good:
-        color = const Color(0xFF1A4D8C);
+        color = Theme.of(context).colorScheme.primary;
         break;
       case BookCondition.fair:
         color = const Color(0xFFF2994A);

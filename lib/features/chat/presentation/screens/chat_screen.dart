@@ -99,8 +99,6 @@ class _ChatScreenState extends State<ChatScreen> {
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
       appBar: AppBar(
-        backgroundColor: AppTheme.scholarBlue,
-        foregroundColor: Colors.white,
         title: InkWell(
           onTap: () => context.push('/seller-profile/${widget.otherUserId}'),
           child: Column(

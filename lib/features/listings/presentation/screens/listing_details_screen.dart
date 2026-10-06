@@ -70,7 +70,7 @@ class _ListingDetailsScreenState extends State<ListingDetailsScreen> {
           appBar: PreferredSize(
             preferredSize: const Size.fromHeight(60),
             child: Container(
-              color: AppTheme.scholarBlue, // Scholar Blue
+              color: AppTheme.headerColor(context),
               child: SafeArea(
                 child: Container(
                   padding: const EdgeInsets.symmetric(

@@ -1,19 +1,15 @@
+import 'package:book_bridge/core/constants/contact_links.dart';
+import 'package:book_bridge/core/utils/external_links.dart';
+import 'package:book_bridge/features/payments/presentation/widgets/donation_sheet.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:book_bridge/l10n/app_localizations.dart';
 
 class AboutScreen extends StatelessWidget {
   const AboutScreen({super.key});
-
-  Future<void> _launchUrl(String urlString) async {
-    final Uri url = Uri.parse(urlString);
-    if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
-      throw Exception('Could not launch $url');
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -50,7 +46,7 @@ class AboutScreen extends StatelessWidget {
                   'assets/app_icon.png', // Assuming app_icon exists
                   fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) => Container(
-                    color: Theme.of(context).primaryColor,
+                    color: Theme.of(context).colorScheme.primary,
                     child: const Icon(
                       Icons.book,
                       size: 60,
@@ -68,7 +64,7 @@ class AboutScreen extends StatelessWidget {
               style: GoogleFonts.lato(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
-                color: Theme.of(context).primaryColor,
+                color: Theme.of(context).colorScheme.primary,
               ),
             ),
             const SizedBox(height: 8),
@@ -76,9 +72,9 @@ class AboutScreen extends StatelessWidget {
               future: PackageInfo.fromPlatform(),
               builder: (context, snapshot) => Text(
                 snapshot.hasData
-                    ? AppLocalizations.of(
-                        context,
-                      )!.version(snapshot.data!.version)
+                    ? AppLocalizations.of(context)!.version(
+                        '${snapshot.data!.version} (${snapshot.data!.buildNumber})',
+                      )
                     : '',
                 style: TextStyle(
                   fontSize: 14,
@@ -106,8 +102,26 @@ class AboutScreen extends StatelessWidget {
               icon: Icons.favorite_rounded,
               title: AppLocalizations.of(context)!.supportCommunity,
               subtitle: AppLocalizations.of(context)!.supportDescription,
+              onTap: () => showDonationSheet(context),
+            ),
+            const SizedBox(height: 16),
+            _buildLinkTile(
+              context,
+              icon: FontAwesomeIcons.whatsapp.data,
+              title: AppLocalizations.of(context)!.whatsappSupport,
+              subtitle: ContactLinks.supportWhatsAppDisplay,
               onTap: () =>
-                  _launchUrl('https://checkout.fapshi.com/donation/14943173'),
+                  openExternalUrl(context, ContactLinks.supportWhatsAppUrl),
+            ),
+            const SizedBox(height: 16),
+            _buildLinkTile(
+              context,
+              icon: FontAwesomeIcons.linkedinIn.data,
+              title: AppLocalizations.of(context)!.linkedin,
+              subtitle: AppLocalizations.of(
+                context,
+              )!.connectWithAuthor('Verla Berinyuy'),
+              onTap: () => openExternalUrl(context, ContactLinks.linkedInUrl),
             ),
             const SizedBox(height: 16),
             _buildLinkTile(
@@ -115,8 +129,10 @@ class AboutScreen extends StatelessWidget {
               icon: Icons.code,
               title: AppLocalizations.of(context)!.projectSourceCode,
               subtitle: AppLocalizations.of(context)!.viewOnGitHub,
-              onTap: () =>
-                  _launchUrl('https://github.com/DCT-Berinyuy/book-bridge'),
+              onTap: () => openExternalUrl(
+                context,
+                'https://github.com/DCT-Berinyuy/book-bridge',
+              ),
             ),
             const SizedBox(height: 16),
             _buildLinkTile(
@@ -124,7 +140,8 @@ class AboutScreen extends StatelessWidget {
               icon: Icons.language,
               title: AppLocalizations.of(context)!.officialWebsite,
               subtitle: AppLocalizations.of(context)!.visitWebPlatform,
-              onTap: () => _launchUrl('https://bookbridge.devsafe.cm/'),
+              onTap: () =>
+                  openExternalUrl(context, 'https://bookbridge.devsafe.cm/'),
             ),
             const SizedBox(height: 16),
             _buildLinkTile(
@@ -134,7 +151,10 @@ class AboutScreen extends StatelessWidget {
               subtitle: AppLocalizations.of(
                 context,
               )!.connectWithAuthor('Mr.DCT'),
-              onTap: () => _launchUrl('https://linktr.ee/DeepCodeThinking'),
+              onTap: () => openExternalUrl(
+                context,
+                'https://linktr.ee/DeepCodeThinking',
+              ),
             ),
 
             const SizedBox(height: 48),
@@ -150,7 +170,8 @@ class AboutScreen extends StatelessWidget {
             const SizedBox(height: 8),
             TextButton(
               key: const Key('poweredByDevSafe'),
-              onPressed: () => _launchUrl('https://www.devsafe.cm'),
+              onPressed: () =>
+                  openExternalUrl(context, 'https://www.devsafe.cm'),
               child: Text(
                 AppLocalizations.of(context)!.poweredByDevSafe,
                 style: TextStyle(
@@ -187,10 +208,12 @@ class AboutScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
+                color: Theme.of(
+                  context,
+                ).colorScheme.primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Icon(icon, color: Theme.of(context).primaryColor),
+              child: Icon(icon, color: Theme.of(context).colorScheme.primary),
             ),
             const SizedBox(width: 16),
             Expanded(

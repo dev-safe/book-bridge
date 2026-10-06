@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import 'package:book_bridge/features/chat/domain/entities/conversation.dart';
 import 'package:book_bridge/features/chat/presentation/viewmodels/chat_viewmodel.dart';
 import 'package:book_bridge/l10n/app_localizations.dart';
-import 'package:book_bridge/core/theme/app_theme.dart';
 
 /// Screen showing all active conversations for the current user.
 class ChatListScreen extends StatefulWidget {
@@ -31,8 +30,6 @@ class _ChatListScreenState extends State<ChatListScreen> {
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
       appBar: AppBar(
-        backgroundColor: AppTheme.scholarBlue,
-        foregroundColor: Colors.white,
         title: Text(
           AppLocalizations.of(context)!.chatsTitle,
           style: const TextStyle(fontWeight: FontWeight.bold),

@@ -60,7 +60,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
           appBar: PreferredSize(
             preferredSize: const Size.fromHeight(180),
             child: Container(
-              color: AppTheme.scholarBlue,
+              color: AppTheme.headerColor(context),
               child: SafeArea(
                 child: Container(
                   padding: const EdgeInsets.symmetric(

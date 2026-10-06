@@ -2330,7 +2330,7 @@ abstract class AppLocalizations {
   /// No description provided for @co2Saved.
   ///
   /// In en, this message translates to:
-  /// **'Tonnes CO2'**
+  /// **'CO₂ Avoided'**
   String get co2Saved;
 
   /// No description provided for @safetyGuidelinesTitle.
@@ -2968,6 +2968,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Confirm receipt'**
   String get escrowConfirmReceipt;
+
+  /// No description provided for @linkOpenError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open link'**
+  String get linkOpenError;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

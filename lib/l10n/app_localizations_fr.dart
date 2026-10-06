@@ -1160,7 +1160,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get moneySaved => 'FCFA Économisés';
 
   @override
-  String get co2Saved => 'Tonnes CO2';
+  String get co2Saved => 'CO₂ évité';
 
   @override
   String get safetyGuidelinesTitle => 'Directives de Sécurité';
@@ -1489,4 +1489,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get escrowConfirmReceipt => 'Confirmer la réception';
+
+  @override
+  String get linkOpenError => 'Impossible d\'ouvrir le lien';
 }

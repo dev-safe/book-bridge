@@ -3,7 +3,6 @@ import 'package:book_bridge/core/presentation/widgets/offline_banner.dart';
 import 'package:book_bridge/features/listings/domain/entities/listing.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:book_bridge/features/listings/presentation/viewmodels/home_viewmodel.dart';
-import 'package:book_bridge/features/auth/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:book_bridge/core/constants/categories.dart';
 import 'package:flutter/material.dart';
 import 'package:book_bridge/l10n/app_localizations.dart';
@@ -11,13 +10,10 @@ import 'package:go_router/go_router.dart';
 import 'package:book_bridge/features/listings/presentation/widgets/listing_card.dart';
 import 'package:book_bridge/features/listings/presentation/widgets/academic_filter_bar.dart';
 import 'package:book_bridge/features/listings/presentation/widgets/radius_filter_bar.dart';
-import 'package:book_bridge/injection_container.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:book_bridge/features/listings/presentation/viewmodels/locale_viewmodel.dart';
 import 'package:provider/provider.dart';
-import 'package:book_bridge/features/payments/domain/entities/payment_purpose.dart';
-import 'package:book_bridge/features/payments/presentation/widgets/payment_bottom_sheet.dart';
-import 'package:book_bridge/features/payments/presentation/viewmodels/payment_viewmodel.dart';
+import 'package:book_bridge/features/payments/presentation/widgets/donation_sheet.dart';
 import 'package:book_bridge/core/theme/app_theme.dart';
 import 'package:book_bridge/features/impact/presentation/widgets/impact_stats_widget.dart';
 
@@ -570,7 +566,7 @@ class _HomeScreenState extends State<HomeScreen> {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Theme.of(context).colorScheme.primary,
+            AppTheme.headerColor(context),
             const Color(0xFF7C3AED), // Keep the purple for the premium feel
           ],
         ),
@@ -753,8 +749,6 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildDonationCard(BuildContext context) {
-    final authViewModel = context.read<AuthViewModel>();
-    final user = authViewModel.currentUser;
     return Container(
       decoration: BoxDecoration(
         gradient: const LinearGradient(
@@ -859,7 +853,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ],
                         ),
                         child: ElevatedButton(
-                          onPressed: () => _showDonationOptions(context, user),
+                          onPressed: () => showDonationSheet(context),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.white,
                             foregroundColor: const Color(0xFFEC4899),
@@ -1120,86 +1114,5 @@ class _HomeScreenState extends State<HomeScreen> {
       default:
         return categoryName;
     }
-  }
-
-  void _showDonationOptions(BuildContext context, user) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (context) {
-        return Container(
-          decoration: BoxDecoration(
-            color: Theme.of(context).scaffoldBackgroundColor,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-          ),
-          padding: const EdgeInsets.all(24),
-          child: SafeArea(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  AppLocalizations.of(context)!.selectDonationAmount,
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    _buildAmountButton(context, 100, user),
-                    _buildAmountButton(context, 500, user),
-                    _buildAmountButton(context, 1000, user),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildAmountButton(BuildContext context, int amount, user) {
-    return ElevatedButton(
-      onPressed: () {
-        Navigator.pop(context); // close amount picker
-
-        showModalBottomSheet(
-          context: context,
-          isScrollControlled: true,
-          shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-          ),
-          builder: (context) => ChangeNotifierProvider(
-            create: (_) => getIt<PaymentViewModel>(),
-            child: PaymentBottomSheet(
-              amount: amount,
-              title: AppLocalizations.of(context)!.supportBookBridge,
-              purpose: DonationPayment(amount),
-              onSuccess: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(AppLocalizations.of(context)!.donationThanks),
-                    backgroundColor: Colors.green,
-                  ),
-                );
-              },
-            ),
-          ),
-        );
-      },
-      style: ElevatedButton.styleFrom(
-        backgroundColor: const Color(0xFF1A4D8C),
-        foregroundColor: Colors.white,
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
-      child: Text(
-        '$amount',
-        style: const TextStyle(fontWeight: FontWeight.bold),
-      ),
-    );
   }
 }

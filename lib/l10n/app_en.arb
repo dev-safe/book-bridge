@@ -422,7 +422,7 @@
   "socialImpactTitle": "Social Venture Mission",
   "booksCirculated": "Circulated",
   "moneySaved": "FCFA Saved",
-  "co2Saved": "Tonnes CO2",
+  "co2Saved": "CO₂ Avoided",
   "safetyGuidelinesTitle": "Safety Guidelines",
   "safeMeetupLocations": "Safe Meetup Locations",
   "whatToCheck": "What to Check",
@@ -552,5 +552,6 @@
   "idVerifyNow": "Verify now",
   "idVerifiedBadge": "ID verified",
   "escrowReportProblem": "There's a problem",
-  "escrowConfirmReceipt": "Confirm receipt"
+  "escrowConfirmReceipt": "Confirm receipt",
+  "linkOpenError": "Could not open link"
 }

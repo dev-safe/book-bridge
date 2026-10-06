@@ -33,7 +33,17 @@ class AppTheme {
   static const Color darkMutedText = Color(0xFFA4B0B5);
   static const Color darkSurfaceHigh = Color(0xFF2A2A2A);
 
-  /// Tab bars are placed in the app bar (blue in light mode, dark surface in
+  /// Dark-mode header colour shared by every app bar, so the brand blue reads
+  /// the same on all screens without glaring against [darkBackground].
+  static const Color darkHeader = Color(0xFF15345C);
+
+  /// Header (app bar / hero banner) colour for the current brightness.
+  static Color headerColor(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark
+      ? darkHeader
+      : scholarBlue;
+
+  /// Tab bars are placed in the app bar (blue in light mode, [darkHeader] in
   /// dark mode); Material 3's default primary-coloured label vanished there.
   static TabBarThemeData get _appBarTabBarTheme => TabBarThemeData(
     labelColor: Colors.white,
@@ -223,7 +233,7 @@ class AppTheme {
       scaffoldBackgroundColor: darkBackground,
       // AppBar theme
       appBarTheme: AppBarTheme(
-        backgroundColor: darkSurface,
+        backgroundColor: darkHeader,
         foregroundColor: Colors.white,
         elevation: 0,
         centerTitle: true,

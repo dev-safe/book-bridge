@@ -84,9 +84,9 @@ class _SafetyGuidelinesScreenState extends State<SafetyGuidelinesScreen> {
             // Header Banner
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-              decoration: const BoxDecoration(
-                color: AppTheme.scholarBlue,
-                borderRadius: BorderRadius.only(
+              decoration: BoxDecoration(
+                color: AppTheme.headerColor(context),
+                borderRadius: const BorderRadius.only(
                   bottomLeft: Radius.circular(24),
                   bottomRight: Radius.circular(24),
                 ),

@@ -108,7 +108,9 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                 hintText: AppLocalizations.of(context)!.feedbackHint,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.grey[300]!),
+                  borderSide: BorderSide(
+                    color: Theme.of(context).colorScheme.outlineVariant,
+                  ),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),

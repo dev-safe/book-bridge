@@ -4,10 +4,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
-  test('defaults to system when nothing is saved', () async {
+  test('defaults to light when nothing is saved', () async {
     SharedPreferences.setMockInitialValues({});
     final vm = ThemeViewModel(prefs: await SharedPreferences.getInstance());
-    expect(vm.themeMode, ThemeMode.system);
+    expect(vm.themeMode, ThemeMode.light);
   });
 
   test('loads the saved mode', () async {
@@ -16,10 +16,10 @@ void main() {
     expect(vm.themeMode, ThemeMode.dark);
   });
 
-  test('falls back to system for an unknown saved value', () async {
+  test('falls back to light for an unknown saved value', () async {
     SharedPreferences.setMockInitialValues({ThemeViewModel.prefsKey: 'neon'});
     final vm = ThemeViewModel(prefs: await SharedPreferences.getInstance());
-    expect(vm.themeMode, ThemeMode.system);
+    expect(vm.themeMode, ThemeMode.light);
   });
 
   test('setThemeMode notifies and persists', () async {
@@ -29,11 +29,11 @@ void main() {
     var notified = 0;
     vm.addListener(() => notified++);
 
-    vm.setThemeMode(ThemeMode.light);
+    vm.setThemeMode(ThemeMode.dark);
 
-    expect(vm.themeMode, ThemeMode.light);
+    expect(vm.themeMode, ThemeMode.dark);
     expect(notified, 1);
-    expect(prefs.getString(ThemeViewModel.prefsKey), 'light');
+    expect(prefs.getString(ThemeViewModel.prefsKey), 'dark');
   });
 
   test('toggleTheme switches between light and dark', () async {

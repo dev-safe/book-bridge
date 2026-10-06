@@ -1,3 +1,5 @@
+import 'package:book_bridge/core/constants/contact_links.dart';
+import 'package:book_bridge/core/utils/external_links.dart';
 import 'package:book_bridge/core/theme/app_theme.dart';
 import 'package:book_bridge/features/auth/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:flutter/material.dart';
@@ -13,9 +15,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:book_bridge/l10n/app_localizations.dart';
 import 'package:book_bridge/features/auth/domain/entities/user.dart';
-import 'package:book_bridge/features/payments/domain/entities/payment_purpose.dart';
-import 'package:book_bridge/features/payments/presentation/widgets/payment_bottom_sheet.dart';
-import 'package:book_bridge/features/payments/presentation/viewmodels/payment_viewmodel.dart';
+import 'package:book_bridge/features/payments/presentation/widgets/donation_sheet.dart';
 import 'package:book_bridge/injection_container.dart';
 import 'package:book_bridge/features/subscriptions/data/datasources/rust_subscription_data_source.dart';
 import 'package:book_bridge/features/subscriptions/presentation/widgets/power_seller_widgets.dart';
@@ -70,8 +70,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Colors.white,
         title: Text(
           AppLocalizations.of(context)!.account,
           style: const TextStyle(fontWeight: FontWeight.bold),
@@ -458,7 +456,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
               Theme.of(context).colorScheme.primary,
             ),
           ),
-          Container(height: 40, width: 1, color: Colors.grey[300]),
+          Container(
+            height: 40,
+            width: 1,
+            color: Theme.of(context).colorScheme.outlineVariant,
+          ),
           Expanded(
             child: _buildStatItem(
               context,
@@ -717,30 +719,40 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 _buildSocialIcon(
                   FontAwesomeIcons.whatsapp,
                   const Color(0xFF25D366),
+                  ContactLinks.supportWhatsAppDisplay,
+                  () =>
+                      openExternalUrl(context, ContactLinks.supportWhatsAppUrl),
+                ),
+                _buildSocialIcon(
+                  FontAwesomeIcons.users,
+                  const Color(0xFF25D366),
                   'Community',
-                  () => _launchUrl(
-                    'https://chat.whatsapp.com/H6WZEE86OEoDkb4jjjtOHZ',
+                  () => openExternalUrl(
+                    context,
+                    ContactLinks.whatsAppCommunityUrl,
                   ),
                 ),
                 _buildSocialIcon(
                   FontAwesomeIcons.linkedinIn,
                   const Color(0xFF0A66C2),
                   AppLocalizations.of(context)!.linkedin,
-                  () => _launchUrl(
-                    'https://www.linkedin.com/in/verla-berinyuy-15b1262a5/',
-                  ),
+                  () => openExternalUrl(context, ContactLinks.linkedInUrl),
                 ),
                 _buildSocialIcon(
                   FontAwesomeIcons.youtube,
                   const Color(0xFFFF0000),
                   AppLocalizations.of(context)!.youtube,
-                  () => _launchUrl('https://www.youtube.com/@VerlaBerinyuy'),
+                  () => openExternalUrl(
+                    context,
+                    'https://www.youtube.com/@VerlaBerinyuy',
+                  ),
                 ),
                 _buildSocialIcon(
                   FontAwesomeIcons.instagram,
                   const Color(0xFFE4405F),
                   AppLocalizations.of(context)!.instagram,
-                  () => _launchUrl(
+                  () => openExternalUrl(
+                    context,
                     'https://www.instagram.com/verlaberinyuyndey/',
                   ),
                 ),
@@ -748,7 +760,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   FontAwesomeIcons.facebook,
                   const Color(0xFF1877F2),
                   AppLocalizations.of(context)!.facebook,
-                  () => _launchUrl(
+                  () => openExternalUrl(
+                    context,
                     'https://www.facebook.com/profile.php?id=61572639047021',
                   ),
                 ),
@@ -933,7 +946,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ),
         child: InkWell(
-          onTap: () => _showDonationAmountPicker(context, user),
+          onTap: () => showDonationSheet(context),
           borderRadius: BorderRadius.circular(16),
           child: Padding(
             padding: const EdgeInsets.all(16.0),
@@ -982,85 +995,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  void _showDonationAmountPicker(BuildContext context, user) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) {
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  AppLocalizations.of(context)!.selectDonationAmount,
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    _buildAmountButton(context, 100, user),
-                    _buildAmountButton(context, 500, user),
-                    _buildAmountButton(context, 1000, user),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildAmountButton(BuildContext context, int amount, user) {
-    return ElevatedButton(
-      onPressed: () {
-        Navigator.pop(context); // close amount picker
-
-        showModalBottomSheet(
-          context: context,
-          isScrollControlled: true,
-          shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-          ),
-          builder: (context) => ChangeNotifierProvider(
-            create: (_) => getIt<PaymentViewModel>(),
-            child: PaymentBottomSheet(
-              amount: amount,
-              title: AppLocalizations.of(context)!.supportBookBridge,
-              purpose: DonationPayment(amount),
-              onSuccess: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(AppLocalizations.of(context)!.donationThanks),
-                    backgroundColor: Colors.green,
-                  ),
-                );
-              },
-            ),
-          ),
-        );
-      },
-      style: ElevatedButton.styleFrom(
-        backgroundColor: const Color(0xFF1A4D8C),
-        foregroundColor: Colors.white,
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
-      child: Text(
-        '$amount',
-        style: const TextStyle(fontWeight: FontWeight.bold),
       ),
     );
   }
