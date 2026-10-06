@@ -6,5 +6,6 @@ pub mod health;
 pub mod id_verification;
 pub mod payments;
 pub mod push;
+pub mod reports;
 pub mod subscriptions;
 pub mod webhook;
