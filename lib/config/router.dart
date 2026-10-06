@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:book_bridge/features/moderation/presentation/screens/blocked_users_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:book_bridge/features/auth/presentation/screens/sign_in_screen.dart';
 import 'package:book_bridge/features/auth/presentation/screens/sign_up_screen.dart';
@@ -280,6 +281,11 @@ final appRouter = GoRouter(
       path: '/about',
       name: 'about',
       builder: (context, state) => const AboutScreen(),
+    ),
+    GoRoute(
+      path: '/blocked-users',
+      name: 'blocked-users',
+      builder: (context, state) => const BlockedUsersScreen(),
     ),
     // Favorites Route
     GoRoute(

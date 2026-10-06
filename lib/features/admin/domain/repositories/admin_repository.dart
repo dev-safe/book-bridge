@@ -39,6 +39,18 @@ abstract class AdminRepository {
   /// Marks the user rejected, shows them [note] and deletes their ID photos.
   Future<Either<Failure, Unit>> rejectId(String userId, String note);
 
+  Future<Either<Failure, List<ContentReport>>> reports();
+
+  /// Closes a report without acting on it.
+  Future<Either<Failure, Unit>> dismissReport(String reportId, String note);
+
+  /// Takes the reported listing off the market and closes every open report
+  /// about it.
+  Future<Either<Failure, Unit>> removeReportedListing(
+    String reportId,
+    String note,
+  );
+
   /// A short-lived URL for one ID photo.
   Future<Either<Failure, String>> idPhotoUrl(String path);
 }

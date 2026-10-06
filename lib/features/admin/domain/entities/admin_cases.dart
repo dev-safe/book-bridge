@@ -73,3 +73,36 @@ class UnmatchedPayment {
     this.payerPhoneHint,
   });
 }
+
+/// An open user report about a listing or a user.
+class ContentReport {
+  final String id;
+
+  /// One of spam, scam, inappropriate, harassment, prohibited, other.
+  final String reason;
+  final String? details;
+  final DateTime? createdAt;
+  final String? reporterName;
+  final String? listingId;
+  final String? listingTitle;
+  final String? listingStatus;
+
+  /// The reported user, or the seller of the reported listing.
+  final String? reportedUserId;
+  final String? reportedUserName;
+
+  const ContentReport({
+    required this.id,
+    required this.reason,
+    this.details,
+    this.createdAt,
+    this.reporterName,
+    this.listingId,
+    this.listingTitle,
+    this.listingStatus,
+    this.reportedUserId,
+    this.reportedUserName,
+  });
+
+  bool get isAboutListing => listingId != null;
+}

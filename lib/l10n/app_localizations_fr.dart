@@ -1577,4 +1577,94 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get viewOrders => 'Voir les commandes';
+
+  @override
+  String get moreOptions => 'Plus d\'options';
+
+  @override
+  String get reportListing => 'Signaler l\'annonce';
+
+  @override
+  String get reportSeller => 'Signaler le vendeur';
+
+  @override
+  String get reportUser => 'Signaler l\'utilisateur';
+
+  @override
+  String get blockUser => 'Bloquer l\'utilisateur';
+
+  @override
+  String get unblockUser => 'Débloquer';
+
+  @override
+  String get reportTitle => 'Pourquoi signalez-vous ceci ?';
+
+  @override
+  String get reportReasonSpam => 'Spam ou trompeur';
+
+  @override
+  String get reportReasonScam => 'Arnaque ou fraude';
+
+  @override
+  String get reportReasonInappropriate => 'Contenu inapproprié ou offensant';
+
+  @override
+  String get reportReasonHarassment => 'Harcèlement ou abus';
+
+  @override
+  String get reportReasonProhibited => 'Article interdit ou contrefait';
+
+  @override
+  String get reportReasonOther => 'Autre chose';
+
+  @override
+  String get reportDetailsHint => 'Ajoutez des détails (facultatif)';
+
+  @override
+  String get reportSubmit => 'Envoyer le signalement';
+
+  @override
+  String get reportSent => 'Merci. Notre équipe examinera votre signalement.';
+
+  @override
+  String get reportLimitReached => 'Vous avez envoyé trop de signalements aujourd\'hui. Réessayez demain.';
+
+  @override
+  String get moderationFailed => 'Cela n\'a pas fonctionné. Vérifiez votre connexion et réessayez.';
+
+  @override
+  String blockConfirmTitle(String name) {
+    return 'Bloquer $name ?';
+  }
+
+  @override
+  String get blockConfirmBody => 'Vous ne verrez plus ses annonces ni ses discussions, et aucun de vous ne pourra écrire à l\'autre. Vous pouvez le débloquer depuis votre profil.';
+
+  @override
+  String get blockConfirm => 'Bloquer';
+
+  @override
+  String userBlocked(String name) {
+    return '$name est bloqué(e).';
+  }
+
+  @override
+  String userUnblocked(String name) {
+    return '$name est débloqué(e).';
+  }
+
+  @override
+  String get blockedUsersTitle => 'Utilisateurs bloqués';
+
+  @override
+  String get blockedUsersEmpty => 'Vous n\'avez bloqué personne.';
+
+  @override
+  String get blockedUserFallbackName => 'Cet utilisateur';
+
+  @override
+  String get chatBlockedBanner => 'Vous avez bloqué cet utilisateur. Débloquez-le pour envoyer des messages.';
+
+  @override
+  String get chatSendBlocked => 'Vous ne pouvez pas écrire à cet utilisateur.';
 }

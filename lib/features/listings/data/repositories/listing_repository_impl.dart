@@ -118,9 +118,13 @@ class ListingRepositoryImpl implements ListingRepository {
           final cached = await localDataSource.getCachedListings(
             category: category,
           );
-          if (cached.isNotEmpty) {
+          final blocked = dataSource.blockedUsers;
+          final visible = blocked == null
+              ? cached
+              : cached.where((m) => !blocked.contains(m.sellerId)).toList();
+          if (visible.isNotEmpty) {
             _isServingFromCache = true;
-            return Right(cached.map((m) => m.toEntity()).toList());
+            return Right(visible.map((m) => m.toEntity()).toList());
           }
         }
       } catch (_) {

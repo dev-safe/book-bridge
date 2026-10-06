@@ -79,6 +79,34 @@ class _FakeRepo implements AdminRepository {
 
   @override
   Future<Either<Failure, String>> idPhotoUrl(String path) async => photoResult;
+
+  List<ContentReport> reportList = [
+    ContentReport(
+      id: 'r1',
+      reason: 'scam',
+      createdAt: DateTime(2026),
+      listingId: 'l1',
+    ),
+  ];
+
+  @override
+  Future<Either<Failure, List<ContentReport>>> reports() async =>
+      Right(reportList);
+
+  @override
+  Future<Either<Failure, Unit>> dismissReport(String id, String note) async {
+    calls.add('dismissReport $id $note');
+    return actionResult;
+  }
+
+  @override
+  Future<Either<Failure, Unit>> removeReportedListing(
+    String id,
+    String note,
+  ) async {
+    calls.add('removeReportedListing $id $note');
+    return actionResult;
+  }
 }
 
 void main() {
@@ -174,6 +202,38 @@ void main() {
       repo.photoResult = const Left(ServerFailure(message: 'Forbidden'));
 
       await expectLater(vm.idPhotoUrl('user-1/front.jpg'), throwsA(anything));
+    });
+  });
+
+  group('content reports', () {
+    test('open loads open reports', () async {
+      await vm.open();
+
+      expect(vm.reports.single.id, 'r1');
+    });
+
+    test('removeReportedListing calls the repository and reloads', () async {
+      await vm.open();
+      repo.reportList = const [];
+
+      final error = await vm.removeReportedListing('r1', 'Counterfeit');
+
+      expect(error, isNull);
+      expect(repo.calls, contains('removeReportedListing r1 Counterfeit'));
+      expect(vm.reports, isEmpty);
+      expect(vm.busyId, isNull);
+    });
+
+    test('dismissReport returns the server message on failure', () async {
+      await vm.open();
+      repo.actionResult = const Left(
+        ServerFailure(message: 'Report is no longer open'),
+      );
+
+      final error = await vm.dismissReport('r1', 'Not a violation');
+
+      expect(error, 'Report is no longer open');
+      expect(repo.calls, contains('dismissReport r1 Not a violation'));
     });
   });
 

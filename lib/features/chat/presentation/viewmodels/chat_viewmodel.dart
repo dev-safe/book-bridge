@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:book_bridge/core/error/exceptions.dart';
 import 'package:book_bridge/features/chat/domain/entities/conversation.dart';
 import 'package:book_bridge/features/chat/domain/entities/message.dart';
 import 'package:book_bridge/features/chat/domain/repositories/chat_repository.dart';
@@ -43,6 +44,10 @@ class ChatViewModel extends ChangeNotifier {
 
   String? _sendError;
   String? get sendError => _sendError;
+
+  /// True when the last send failed because one user blocked the other.
+  bool _sendBlocked = false;
+  bool get sendBlocked => _sendBlocked;
 
   // ─── Conversations ────────────────────────────────────────────────────────
 
@@ -112,6 +117,7 @@ class ChatViewModel extends ChangeNotifier {
     if (content.trim().isEmpty) return;
     _isSending = true;
     _sendError = null;
+    _sendBlocked = false;
     notifyListeners();
     try {
       await _repository.sendMessage(
@@ -119,6 +125,9 @@ class ChatViewModel extends ChangeNotifier {
         receiverId: receiverId,
         content: content.trim(),
       );
+    } on MessagingBlockedException {
+      _sendBlocked = true;
+      _sendError = 'You can\'t message this user.';
     } catch (e) {
       _sendError = 'Failed to send message. Please try again.';
     }

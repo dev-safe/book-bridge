@@ -294,7 +294,7 @@ fn refund_payout_decision() {
 
 // ------------------------------------- auth gate (no database required)
 
-const ROUTES: [(&str, &str); 7] = [
+const ROUTES: [(&str, &str); 10] = [
     ("GET", "/admin/me"),
     ("GET", "/admin/disputes"),
     (
@@ -313,6 +313,15 @@ const ROUTES: [(&str, &str); 7] = [
     (
         "POST",
         "/admin/unmatched-payments/00000000-0000-0000-0000-000000000001/dismiss",
+    ),
+    ("GET", "/admin/reports"),
+    (
+        "POST",
+        "/admin/reports/00000000-0000-0000-0000-000000000001/dismiss",
+    ),
+    (
+        "POST",
+        "/admin/reports/00000000-0000-0000-0000-000000000001/remove-listing",
     ),
 ];
 
@@ -1132,4 +1141,238 @@ async fn young_seller_is_paid_on_the_guardian_number() {
     let f = w.fapshi.lock().unwrap();
     assert_eq!(f.payouts.len(), 1);
     assert_eq!(f.payouts[0]["phone"], "699000111");
+}
+
+// --------------------------------------------------------------- reports
+
+/// A listing by a new seller with two open reports about it (one from
+/// `w.user`, one from another reporter) and an unrelated user report.
+struct Reported {
+    seller: Uuid,
+    listing: Uuid,
+    report: Uuid,
+    second_report: Uuid,
+    user_report: Uuid,
+}
+
+async fn seed_reports(w: &World, listing_status: &str) -> Reported {
+    let (seller, other) = (Uuid::new_v4(), Uuid::new_v4());
+    sqlx::query("INSERT INTO auth.users (id) VALUES ($1), ($2)")
+        .bind(seller)
+        .bind(other)
+        .execute(&w.pool)
+        .await
+        .unwrap();
+    sqlx::query(
+        "INSERT INTO profiles (id, full_name) VALUES ($1, 'Shady Seller'), ($2, 'Other'), \
+         ($3, 'Reporter') ON CONFLICT (id) DO UPDATE SET full_name = EXCLUDED.full_name",
+    )
+    .bind(seller)
+    .bind(other)
+    .bind(w.user)
+    .execute(&w.pool)
+    .await
+    .unwrap();
+    let listing: Uuid = sqlx::query_scalar(
+        "INSERT INTO listings (title, author, price_fcfa, condition, seller_id, status) \
+         VALUES ('Fake Book', 'Author', 500, 'good', $1, $2) RETURNING id",
+    )
+    .bind(seller)
+    .bind(listing_status)
+    .fetch_one(&w.pool)
+    .await
+    .unwrap();
+    let report = |reporter: Uuid, listing: Option<Uuid>, user: Option<Uuid>, reason: &str| {
+        sqlx::query_scalar::<_, Uuid>(
+            "INSERT INTO content_reports (reporter_id, listing_id, reported_user_id, reason, details) \
+             VALUES ($1, $2, $3, $4, 'Looks fake') RETURNING id",
+        )
+        .bind(reporter)
+        .bind(listing)
+        .bind(user)
+        .bind(reason.to_string())
+        .fetch_one(&w.pool)
+    };
+    let first = report(w.user, Some(listing), None, "scam").await.unwrap();
+    let second = report(other, Some(listing), None, "spam").await.unwrap();
+    let user_report = report(w.user, None, Some(other), "harassment")
+        .await
+        .unwrap();
+    Reported {
+        seller,
+        listing,
+        report: first,
+        second_report: second,
+        user_report,
+    }
+}
+
+async fn report_status(w: &World, id: Uuid) -> (String, Option<Uuid>) {
+    let row = sqlx::query("SELECT status, reviewed_by FROM content_reports WHERE id = $1")
+        .bind(id)
+        .fetch_one(&w.pool)
+        .await
+        .unwrap();
+    (row.get("status"), row.get("reviewed_by"))
+}
+
+async fn listing_status(w: &World, id: Uuid) -> String {
+    sqlx::query_scalar("SELECT status FROM listings WHERE id = $1")
+        .bind(id)
+        .fetch_one(&w.pool)
+        .await
+        .unwrap()
+}
+
+async fn report_actions(w: &World, report: Uuid) -> Vec<(String, Uuid)> {
+    sqlx::query("SELECT action, admin_id FROM admin_actions WHERE report_id = $1")
+        .bind(report)
+        .fetch_all(&w.pool)
+        .await
+        .unwrap()
+        .into_iter()
+        .map(|r| (r.get("action"), r.get("admin_id")))
+        .collect()
+}
+
+#[tokio::test]
+async fn admin_lists_open_reports_with_names() {
+    let Some(w) = world().await else { return };
+    let r = seed_reports(&w, "available").await;
+
+    let (status, body) = send(
+        &w.state,
+        Method::GET,
+        "/admin/reports",
+        Some(ADMIN_TOKEN),
+        None,
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "{body}");
+    let listed = body["reports"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|x| x["id"] == json!(r.report))
+        .expect("open report is listed")
+        .clone();
+    assert_eq!(listed["reason"], "scam");
+    assert_eq!(listed["details"], "Looks fake");
+    assert_eq!(listed["reporter_name"], "Reporter");
+    assert_eq!(listed["listing_title"], "Fake Book");
+    assert_eq!(listed["listing_status"], "available");
+    // A listing report names the seller as the reported user.
+    assert_eq!(listed["reported_user_id"], json!(r.seller));
+    assert_eq!(listed["reported_user_name"], "Shady Seller");
+}
+
+#[tokio::test]
+async fn removing_a_reported_listing_closes_every_report_about_it() {
+    let Some(w) = world().await else { return };
+    let r = seed_reports(&w, "available").await;
+
+    let path = format!("/admin/reports/{}/remove-listing", r.report);
+    let (status, body) = send(&w.state, Method::POST, &path, Some(ADMIN_TOKEN), note()).await;
+    assert_eq!(status, StatusCode::OK, "{body}");
+    assert_eq!(body["status"], "actioned");
+    assert_eq!(body["closed_reports"], 2);
+
+    assert_eq!(listing_status(&w, r.listing).await, "removed");
+    assert_eq!(
+        report_status(&w, r.report).await,
+        ("actioned".into(), Some(w.admin))
+    );
+    assert_eq!(
+        report_status(&w, r.second_report).await,
+        ("actioned".into(), Some(w.admin))
+    );
+    assert_eq!(
+        report_status(&w, r.user_report).await,
+        ("open".into(), None)
+    );
+    assert_eq!(
+        report_actions(&w, r.report).await,
+        vec![("remove_reported_listing".into(), w.admin)]
+    );
+
+    // Already closed: a second decision is refused.
+    let (status, _) = send(&w.state, Method::POST, &path, Some(ADMIN_TOKEN), note()).await;
+    assert_eq!(status, StatusCode::CONFLICT);
+}
+
+#[tokio::test]
+async fn a_sold_listing_stays_sold_when_removed() {
+    let Some(w) = world().await else { return };
+    let r = seed_reports(&w, "sold").await;
+
+    let path = format!("/admin/reports/{}/remove-listing", r.report);
+    let (status, body) = send(&w.state, Method::POST, &path, Some(ADMIN_TOKEN), note()).await;
+    assert_eq!(status, StatusCode::OK, "{body}");
+    assert_eq!(listing_status(&w, r.listing).await, "sold");
+}
+
+#[tokio::test]
+async fn dismissing_closes_only_that_report() {
+    let Some(w) = world().await else { return };
+    let r = seed_reports(&w, "available").await;
+
+    let path = format!("/admin/reports/{}/dismiss", r.report);
+    let (status, body) = send(&w.state, Method::POST, &path, Some(ADMIN_TOKEN), note()).await;
+    assert_eq!(status, StatusCode::OK, "{body}");
+    assert_eq!(body["closed_reports"], 1);
+
+    assert_eq!(listing_status(&w, r.listing).await, "available");
+    assert_eq!(
+        report_status(&w, r.report).await,
+        ("dismissed".into(), Some(w.admin))
+    );
+    assert_eq!(
+        report_status(&w, r.second_report).await,
+        ("open".into(), None)
+    );
+    assert_eq!(
+        report_actions(&w, r.report).await,
+        vec![("dismiss_report".into(), w.admin)]
+    );
+}
+
+#[tokio::test]
+async fn a_user_report_cannot_remove_a_listing() {
+    let Some(w) = world().await else { return };
+    let r = seed_reports(&w, "available").await;
+
+    let path = format!("/admin/reports/{}/remove-listing", r.user_report);
+    let (status, _) = send(&w.state, Method::POST, &path, Some(ADMIN_TOKEN), note()).await;
+    assert_eq!(status, StatusCode::BAD_REQUEST);
+    assert_eq!(
+        report_status(&w, r.user_report).await,
+        ("open".into(), None)
+    );
+
+    let missing = format!("/admin/reports/{}/dismiss", Uuid::new_v4());
+    let (status, _) = send(&w.state, Method::POST, &missing, Some(ADMIN_TOKEN), note()).await;
+    assert_eq!(status, StatusCode::NOT_FOUND);
+}
+
+#[tokio::test]
+async fn report_review_needs_an_admin_and_a_note() {
+    let Some(w) = world().await else { return };
+    let r = seed_reports(&w, "available").await;
+
+    let path = format!("/admin/reports/{}/remove-listing", r.report);
+    let (status, _) = send(&w.state, Method::POST, &path, Some(USER_TOKEN), note()).await;
+    assert_eq!(status, StatusCode::FORBIDDEN);
+    let (status, _) = send(
+        &w.state,
+        Method::POST,
+        &path,
+        Some(ADMIN_TOKEN),
+        Some(json!({ "note": " " })),
+    )
+    .await;
+    assert_eq!(status, StatusCode::BAD_REQUEST);
+
+    assert_eq!(listing_status(&w, r.listing).await, "available");
+    assert_eq!(report_status(&w, r.report).await, ("open".into(), None));
+    assert!(report_actions(&w, r.report).await.is_empty());
 }

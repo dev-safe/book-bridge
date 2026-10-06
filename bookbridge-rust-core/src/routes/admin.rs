@@ -108,6 +108,7 @@ pub fn admin_routes() -> Router<AppState> {
             post(dismiss_unmatched_handler),
         )
         .merge(crate::routes::id_verification::id_verification_routes())
+        .merge(crate::routes::reports::report_routes())
 }
 
 pub async fn me_handler(_admin: AdminUser) -> Json<AdminMeResponse> {

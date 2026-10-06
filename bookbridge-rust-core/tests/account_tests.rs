@@ -420,6 +420,28 @@ async fn world() -> Option<World> {
         .await
         .unwrap();
 
+    // Blocks both ways (after the messages, which a block would refuse) and
+    // reports in both directions.
+    exec(
+        &pool,
+        "INSERT INTO user_blocks (blocker_id, blocked_id) VALUES ($1, $2), ($2, $1)",
+        &[user, other],
+    )
+    .await;
+    exec(
+        &pool,
+        "INSERT INTO content_reports (reporter_id, listing_id, reason) VALUES ($1, $2, 'spam')",
+        &[user, other_listing],
+    )
+    .await;
+    exec(
+        &pool,
+        "INSERT INTO content_reports (reporter_id, reported_user_id, reason) \
+         VALUES ($1, $2, 'harassment')",
+        &[other, user],
+    )
+    .await;
+
     let storage = Storage::default();
     {
         let mut s = storage.lock().unwrap();
@@ -534,6 +556,8 @@ async fn deletion_anonymises_the_account_and_keeps_order_history() {
         "SELECT count(*) FROM wishlists WHERE user_id = $1",
         "SELECT count(*) FROM notifications WHERE user_id = $1",
         "SELECT count(*) FROM feedback WHERE user_id = $1",
+        "SELECT count(*) FROM user_blocks WHERE blocker_id = $1 OR blocked_id = $1",
+        "SELECT count(*) FROM content_reports WHERE reporter_id = $1 OR reported_user_id = $1",
         "SELECT count(*) FROM payment_payers pp JOIN transactions t \
            ON t.payment_reference = pp.payment_reference WHERE t.buyer_id = $1",
     ] {
@@ -600,6 +624,26 @@ async fn deletion_anonymises_the_account_and_keeps_order_history() {
             .await
             .unwrap();
     assert_eq!(review, (5, None));
+    // Reports kept for moderation history, without the deleted user.
+    assert_eq!(
+        count(
+            &w.pool,
+            "SELECT count(*) FROM content_reports WHERE listing_id = $1 AND reporter_id IS NULL",
+            w.other_listing
+        )
+        .await,
+        1
+    );
+    assert_eq!(
+        count(
+            &w.pool,
+            "SELECT count(*) FROM content_reports WHERE reporter_id = $1 \
+               AND reported_user_id IS NULL",
+            w.other
+        )
+        .await,
+        1
+    );
 
     // Login scrubbed and banned.
     let u = sqlx::query(

@@ -3112,6 +3112,174 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'View orders'**
   String get viewOrders;
+
+  /// No description provided for @moreOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'More options'**
+  String get moreOptions;
+
+  /// No description provided for @reportListing.
+  ///
+  /// In en, this message translates to:
+  /// **'Report listing'**
+  String get reportListing;
+
+  /// No description provided for @reportSeller.
+  ///
+  /// In en, this message translates to:
+  /// **'Report seller'**
+  String get reportSeller;
+
+  /// No description provided for @reportUser.
+  ///
+  /// In en, this message translates to:
+  /// **'Report user'**
+  String get reportUser;
+
+  /// No description provided for @blockUser.
+  ///
+  /// In en, this message translates to:
+  /// **'Block user'**
+  String get blockUser;
+
+  /// No description provided for @unblockUser.
+  ///
+  /// In en, this message translates to:
+  /// **'Unblock'**
+  String get unblockUser;
+
+  /// No description provided for @reportTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Why are you reporting this?'**
+  String get reportTitle;
+
+  /// No description provided for @reportReasonSpam.
+  ///
+  /// In en, this message translates to:
+  /// **'Spam or misleading'**
+  String get reportReasonSpam;
+
+  /// No description provided for @reportReasonScam.
+  ///
+  /// In en, this message translates to:
+  /// **'Scam or fraud'**
+  String get reportReasonScam;
+
+  /// No description provided for @reportReasonInappropriate.
+  ///
+  /// In en, this message translates to:
+  /// **'Inappropriate or offensive content'**
+  String get reportReasonInappropriate;
+
+  /// No description provided for @reportReasonHarassment.
+  ///
+  /// In en, this message translates to:
+  /// **'Harassment or abuse'**
+  String get reportReasonHarassment;
+
+  /// No description provided for @reportReasonProhibited.
+  ///
+  /// In en, this message translates to:
+  /// **'Prohibited or counterfeit item'**
+  String get reportReasonProhibited;
+
+  /// No description provided for @reportReasonOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Something else'**
+  String get reportReasonOther;
+
+  /// No description provided for @reportDetailsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Add details (optional)'**
+  String get reportDetailsHint;
+
+  /// No description provided for @reportSubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Send report'**
+  String get reportSubmit;
+
+  /// No description provided for @reportSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Thanks. Our team will review your report.'**
+  String get reportSent;
+
+  /// No description provided for @reportLimitReached.
+  ///
+  /// In en, this message translates to:
+  /// **'You have sent too many reports today. Please try again tomorrow.'**
+  String get reportLimitReached;
+
+  /// No description provided for @moderationFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'That didn\'t work. Check your connection and try again.'**
+  String get moderationFailed;
+
+  /// No description provided for @blockConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Block {name}?'**
+  String blockConfirmTitle(String name);
+
+  /// No description provided for @blockConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You won\'t see their listings or chats, and neither of you can message the other. You can unblock them from your profile.'**
+  String get blockConfirmBody;
+
+  /// No description provided for @blockConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Block'**
+  String get blockConfirm;
+
+  /// No description provided for @userBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} is blocked.'**
+  String userBlocked(String name);
+
+  /// No description provided for @userUnblocked.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} is unblocked.'**
+  String userUnblocked(String name);
+
+  /// No description provided for @blockedUsersTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Blocked users'**
+  String get blockedUsersTitle;
+
+  /// No description provided for @blockedUsersEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'You haven\'t blocked anyone.'**
+  String get blockedUsersEmpty;
+
+  /// No description provided for @blockedUserFallbackName.
+  ///
+  /// In en, this message translates to:
+  /// **'This user'**
+  String get blockedUserFallbackName;
+
+  /// No description provided for @chatBlockedBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'You blocked this user. Unblock them to send messages.'**
+  String get chatBlockedBanner;
+
+  /// No description provided for @chatSendBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'You can\'t message this user.'**
+  String get chatSendBlocked;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

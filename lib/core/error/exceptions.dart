@@ -29,6 +29,12 @@ class ConflictException extends ServerException {
   ConflictException({required super.message});
 }
 
+/// Exception thrown when a message is refused because one of the two users
+/// has blocked the other.
+class MessagingBlockedException extends ServerException {
+  MessagingBlockedException({required super.message});
+}
+
 /// Exception thrown on generic/unexpected errors.
 class UnknownException extends AppException {
   UnknownException({required super.message});
