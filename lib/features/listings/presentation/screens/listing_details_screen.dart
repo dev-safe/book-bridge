@@ -19,6 +19,8 @@ import 'package:book_bridge/core/theme/app_theme.dart';
 import 'package:book_bridge/core/utils/listing_share.dart';
 import 'package:book_bridge/features/safety/presentation/widgets/meetup_tips_card.dart';
 import 'package:book_bridge/features/listings/presentation/widgets/meetup_info_card.dart';
+import 'package:book_bridge/features/moderation/domain/entities/blocked_user.dart';
+import 'package:book_bridge/features/moderation/presentation/widgets/moderation_menu.dart';
 
 /// Listing details screen showing comprehensive information about a book.
 ///
@@ -142,6 +144,7 @@ class _ListingDetailsScreenState extends State<ListingDetailsScreen> {
                           );
                         },
                       ),
+                      _buildModerationMenu(viewModel.listing),
                     ],
                   ),
                 ),
@@ -151,6 +154,37 @@ class _ListingDetailsScreenState extends State<ListingDetailsScreen> {
           body: _buildBody(viewModel),
           bottomNavigationBar: _buildBottomBar(viewModel),
         );
+      },
+    );
+  }
+
+  /// Report and block options, shown to signed-in buyers only.
+  Widget _buildModerationMenu(Listing? listing) {
+    final userId = context.select<AuthViewModel, String?>(
+      (vm) => vm.currentUser?.id,
+    );
+    if (listing == null ||
+        userId == null ||
+        listing.sellerId.isEmpty ||
+        listing.sellerId == userId) {
+      return const SizedBox.shrink();
+    }
+    return ModerationMenu(
+      listingId: listing.id,
+      isSeller: true,
+      iconColor: Colors.white,
+      user: BlockedUser(
+        id: listing.sellerId,
+        name: listing.sellerName,
+        avatarUrl: listing.sellerAvatarUrl,
+      ),
+      onBlocked: () {
+        if (!mounted) return;
+        if (Navigator.of(context).canPop()) {
+          Navigator.of(context).pop();
+        } else {
+          context.go('/home');
+        }
       },
     );
   }

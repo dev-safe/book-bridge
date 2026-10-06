@@ -105,6 +105,30 @@ class RustAdminDataSource {
     );
   }
 
+  Future<List<ContentReport>> reports() async {
+    final body = await _client.get(
+      '/admin/reports',
+      failurePrefix: 'Could not load reports',
+    );
+    return _list(body, 'reports').map(_report).toList();
+  }
+
+  Future<void> dismissReport(String reportId, String note) {
+    return _resolve(
+      '/admin/reports/${Uri.encodeComponent(reportId)}/dismiss',
+      note,
+      failurePrefix: 'Dismiss failed',
+    );
+  }
+
+  Future<void> removeReportedListing(String reportId, String note) {
+    return _resolve(
+      '/admin/reports/${Uri.encodeComponent(reportId)}/remove-listing',
+      note,
+      failurePrefix: 'Remove failed',
+    );
+  }
+
   Future<String> idPhotoUrl(String path) async {
     final sign = _signIdPhoto;
     if (sign == null) {
@@ -187,6 +211,26 @@ class RustAdminDataSource {
           ? List.unmodifiable(paths.whereType<String>())
           : const [],
       submittedAt: _date(json['submitted_at']),
+    );
+  }
+
+  static ContentReport _report(Map<String, dynamic> json) {
+    final id = json['id'];
+    final reason = json['reason'];
+    if (id is! String || reason is! String) {
+      throw ServerException(message: 'Unexpected report in response');
+    }
+    return ContentReport(
+      id: id,
+      reason: reason,
+      details: json['details'] as String?,
+      createdAt: _date(json['created_at']),
+      reporterName: json['reporter_name'] as String?,
+      listingId: json['listing_id'] as String?,
+      listingTitle: json['listing_title'] as String?,
+      listingStatus: json['listing_status'] as String?,
+      reportedUserId: json['reported_user_id'] as String?,
+      reportedUserName: json['reported_user_name'] as String?,
     );
   }
 

@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:book_bridge/features/auth/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:book_bridge/features/chat/presentation/viewmodels/chat_viewmodel.dart';
+import 'package:book_bridge/features/listings/presentation/viewmodels/home_viewmodel.dart';
+import 'package:book_bridge/features/moderation/presentation/viewmodels/moderation_viewmodel.dart';
 import 'package:book_bridge/features/notifications/presentation/viewmodels/notifications_viewmodel.dart';
 import 'package:book_bridge/features/transactions/presentation/viewmodels/pending_orders_viewmodel.dart';
 import 'package:flutter/material.dart';
@@ -19,20 +21,26 @@ class ScaffoldWithNavBar extends StatefulWidget {
 class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
   Timer? _badgeRefreshTimer;
   Timer? _ordersRefreshTimer;
+  late final ModerationViewModel _moderation;
 
   @override
   void initState() {
     super.initState();
+    _moderation = context.read<ModerationViewModel>();
     // Initialize notifications globally
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<NotificationsViewModel>().subscribeToNotifications();
       // Initial load of conversations for the badge count
       context.read<ChatViewModel>().refreshConversationsSilently();
       _refreshPendingOrders();
+      _refreshBlockedUsers();
     });
     // Escrow orders change less often than chats, so poll them more slowly.
     _ordersRefreshTimer = Timer.periodic(const Duration(minutes: 2), (_) {
-      if (mounted) _refreshPendingOrders();
+      if (mounted) {
+        _refreshPendingOrders();
+        _refreshBlockedUsers();
+      }
     });
     // Refresh unread badge count every 30 seconds
     _badgeRefreshTimer = Timer.periodic(const Duration(seconds: 30), (_) {
@@ -46,7 +54,19 @@ class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
   void dispose() {
     _badgeRefreshTimer?.cancel();
     _ordersRefreshTimer?.cancel();
+    // The shell closes on sign-out; don't carry blocks to the next account.
+    _moderation.reset();
     super.dispose();
+  }
+
+  /// Blocks made on another device show up here; refresh the feed and chats
+  /// when they change so blocked users disappear.
+  Future<void> _refreshBlockedUsers() async {
+    final userId = context.read<AuthViewModel>().currentUser?.id;
+    final changed = await _moderation.load(userId);
+    if (!changed || !mounted) return;
+    context.read<HomeViewModel>().refreshListings();
+    context.read<ChatViewModel>().refreshConversationsSilently();
   }
 
   void _refreshPendingOrders() {
