@@ -1,6 +1,7 @@
 import 'package:book_bridge/core/constants/feature_flags.dart';
 import 'package:book_bridge/features/listings/presentation/widgets/listing_buyer_bar.dart';
 import 'package:book_bridge/features/listings/presentation/widgets/listing_image_carousel.dart';
+import 'package:book_bridge/features/listings/presentation/widgets/listing_owner_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:book_bridge/l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
@@ -788,10 +789,6 @@ class _ListingDetailsScreenState extends State<ListingDetailsScreen> {
   Widget? _buildBottomBar(ListingDetailsViewModel viewModel) {
     final listing = viewModel.listing;
     if (listing == null) return null;
-    // The owner's bar only offers a paid boost.
-    final isOwner =
-        context.watch<AuthViewModel>().currentUser?.id == listing.sellerId;
-    if (isOwner && !kDigitalPaymentsEnabled) return null;
 
     return Container(
       padding: EdgeInsets.fromLTRB(
@@ -819,50 +816,25 @@ class _ListingDetailsScreenState extends State<ListingDetailsScreen> {
         builder: (context, authVM, child) {
           final isOwner = authVM.currentUser?.id == listing.sellerId;
 
-          if (isOwner) {
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                SizedBox(
-                  width: double.infinity,
-                  height: 56,
-                  child: ElevatedButton.icon(
-                    onPressed: () =>
-                        _showBoostBottomSheet(context, listing, viewModel),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor:
-                          AppTheme.bridgeOrange, // Warning/Boost Orange
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    icon: const Icon(Icons.rocket_launch, size: 20),
-                    label: Text(
-                      AppLocalizations.of(context)!.boostListing,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  AppLocalizations.of(context)!.boostListingDesc,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ],
-            );
-          }
+          if (isOwner) return _buildOwnerBar(context, listing, viewModel);
 
           return _buildBuyerBar(context, listing, authVM);
         },
       ),
+    );
+  }
+
+  Widget _buildOwnerBar(
+    BuildContext context,
+    Listing listing,
+    ListingDetailsViewModel viewModel,
+  ) {
+    return ListingOwnerBar(
+      // Opens the same edit form as Profile → My Books.
+      onEdit: () => context.push('/sell', extra: listing),
+      onBoost: kDigitalPaymentsEnabled
+          ? () => _showBoostBottomSheet(context, listing, viewModel)
+          : null,
     );
   }
 
