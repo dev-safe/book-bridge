@@ -25,7 +25,7 @@ env:
   # Android build (AGP/NDK minimums, final IconData). Bump in its own PR.
   FLUTTER_VERSION: "3.47.4"
   ANDROID_NDK_VERSION: "28.2.13676358"
-  EXPECTED_APPLICATION_ID: "com.bookbridge.app"
+  EXPECTED_APPLICATION_ID: "cm.devsafe.bookbridge"
 
 jobs:
   android:

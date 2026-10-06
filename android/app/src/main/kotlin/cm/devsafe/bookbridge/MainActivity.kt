@@ -1,4 +1,4 @@
-package com.bookbridge.app
+package cm.devsafe.bookbridge
 
 import io.flutter.embedding.android.FlutterActivity
 

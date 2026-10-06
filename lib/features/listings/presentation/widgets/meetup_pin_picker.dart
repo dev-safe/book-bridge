@@ -4,7 +4,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
 const _osmTileUrl = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
-const _userAgentPackageName = 'com.bookbridge.app';
+const _userAgentPackageName = 'cm.devsafe.bookbridge';
 
 /// Yaoundé city centre: the fallback when there is no better starting point.
 const defaultMeetupCenter = LatLng(3.848, 11.502);

@@ -9,7 +9,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 
 const _osmTileUrl = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
-const _userAgentPackageName = 'com.bookbridge.app';
+const _userAgentPackageName = 'cm.devsafe.bookbridge';
 
 /// Map of nearby pickup locations, centred on the user, with the active
 /// distance radius drawn as a circle.
