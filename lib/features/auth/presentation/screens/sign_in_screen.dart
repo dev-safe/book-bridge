@@ -133,7 +133,7 @@ class _SignInScreenState extends State<SignInScreen> {
         preferredSize: const Size.fromHeight(60),
         child: SafeArea(
           child: Container(
-            color: Theme.of(context).colorScheme.primary,
+            color: AppTheme.headerColor(context),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Row(
               children: [
@@ -211,7 +211,9 @@ class _SignInScreenState extends State<SignInScreen> {
                         style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
-                          color: AppTheme.inkBlack, // Ink Black
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onSurface, // Ink Black
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -253,7 +255,7 @@ class _SignInScreenState extends State<SignInScreen> {
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w500,
-                              color: AppTheme.inkBlack,
+                              color: Theme.of(context).colorScheme.onSurface,
                             ),
                           ),
                         ],
@@ -271,7 +273,9 @@ class _SignInScreenState extends State<SignInScreen> {
                         child: Text(
                           AppLocalizations.of(context)!.or,
                           style: TextStyle(
-                            color: Colors.grey.shade400,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -290,10 +294,10 @@ class _SignInScreenState extends State<SignInScreen> {
                         // Email Field
                         Text(
                           AppLocalizations.of(context)!.emailLabel,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
-                            color: Color(0xFF2D3436),
+                            color: Theme.of(context).colorScheme.onSurface,
                           ),
                         ),
                         const SizedBox(height: 8),
@@ -333,10 +337,10 @@ class _SignInScreenState extends State<SignInScreen> {
                         // Password Field
                         Text(
                           AppLocalizations.of(context)!.passwordLabel,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
-                            color: Color(0xFF2D3436),
+                            color: Theme.of(context).colorScheme.onSurface,
                           ),
                         ),
                         const SizedBox(height: 8),
@@ -426,7 +430,9 @@ class _SignInScreenState extends State<SignInScreen> {
                               backgroundColor: Theme.of(
                                 context,
                               ).colorScheme.primary,
-                              foregroundColor: Colors.white,
+                              foregroundColor: Theme.of(
+                                context,
+                              ).colorScheme.onPrimary,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
@@ -464,7 +470,7 @@ class _SignInScreenState extends State<SignInScreen> {
                         AppLocalizations.of(context)!.noAccount,
                         style: TextStyle(
                           fontSize: 14,
-                          color: Colors.grey.shade400,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                       ),
                       TextButton(
@@ -485,10 +491,12 @@ class _SignInScreenState extends State<SignInScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.location_on,
                             size: 16,
-                            color: Colors.grey,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
                           ),
                           const SizedBox(width: 4),
                           Text(

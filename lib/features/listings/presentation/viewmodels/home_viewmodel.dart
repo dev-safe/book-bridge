@@ -1,5 +1,6 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:book_bridge/core/location/location_access.dart';
 import 'package:book_bridge/core/utils/geo_radius.dart';
 import 'package:book_bridge/features/listings/domain/entities/listing.dart';
 import 'package:book_bridge/features/listings/domain/repositories/listing_repository.dart';
@@ -20,6 +21,7 @@ class HomeViewModel extends ChangeNotifier with AcademicFiltersMixin {
   final LocationViewModel locationViewModel;
   final ListingRepository listingRepository;
   final GetPlatformStatsUseCase getPlatformStatsUseCase;
+  final LocationAccess locationAccess;
 
   // State
   HomeState _homeState = HomeState.initial;
@@ -35,8 +37,21 @@ class HomeViewModel extends ChangeNotifier with AcademicFiltersMixin {
   bool _shouldScrollToResults = false;
   bool _isOffline = false;
   PlatformStats? _platformStats;
+  LocationAccessStatus _locationStatus = LocationAccessStatus.unknown;
+  bool _locationPromptDismissed = false;
+  bool _disposed = false;
 
   // Getters
+  LocationAccessStatus get locationStatus => _locationStatus;
+
+  /// Whether Home should nudge the user to fix location access.
+  bool get showLocationPrompt =>
+      locationViewModel.locationEnabled &&
+      !_locationPromptDismissed &&
+      (_locationStatus == LocationAccessStatus.serviceDisabled ||
+          _locationStatus == LocationAccessStatus.denied ||
+          _locationStatus == LocationAccessStatus.deniedForever);
+
   HomeState get homeState => _homeState;
   Position? get currentPosition => _currentPosition;
   List<Listing> get listings => _listings;
@@ -115,6 +130,7 @@ class HomeViewModel extends ChangeNotifier with AcademicFiltersMixin {
     required this.locationViewModel,
     required this.listingRepository,
     required this.getPlatformStatsUseCase,
+    this.locationAccess = const GeolocatorLocationAccess(),
   }) {
     _loadInitialListings();
     loadAcademicLookups();
@@ -129,7 +145,48 @@ class HomeViewModel extends ChangeNotifier with AcademicFiltersMixin {
     } else {
       _currentPosition = null;
       _radiusKm = null;
+      _locationStatus = LocationAccessStatus.unknown;
       notifyListeners();
+    }
+  }
+
+  /// Hides the location prompt for the rest of this app session.
+  void dismissLocationPrompt() {
+    if (_locationPromptDismissed) return;
+    _locationPromptDismissed = true;
+    notifyListeners();
+  }
+
+  /// Runs the action that fixes the current [locationStatus].
+  ///
+  /// Settings screens return asynchronously, so [onAppResumed] re-checks
+  /// access once the user comes back to the app.
+  Future<void> resolveLocationAccess() async {
+    try {
+      switch (_locationStatus) {
+        case LocationAccessStatus.serviceDisabled:
+          await locationAccess.openLocationSettings();
+        case LocationAccessStatus.deniedForever:
+          await locationAccess.openAppSettings();
+        case LocationAccessStatus.denied:
+          await _fetchLocation();
+        case LocationAccessStatus.unknown:
+        case LocationAccessStatus.granted:
+          break;
+      }
+    } catch (e) {
+      if (kDebugMode) debugPrint('Error resolving location access: $e');
+    }
+  }
+
+  /// Re-checks location after the user returns from a settings screen.
+  ///
+  /// Skips the plain `denied` case so the OS dialog never pops up
+  /// unprompted on every resume.
+  Future<void> onAppResumed() async {
+    if (_locationStatus == LocationAccessStatus.serviceDisabled ||
+        _locationStatus == LocationAccessStatus.deniedForever) {
+      await _fetchLocation();
     }
   }
 
@@ -165,6 +222,7 @@ class HomeViewModel extends ChangeNotifier with AcademicFiltersMixin {
 
   @override
   void dispose() {
+    _disposed = true;
     locationViewModel.removeListener(_onLocationPreferenceChanged);
     super.dispose();
   }
@@ -303,24 +361,39 @@ class HomeViewModel extends ChangeNotifier with AcademicFiltersMixin {
   Future<void> _fetchLocation() async {
     if (!locationViewModel.locationEnabled) return;
     try {
-      bool serviceEnabled;
-      LocationPermission permission;
-
-      serviceEnabled = await Geolocator.isLocationServiceEnabled();
-      if (!serviceEnabled) return;
-
-      permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-        if (permission == LocationPermission.denied) return;
+      if (!await locationAccess.isServiceEnabled()) {
+        _setLocationStatus(LocationAccessStatus.serviceDisabled);
+        return;
       }
 
-      if (permission == LocationPermission.deniedForever) return;
+      var permission = await locationAccess.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await locationAccess.requestPermission();
+      }
+      if (permission == LocationPermission.denied) {
+        _setLocationStatus(LocationAccessStatus.denied);
+        return;
+      }
+      if (permission == LocationPermission.deniedForever) {
+        _setLocationStatus(LocationAccessStatus.deniedForever);
+        return;
+      }
 
-      _currentPosition = await Geolocator.getCurrentPosition();
+      final position = await locationAccess.currentPosition();
+      // The user may have switched location off while GPS was resolving.
+      if (_disposed || !locationViewModel.locationEnabled) return;
+      _currentPosition = position;
+      _locationStatus = LocationAccessStatus.granted;
       notifyListeners();
     } catch (e) {
-      debugPrint('Error fetching location: $e');
+      if (kDebugMode) debugPrint('Error fetching location: $e');
     }
+  }
+
+  void _setLocationStatus(LocationAccessStatus status) {
+    if (_disposed || !locationViewModel.locationEnabled) return;
+    if (_locationStatus == status) return;
+    _locationStatus = status;
+    notifyListeners();
   }
 }

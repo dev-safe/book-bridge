@@ -1,7 +1,7 @@
 name: book_bridge
 description: "A peer-to-peer marketplace for Cameroonian students to buy and sell used physical books."
 publish_to: "none"
-version: 1.4.0+4
+version: 1.6.0+6
 
 environment:
   sdk: ^3.10.7
@@ -20,6 +20,7 @@ dependencies:
   provider: ^6.1.5+1
   supabase_flutter: ^2.12.0
   url_launcher: ^6.3.2
+  package_info_plus: ^9.0.1
   google_fonts: ^6.2.1
   share_plus: ^10.1.4
   shared_preferences: ^2.2.2

@@ -1,5 +1,38 @@
 # CHANGELOG
 
+## 1.6.0 - October 6, 2026
+
+### Added
+
+- **Server-side Fapshi payments & escrow**: payments are initiated, confirmed, released and disputed through the Rust core; atomic escrow claims, unmatched-payment recording and refunds, admin dispute resolution, and auto-release via cron.
+- **Buyer protection**: buyer pays a 6% service fee on top, seller receives the full price; guard against two buyers paying for the same listing.
+- **Age-based ID verification** with admin review, 18+/guardian self-declaration and an online-safety reminder before child users can send chat messages.
+- **Listings**: up to 3 photos (multi-select from gallery), meetup zones and pickup map, distance filter, class level / subject / school filters, Discover tab.
+- **Power Seller subscription**, server-side push notifications (FCM) and link-only WhatsApp sharing with deep links.
+- **My orders, easier to find**: Home header orders badge, "Orders need your attention" card and Profile "My orders" entry with badge.
+- **Compact sticky buyer bar** on book details: Message Seller + Buy Now.
+- **"See books near you" prompt** on Home when phone location is off or permission is denied, with a one-tap fix (turn on location, allow, or open app settings).
+- **In-app donations** (Home, Profile, About) and "Powered by DevSafe" on the About screen.
+
+### Changed
+
+- Light mode is now the default theme; consistent dark-mode header colour across screens.
+- Updated contact details (WhatsApp, LinkedIn → DevSafe company page, TikTok).
+- Interim Terms & Conditions covering fees, escrow, disputes and age.
+
+### Fixed
+
+- Dark-mode contrast: Discover search text, Sell-screen buy-back toggle, profile switches, payment sheet, escrow tabs.
+- Seller profile "not found", overflowing escrow action buttons, ID upload permission error, CO₂ saved units.
+- Pending-order badges can no longer show a previous account's counts.
+- Grants migration no longer fails on databases where `reviews`/`boost_payments` don't exist (CI schema rebuild).
+
+### Security
+
+- Hardened RLS and table grants (no client TRUNCATE; read-only transactions), moved WhatsApp number and FCM token to owner-only storage, rate-limited public Rust endpoints, webhook logs no longer include header values.
+
+---
+
 ## 1.3.0 - February 15, 2026
 
 ### Added

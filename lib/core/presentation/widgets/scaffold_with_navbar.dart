@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'package:book_bridge/features/auth/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:book_bridge/features/chat/presentation/viewmodels/chat_viewmodel.dart';
 import 'package:book_bridge/features/notifications/presentation/viewmodels/notifications_viewmodel.dart';
+import 'package:book_bridge/features/transactions/presentation/viewmodels/pending_orders_viewmodel.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -16,6 +18,7 @@ class ScaffoldWithNavBar extends StatefulWidget {
 
 class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
   Timer? _badgeRefreshTimer;
+  Timer? _ordersRefreshTimer;
 
   @override
   void initState() {
@@ -25,6 +28,11 @@ class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
       context.read<NotificationsViewModel>().subscribeToNotifications();
       // Initial load of conversations for the badge count
       context.read<ChatViewModel>().refreshConversationsSilently();
+      _refreshPendingOrders();
+    });
+    // Escrow orders change less often than chats, so poll them more slowly.
+    _ordersRefreshTimer = Timer.periodic(const Duration(minutes: 2), (_) {
+      if (mounted) _refreshPendingOrders();
     });
     // Refresh unread badge count every 30 seconds
     _badgeRefreshTimer = Timer.periodic(const Duration(seconds: 30), (_) {
@@ -37,7 +45,13 @@ class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
   @override
   void dispose() {
     _badgeRefreshTimer?.cancel();
+    _ordersRefreshTimer?.cancel();
     super.dispose();
+  }
+
+  void _refreshPendingOrders() {
+    final userId = context.read<AuthViewModel>().currentUser?.id;
+    context.read<PendingOrdersViewModel>().refresh(userId);
   }
 
   @override
@@ -70,7 +84,7 @@ class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
           shape: const CircleBorder(),
           elevation: 0,
           backgroundColor: Colors.transparent, // Use gradient from Container
-          foregroundColor: Colors.white,
+          foregroundColor: theme.colorScheme.onPrimary,
           child: const Icon(Icons.add, size: 32),
         ),
       ),

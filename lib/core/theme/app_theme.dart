@@ -25,7 +25,25 @@ class AppTheme {
   static const Color darkDivider = Color(0xFF2C2C2C);
   static const Color darkLightGray = Color(0xFF636E72);
 
-  /// Tab bars are placed in the app bar (blue in light mode, dark surface in
+  /// Dark-mode accents. [scholarBlue] is only ~2:1 against [darkSurface], so
+  /// dark mode uses a lighter tint for text, icons and fills, with dark navy
+  /// content on top of those fills.
+  static const Color scholarBlueLight = Color(0xFF8AB4F8);
+  static const Color darkOnPrimary = Color(0xFF0B1F3A);
+  static const Color darkMutedText = Color(0xFFA4B0B5);
+  static const Color darkSurfaceHigh = Color(0xFF2A2A2A);
+
+  /// Dark-mode header colour shared by every app bar, so the brand blue reads
+  /// the same on all screens without glaring against [darkBackground].
+  static const Color darkHeader = Color(0xFF15345C);
+
+  /// Header (app bar / hero banner) colour for the current brightness.
+  static Color headerColor(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark
+      ? darkHeader
+      : scholarBlue;
+
+  /// Tab bars are placed in the app bar (blue in light mode, [darkHeader] in
   /// dark mode); Material 3's default primary-coloured label vanished there.
   static TabBarThemeData get _appBarTabBarTheme => TabBarThemeData(
     labelColor: Colors.white,
@@ -55,6 +73,7 @@ class AppTheme {
         secondary: bridgeOrange,
         tertiary: growthGreen,
         onSurface: inkBlack,
+        onSurfaceVariant: darkLightGray,
         onPrimary: Colors.white,
         error: const Color(0xFFE74C3C),
         surfaceContainerHighest: paperWhite,
@@ -199,20 +218,22 @@ class AppTheme {
       // Color scheme
       colorScheme: ColorScheme.dark(
         surface: darkSurface,
-        primary: scholarBlue,
+        primary: scholarBlueLight,
         secondary: bridgeOrange,
         tertiary: growthGreen,
         onSurface: Colors.white,
-        onPrimary: Colors.white,
+        onSurfaceVariant: darkMutedText,
+        onPrimary: darkOnPrimary,
         error: const Color(0xFFE74C3C),
-        surfaceContainerHighest: darkSurface,
+        surfaceContainerHighest: darkSurfaceHigh,
         outline: darkDivider,
       ),
+      primaryColor: scholarBlueLight,
       // Scaffold background
       scaffoldBackgroundColor: darkBackground,
       // AppBar theme
       appBarTheme: AppBarTheme(
-        backgroundColor: darkSurface,
+        backgroundColor: darkHeader,
         foregroundColor: Colors.white,
         elevation: 0,
         centerTitle: true,
@@ -249,10 +270,10 @@ class AppTheme {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: scholarBlue, width: 2),
+          borderSide: const BorderSide(color: scholarBlueLight, width: 2),
         ),
-        hintStyle: GoogleFonts.inter(color: darkLightGray, fontSize: 14),
-        labelStyle: GoogleFonts.inter(color: scholarBlue, fontSize: 14),
+        hintStyle: GoogleFonts.inter(color: darkMutedText, fontSize: 14),
+        labelStyle: GoogleFonts.inter(color: scholarBlueLight, fontSize: 14),
       ),
       // Button themes
       elevatedButtonTheme: ElevatedButtonThemeData(
@@ -272,7 +293,7 @@ class AppTheme {
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          foregroundColor: scholarBlue,
+          foregroundColor: scholarBlueLight,
           textStyle: GoogleFonts.inter(
             fontSize: 14,
             fontWeight: FontWeight.w600,
@@ -281,8 +302,8 @@ class AppTheme {
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          foregroundColor: scholarBlue,
-          side: const BorderSide(color: scholarBlue, width: 1.5),
+          foregroundColor: scholarBlueLight,
+          side: const BorderSide(color: scholarBlueLight, width: 1.5),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -327,15 +348,34 @@ class AppTheme {
         ),
         bodyLarge: GoogleFonts.inter(color: Colors.white70, fontSize: 16),
         bodyMedium: GoogleFonts.inter(color: Colors.white70, fontSize: 14),
-        bodySmall: GoogleFonts.inter(color: darkLightGray, fontSize: 12),
+        bodySmall: GoogleFonts.inter(color: darkMutedText, fontSize: 12),
         labelLarge: GoogleFonts.inter(
-          color: scholarBlue,
+          color: scholarBlueLight,
           fontSize: 14,
           fontWeight: FontWeight.w600,
         ),
       ),
       // Icon theme
-      iconTheme: const IconThemeData(color: scholarBlue, size: 24),
+      iconTheme: const IconThemeData(color: scholarBlueLight, size: 24),
+      // The default off-state outline (darkDivider) is invisible on dark
+      // surfaces, so give unselected switches a muted, readable contrast.
+      switchTheme: SwitchThemeData(
+        thumbColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.selected)
+              ? scholarBlueLight
+              : darkMutedText,
+        ),
+        trackColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.selected)
+              ? scholarBlueLight.withValues(alpha: 0.5)
+              : darkSurfaceHigh,
+        ),
+        trackOutlineColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.selected)
+              ? Colors.transparent
+              : darkMutedText,
+        ),
+      ),
     );
   }
 }

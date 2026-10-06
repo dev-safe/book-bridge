@@ -208,7 +208,7 @@ class _NotificationItem extends StatelessWidget {
       case 'payment_confirmed':
         return AppTheme.growthGreen;
       case 'new_inquiry':
-        return AppTheme.scholarBlue;
+        return theme.colorScheme.primary;
       case 'impact_milestone':
         return AppTheme.bridgeOrange;
       default:

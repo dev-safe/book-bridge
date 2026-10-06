@@ -91,15 +91,14 @@ class _AgeDeclarationScreenState extends State<AgeDeclarationScreen> {
             children: [
               Text(
                 l10n.ageDeclarationTitle,
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
               Text(
                 l10n.ageDeclarationSubtitle,
-                style: const TextStyle(color: Colors.grey),
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
               ),
               const SizedBox(height: 24),
               _option(ageDeclarationAdult, l10n.ageDeclarationAdult),
@@ -109,12 +108,19 @@ class _AgeDeclarationScreenState extends State<AgeDeclarationScreen> {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Icon(Icons.info_outline, size: 18, color: Colors.grey),
+                  Icon(
+                    Icons.info_outline,
+                    size: 18,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       l10n.ageDeclarationNotVerified,
-                      style: const TextStyle(color: Colors.grey, fontSize: 13),
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        fontSize: 13,
+                      ),
                     ),
                   ),
                 ],
@@ -126,7 +132,7 @@ class _AgeDeclarationScreenState extends State<AgeDeclarationScreen> {
                   onPressed: _choice == null || _submitting ? null : _submit,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Theme.of(context).colorScheme.primary,
-                    foregroundColor: Colors.white,
+                    foregroundColor: Theme.of(context).colorScheme.onPrimary,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),

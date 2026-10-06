@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:book_bridge/core/theme/app_theme.dart';
 import 'package:book_bridge/l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
 
@@ -11,10 +12,10 @@ class TermsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final primaryColor = Theme.of(context).colorScheme.primary;
+    final primaryColor = AppTheme.headerColor(context);
 
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(60),
         child: SafeArea(
@@ -101,7 +102,7 @@ class TermsScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildInterimNotice(),
+                  _buildInterimNotice(context),
                   for (final section in _sections(context))
                     _buildTermCard(
                       context: context,
@@ -135,15 +136,20 @@ class TermsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildInterimNotice() {
+  Widget _buildInterimNotice(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.amber.shade50,
+        color: isDark
+            ? Colors.amber.shade900.withValues(alpha: 0.25)
+            : Colors.amber.shade50,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.amber.shade200),
+        border: Border.all(
+          color: isDark ? Colors.amber.shade700 : Colors.amber.shade200,
+        ),
       ),
       child: Text(
         'Interim terms. This version describes how BookBridge works today. '
@@ -152,7 +158,7 @@ class TermsScreen extends StatelessWidget {
         style: TextStyle(
           fontSize: 13,
           height: 1.5,
-          color: Colors.brown.shade800,
+          color: isDark ? Colors.amber.shade100 : Colors.brown.shade800,
         ),
       ),
     );
@@ -327,10 +333,14 @@ class TermsScreen extends StatelessWidget {
     required String content,
     required Color color,
   }) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    // Section accents are tuned for light cards; lift them for dark cards.
+    final accent = isDark ? Color.lerp(color, Colors.white, 0.45)! : color;
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: theme.cardColor,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -339,13 +349,13 @@ class TermsScreen extends StatelessWidget {
             offset: const Offset(0, 4),
           ),
         ],
-        border: Border.all(color: Colors.grey.shade100, width: 1),
+        border: Border.all(color: theme.colorScheme.outline, width: 1),
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(16),
         child: Container(
           decoration: BoxDecoration(
-            border: Border(left: BorderSide(color: color, width: 5)),
+            border: Border(left: BorderSide(color: accent, width: 5)),
           ),
           padding: const EdgeInsets.all(20),
           child: Column(
@@ -353,7 +363,7 @@ class TermsScreen extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Icon(icon, color: color, size: 24),
+                  Icon(icon, color: accent, size: 24),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
@@ -361,7 +371,7 @@ class TermsScreen extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: color,
+                        color: accent,
                       ),
                     ),
                   ),
@@ -373,7 +383,7 @@ class TermsScreen extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 14,
                   height: 1.6,
-                  color: Colors.grey.shade800,
+                  color: theme.colorScheme.onSurface,
                 ),
               ),
             ],

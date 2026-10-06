@@ -1,3 +1,4 @@
+import 'package:book_bridge/features/listings/presentation/widgets/listing_buyer_bar.dart';
 import 'package:book_bridge/features/listings/presentation/widgets/listing_image_carousel.dart';
 import 'package:flutter/material.dart';
 import 'package:book_bridge/l10n/app_localizations.dart';
@@ -70,7 +71,7 @@ class _ListingDetailsScreenState extends State<ListingDetailsScreen> {
           appBar: PreferredSize(
             preferredSize: const Size.fromHeight(60),
             child: Container(
-              color: AppTheme.scholarBlue, // Scholar Blue
+              color: AppTheme.headerColor(context),
               child: SafeArea(
                 child: Container(
                   padding: const EdgeInsets.symmetric(
@@ -595,7 +596,9 @@ class _ListingDetailsScreenState extends State<ListingDetailsScreen> {
                                                               'author'
                                                         ? Icons.history_edu
                                                         : Icons.person,
-                                                    color: AppTheme.scholarBlue,
+                                                    color: Theme.of(
+                                                      context,
+                                                    ).colorScheme.primary,
                                                   ),
                                         )
                                       : Icon(
@@ -604,7 +607,9 @@ class _ListingDetailsScreenState extends State<ListingDetailsScreen> {
                                               : listing.sellerType == 'author'
                                               ? Icons.history_edu
                                               : Icons.person,
-                                          color: AppTheme.scholarBlue,
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.primary,
                                         ),
                                 ),
                               ),
@@ -750,7 +755,12 @@ class _ListingDetailsScreenState extends State<ListingDetailsScreen> {
     if (listing == null) return null;
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.fromLTRB(
+        16,
+        12,
+        16,
+        12 + MediaQuery.of(context).viewPadding.bottom,
+      ),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         border: Border(
@@ -811,122 +821,63 @@ class _ListingDetailsScreenState extends State<ListingDetailsScreen> {
             );
           }
 
-          return Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              SizedBox(
-                width: double.infinity,
-                height: 56,
-                child: ElevatedButton.icon(
-                  onPressed: listing.status == 'available'
-                      ? () {
-                          // Check if authenticated
-                          if (authVM.currentUser == null) {
-                            context.push('/sign-in');
-                            return;
-                          }
-
-                          // Navigate to chat thread
-                          context.push(
-                            '/chat/${listing.id}',
-                            extra: {
-                              'otherUserId': listing.sellerId,
-                              'otherUserName':
-                                  listing.sellerName ??
-                                  AppLocalizations.of(context)!.unknownSeller,
-                              'listingTitle': listing.title,
-                              'listingPrice': listing.priceFcfa,
-                            },
-                          );
-                        }
-                      : null, // Disable if sold
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: listing.status == 'available'
-                        ? AppTheme.scholarBlue
-                        : Colors.grey, // Grey color for sold state
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  icon: Icon(
-                    listing.status == 'available'
-                        ? Icons.chat_bubble_outline
-                        : Icons.check_circle_outline,
-                    size: 20,
-                  ),
-                  label: Text(
-                    listing.status == 'available'
-                        ? AppLocalizations.of(context)!.messageSeller
-                        : AppLocalizations.of(context)!.sold.toUpperCase(),
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-              ),
-              if (listing.status == 'available' &&
-                  authVM.currentUser != null) ...[
-                const SizedBox(height: 8),
-                SizedBox(
-                  width: double.infinity,
-                  height: 52,
-                  child: OutlinedButton.icon(
-                    onPressed: () {
-                      showModalBottomSheet(
-                        context: context,
-                        isScrollControlled: true,
-                        backgroundColor: Colors.transparent,
-                        builder: (_) => ChangeNotifierProvider(
-                          create: (_) => getIt<PaymentViewModel>(),
-                          child: PaymentBottomSheet(
-                            amount: listing.priceFcfa,
-                            title: AppLocalizations.of(context)!.buyNow,
-                            purpose: PurchasePayment(listing.id),
-                            meetupSpot: listing.meetupSpot,
-                            meetupLatitude: listing.meetupLatitude,
-                            meetupLongitude: listing.meetupLongitude,
-                            onSuccess: () {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    AppLocalizations.of(
-                                      context,
-                                    )!.paymentSuccessful,
-                                  ),
-                                  backgroundColor: Colors.green,
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                      );
-                    },
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppTheme.scholarBlue,
-                      side: const BorderSide(
-                        color: AppTheme.scholarBlue,
-                        width: 1.5,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    icon: const Icon(Icons.shopping_bag_outlined, size: 20),
-                    label: Text(
-                      AppLocalizations.of(context)!.buyNow,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ],
-          );
+          return _buildBuyerBar(context, listing, authVM);
         },
+      ),
+    );
+  }
+
+  Widget _buildBuyerBar(
+    BuildContext context,
+    Listing listing,
+    AuthViewModel authVM,
+  ) {
+    void requireSignIn(VoidCallback action) =>
+        authVM.currentUser == null ? context.push('/sign-in') : action();
+
+    return ListingBuyerBar(
+      isAvailable: listing.status == 'available',
+      onChat: () => requireSignIn(() => _openChat(context, listing)),
+      onBuy: () => requireSignIn(() => _openPayment(context, listing)),
+    );
+  }
+
+  void _openChat(BuildContext context, Listing listing) {
+    context.push(
+      '/chat/${listing.id}',
+      extra: {
+        'otherUserId': listing.sellerId,
+        'otherUserName':
+            listing.sellerName ?? AppLocalizations.of(context)!.unknownSeller,
+        'listingTitle': listing.title,
+        'listingPrice': listing.priceFcfa,
+      },
+    );
+  }
+
+  void _openPayment(BuildContext context, Listing listing) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => ChangeNotifierProvider(
+        create: (_) => getIt<PaymentViewModel>(),
+        child: PaymentBottomSheet(
+          amount: listing.priceFcfa,
+          title: AppLocalizations.of(context)!.buyNow,
+          purpose: PurchasePayment(listing.id),
+          meetupSpot: listing.meetupSpot,
+          meetupLatitude: listing.meetupLatitude,
+          meetupLongitude: listing.meetupLongitude,
+          onSuccess: () {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(AppLocalizations.of(context)!.paymentSuccessful),
+                backgroundColor: Colors.green,
+              ),
+            );
+          },
+        ),
       ),
     );
   }

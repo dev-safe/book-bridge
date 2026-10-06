@@ -92,7 +92,10 @@ class PowerSellerUpgradeCard extends StatelessWidget {
                       const SizedBox(height: 4),
                       Text(
                         l10n.powerSellerCardSubtitle,
-                        style: TextStyle(fontSize: 13, color: Colors.grey[700]),
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
                       ),
                     ],
                   ),

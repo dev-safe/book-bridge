@@ -19,8 +19,8 @@ class ImpactStatsWidget extends StatelessWidget {
   }
 
   String _formatCo2(double valKg) {
-    final tonnes = valKg / 1000.0;
-    return tonnes.toStringAsFixed(1);
+    if (valKg < 1000) return '${valKg.toStringAsFixed(0)} kg';
+    return '${(valKg / 1000.0).toStringAsFixed(1)} t';
   }
 
   @override
@@ -118,7 +118,7 @@ class ImpactStatsWidget extends StatelessWidget {
                   icon: '🌱',
                   label: co2SavedLabel,
                   value: stats.totalCo2AvoidedKg,
-                  formatter: (v) => '${_formatCo2(v)}t',
+                  formatter: _formatCo2,
                 ),
               ),
             ],

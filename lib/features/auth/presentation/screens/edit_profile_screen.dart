@@ -199,10 +199,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                                   .fullName[0]
                                                   .toUpperCase()
                                             : '?',
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontSize: 40,
                                           fontWeight: FontWeight.bold,
-                                          color: Colors.black,
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.onPrimary,
                                         ),
                                       ),
                                     ),
@@ -232,10 +234,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             ).colorScheme.primary,
                             radius: 18,
                             child: IconButton(
-                              icon: const Icon(
+                              icon: Icon(
                                 Icons.camera_alt,
                                 size: 18,
-                                color: Colors.white,
+                                color: Theme.of(context).colorScheme.onPrimary,
                               ),
                               onPressed: profileViewModel.isLoading
                                   ? null

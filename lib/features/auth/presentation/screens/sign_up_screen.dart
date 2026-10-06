@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:book_bridge/core/theme/app_theme.dart';
 import 'package:book_bridge/l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
@@ -90,7 +91,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         preferredSize: const Size.fromHeight(60),
         child: SafeArea(
           child: Container(
-            color: Theme.of(context).colorScheme.primary,
+            color: AppTheme.headerColor(context),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Row(
               children: [
@@ -165,7 +166,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   Text(
                     AppLocalizations.of(context)!.appMarketingHeadline,
                     textAlign: TextAlign.center,
-                    style: const TextStyle(fontSize: 16, color: Colors.grey),
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
                   ),
                   const SizedBox(height: 24),
 
@@ -178,10 +182,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         // Full Name
                         Text(
                           AppLocalizations.of(context)!.fullNameLabel,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
-                            color: Colors.grey,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
                           ),
                         ),
                         const SizedBox(height: 8),
@@ -217,10 +223,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         // Email
                         Text(
                           AppLocalizations.of(context)!.emailLabel,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
-                            color: Colors.grey,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
                           ),
                         ),
                         const SizedBox(height: 8),
@@ -260,10 +268,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         // Locality
                         Text(
                           AppLocalizations.of(context)!.localityLabel,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
-                            color: Colors.grey,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
                           ),
                         ),
                         const SizedBox(height: 8),
@@ -299,10 +309,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         // WhatsApp Number
                         Text(
                           AppLocalizations.of(context)!.whatsappLabel,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
-                            color: Colors.grey,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
                           ),
                         ),
                         const SizedBox(height: 8),
@@ -345,10 +357,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         // Password
                         Text(
                           AppLocalizations.of(context)!.passwordLabel,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
-                            color: Colors.grey,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
                           ),
                         ),
                         const SizedBox(height: 8),
@@ -423,7 +437,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                     text: TextSpan(
                                       text: 'I agree to the ',
                                       style: TextStyle(
-                                        color: Colors.grey.shade600,
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.onSurfaceVariant,
                                         fontSize: 13,
                                         height: 1.4,
                                       ),
@@ -493,7 +509,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                               backgroundColor: Theme.of(
                                 context,
                               ).colorScheme.primary,
-                              foregroundColor: Colors.white,
+                              foregroundColor: Theme.of(
+                                context,
+                              ).colorScheme.onPrimary,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
@@ -541,7 +559,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         AppLocalizations.of(context)!.haveAccount,
                         style: TextStyle(
                           fontSize: 14,
-                          color: Colors.grey.shade400,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                       ),
                       TextButton(

@@ -62,6 +62,7 @@ import 'package:book_bridge/features/transactions/domain/repositories/transactio
 import 'package:book_bridge/features/transactions/domain/usecases/get_user_transactions_usecase.dart';
 import 'package:book_bridge/features/transactions/domain/usecases/get_transaction_by_external_ref_usecase.dart';
 import 'package:book_bridge/features/transactions/presentation/viewmodels/transaction_history_viewmodel.dart';
+import 'package:book_bridge/features/transactions/presentation/viewmodels/pending_orders_viewmodel.dart';
 import 'package:book_bridge/features/reviews/data/datasources/supabase_reviews_data_source.dart';
 import 'package:book_bridge/features/reviews/data/repositories/review_repository_impl.dart';
 import 'package:book_bridge/features/reviews/domain/repositories/review_repository.dart';
@@ -105,7 +106,10 @@ Future<void> setupDependencyInjection() async {
   getIt.registerSingleton<SupabaseClient>(supabase);
 
   // Core Presentation
-  getIt.registerLazySingleton<ThemeViewModel>(() => ThemeViewModel());
+  // Resolved lazily, after SharedPreferences is registered below.
+  getIt.registerLazySingleton<ThemeViewModel>(
+    () => ThemeViewModel(prefs: getIt<SharedPreferences>()),
+  );
 
   // Auth Feature - Data Layer
   getIt.registerSingleton<SupabaseAuthDataSource>(
@@ -434,6 +438,10 @@ Future<void> setupDependencyInjection() async {
       useCase: getIt<GetUserTransactionsUseCase>(),
       repository: getIt<TransactionRepository>(),
     ),
+  );
+
+  getIt.registerLazySingleton<PendingOrdersViewModel>(
+    () => PendingOrdersViewModel(useCase: getIt<GetUserTransactionsUseCase>()),
   );
 
   // Reviews Feature

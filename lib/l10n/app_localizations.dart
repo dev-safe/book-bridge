@@ -62,8 +62,7 @@ import 'app_localizations_fr.dart';
 /// be consistent with the languages listed in the AppLocalizations.supportedLocales
 /// property.
 abstract class AppLocalizations {
-  AppLocalizations(String locale)
-    : localeName = intl.Intl.canonicalizedLocale(locale.toString());
+  AppLocalizations(String locale) : localeName = intl.Intl.canonicalizedLocale(locale.toString());
 
   final String localeName;
 
@@ -71,8 +70,7 @@ abstract class AppLocalizations {
     return Localizations.of<AppLocalizations>(context, AppLocalizations);
   }
 
-  static const LocalizationsDelegate<AppLocalizations> delegate =
-      _AppLocalizationsDelegate();
+  static const LocalizationsDelegate<AppLocalizations> delegate = _AppLocalizationsDelegate();
 
   /// A list of this localizations delegate along with the default localizations
   /// delegates.
@@ -84,18 +82,17 @@ abstract class AppLocalizations {
   /// Additional delegates can be added by appending to this list in
   /// MaterialApp. This list does not have to be used at all if a custom list
   /// of delegates is preferred or required.
-  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates =
-      <LocalizationsDelegate<dynamic>>[
-        delegate,
-        GlobalMaterialLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-      ];
+  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates = <LocalizationsDelegate<dynamic>>[
+    delegate,
+    GlobalMaterialLocalizations.delegate,
+    GlobalCupertinoLocalizations.delegate,
+    GlobalWidgetsLocalizations.delegate,
+  ];
 
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
     Locale('en'),
-    Locale('fr'),
+    Locale('fr')
   ];
 
   /// The title of the application
@@ -1448,6 +1445,12 @@ abstract class AppLocalizations {
   /// **'© {year} DCT-Berinyuy. All rights reserved.'**
   String copyright(Object year);
 
+  /// No description provided for @poweredByDevSafe.
+  ///
+  /// In en, this message translates to:
+  /// **'Powered by DevSafe'**
+  String get poweredByDevSafe;
+
   /// No description provided for @notifications.
   ///
   /// In en, this message translates to:
@@ -2246,6 +2249,48 @@ abstract class AppLocalizations {
   /// **'Dark Mode'**
   String get darkMode;
 
+  /// No description provided for @chatSafetyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Stay safe when chatting'**
+  String get chatSafetyTitle;
+
+  /// No description provided for @chatSafetyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Before you send your first message:\n\n• Never share your home address, passwords or Mobile Money PIN.\n• Meet only in busy public places, like your school campus, and tell a parent or guardian before you go.\n• Keep payments inside BookBridge escrow — never pay outside the app.\n• If someone makes you uncomfortable, stop replying and report them, and tell a trusted adult.'**
+  String get chatSafetyBody;
+
+  /// No description provided for @chatSafetyAccept.
+  ///
+  /// In en, this message translates to:
+  /// **'I understand'**
+  String get chatSafetyAccept;
+
+  /// No description provided for @themeLight.
+  ///
+  /// In en, this message translates to:
+  /// **'Light'**
+  String get themeLight;
+
+  /// No description provided for @themeDark.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark'**
+  String get themeDark;
+
+  /// No description provided for @themeSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'System'**
+  String get themeSystem;
+
+  /// No description provided for @appearance.
+  ///
+  /// In en, this message translates to:
+  /// **'Appearance'**
+  String get appearance;
+
   /// No description provided for @systemDefault.
   ///
   /// In en, this message translates to:
@@ -2285,7 +2330,7 @@ abstract class AppLocalizations {
   /// No description provided for @co2Saved.
   ///
   /// In en, this message translates to:
-  /// **'Tonnes CO2'**
+  /// **'CO₂ Avoided'**
   String get co2Saved;
 
   /// No description provided for @safetyGuidelinesTitle.
@@ -2923,10 +2968,93 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Confirm receipt'**
   String get escrowConfirmReceipt;
+
+  /// No description provided for @linkOpenError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open link'**
+  String get linkOpenError;
+
+  /// No description provided for @myOrders.
+  ///
+  /// In en, this message translates to:
+  /// **'My orders'**
+  String get myOrders;
+
+  /// No description provided for @locationPromptTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'See books near you'**
+  String get locationPromptTitle;
+
+  /// No description provided for @locationServiceOffMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Your phone\'s location is off. Turn it on to see the nearest books first.'**
+  String get locationServiceOffMessage;
+
+  /// No description provided for @locationPermissionDeniedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow BookBridge to use your location to show the nearest books first.'**
+  String get locationPermissionDeniedMessage;
+
+  /// No description provided for @locationPermissionBlockedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Location access is blocked for BookBridge. Enable it in Settings to see nearby books.'**
+  String get locationPermissionBlockedMessage;
+
+  /// No description provided for @locationTurnOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on location'**
+  String get locationTurnOn;
+
+  /// No description provided for @locationAllow.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow location'**
+  String get locationAllow;
+
+  /// No description provided for @locationOpenSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Open settings'**
+  String get locationOpenSettings;
+
+  /// No description provided for @locationNotNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Not now'**
+  String get locationNotNow;
+
+  /// No description provided for @ordersNeedAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Orders need your attention'**
+  String get ordersNeedAction;
+
+  /// No description provided for @ordersToConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 purchase: confirm you received the book} other{{count} purchases: confirm you received the books}}'**
+  String ordersToConfirm(int count);
+
+  /// No description provided for @ordersToHandOver.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 sale: hand over the book to get paid} other{{count} sales: hand over the books to get paid}}'**
+  String ordersToHandOver(int count);
+
+  /// No description provided for @viewOrders.
+  ///
+  /// In en, this message translates to:
+  /// **'View orders'**
+  String get viewOrders;
 }
 
-class _AppLocalizationsDelegate
-    extends LocalizationsDelegate<AppLocalizations> {
+class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
   const _AppLocalizationsDelegate();
 
   @override
@@ -2935,26 +3063,25 @@ class _AppLocalizationsDelegate
   }
 
   @override
-  bool isSupported(Locale locale) =>
-      <String>['en', 'fr'].contains(locale.languageCode);
+  bool isSupported(Locale locale) => <String>['en', 'fr'].contains(locale.languageCode);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
 }
 
 AppLocalizations lookupAppLocalizations(Locale locale) {
+
+
   // Lookup logic when only language code is specified.
   switch (locale.languageCode) {
-    case 'en':
-      return AppLocalizationsEn();
-    case 'fr':
-      return AppLocalizationsFr();
+    case 'en': return AppLocalizationsEn();
+    case 'fr': return AppLocalizationsFr();
   }
 
   throw FlutterError(
     'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
     'an issue with the localizations generation tool. Please file an issue '
     'on GitHub with a reproducible sample app and the gen-l10n configuration '
-    'that was used.',
+    'that was used.'
   );
 }

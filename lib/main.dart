@@ -1,3 +1,4 @@
+import 'package:book_bridge/features/transactions/presentation/viewmodels/pending_orders_viewmodel.dart';
 import 'package:flutter/material.dart';
 import 'package:book_bridge/l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
@@ -110,6 +111,9 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider<SafetyViewModel>(
           create: (_) => di.getIt<SafetyViewModel>(),
         ),
+        ChangeNotifierProvider<PendingOrdersViewModel>.value(
+          value: di.getIt<PendingOrdersViewModel>(),
+        ),
       ],
       child: Consumer2<LocaleViewModel, ThemeViewModel>(
         // Changed to Consumer2
@@ -120,7 +124,9 @@ class MyApp extends StatelessWidget {
             debugShowCheckedModeBanner: false,
             theme: AppTheme.lightTheme,
             darkTheme: AppTheme.darkTheme,
-            themeMode: themeViewModel.themeMode, // Added themeMode
+            themeMode: themeViewModel.themeMode,
+            themeAnimationDuration: const Duration(milliseconds: 300),
+            themeAnimationCurve: Curves.easeInOut,
             routerConfig: appRouter,
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
