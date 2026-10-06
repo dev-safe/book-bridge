@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## Unreleased
+
+### Privacy
+
+- Listing locations are now rounded to about 1 km by a database trigger (`20261020000000_coarse_listing_location.sql`), and existing listings are rounded too. Other users no longer see a seller's exact GPS position. No app update is needed.
+
 ## 1.6.3 - October 6, 2026
 
 Safety release for Google Play's user-generated content policy.
