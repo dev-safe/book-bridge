@@ -37,7 +37,7 @@
 			<li><strong>Profile data:</strong> city or locality, school, WhatsApp number and account tier.</li>
 			<li><strong>Age data:</strong> date of birth or age declaration and, for users aged 10 to 14, a parent or guardian's phone number.</li>
 			<li><strong>ID verification data:</strong> photos of the ID document you submit, including a guardian's national ID card where required.</li>
-			<li><strong>Listings:</strong> book details, prices, meetup spots and photos you upload.</li>
+			<li><strong>Listings:</strong> book details, prices, meetup spots and photos you upload, plus an approximate location (rounded to about 1 km) taken from your device when you post a listing. Other users see this approximate location on the map, never your exact position.</li>
 			<li><strong>Messages:</strong> chat messages you exchange with other users about a listing.</li>
 			<li><strong>Transactions:</strong> purchase records, escrow status and the Mobile Money phone numbers used for payment.</li>
 			<li><strong>Reputation:</strong> ratings, reviews and a trust score based on completed transactions.</li>
