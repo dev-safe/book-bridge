@@ -11,6 +11,7 @@
 - **Power Seller subscription**, server-side push notifications (FCM) and link-only WhatsApp sharing with deep links.
 - **My orders, easier to find**: Home header orders badge, "Orders need your attention" card and Profile "My orders" entry with badge.
 - **Compact sticky buyer bar** on book details: Message Seller + Buy Now.
+- **"See books near you" prompt** on Home when phone location is off or permission is denied, with a one-tap fix (turn on location, allow, or open app settings).
 - **In-app donations** (Home, Profile, About) and "Powered by DevSafe" on the About screen.
 
 ### Changed
@@ -24,6 +25,7 @@
 - Dark-mode contrast: Discover search text, Sell-screen buy-back toggle, profile switches, payment sheet, escrow tabs.
 - Seller profile "not found", overflowing escrow action buttons, ID upload permission error, CO₂ saved units.
 - Pending-order badges can no longer show a previous account's counts.
+- Grants migration no longer fails on databases where `reviews`/`boost_payments` don't exist (CI schema rebuild).
 
 ### Security
 

@@ -2981,6 +2981,54 @@ abstract class AppLocalizations {
   /// **'My orders'**
   String get myOrders;
 
+  /// No description provided for @locationPromptTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'See books near you'**
+  String get locationPromptTitle;
+
+  /// No description provided for @locationServiceOffMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Your phone\'s location is off. Turn it on to see the nearest books first.'**
+  String get locationServiceOffMessage;
+
+  /// No description provided for @locationPermissionDeniedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow BookBridge to use your location to show the nearest books first.'**
+  String get locationPermissionDeniedMessage;
+
+  /// No description provided for @locationPermissionBlockedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Location access is blocked for BookBridge. Enable it in Settings to see nearby books.'**
+  String get locationPermissionBlockedMessage;
+
+  /// No description provided for @locationTurnOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on location'**
+  String get locationTurnOn;
+
+  /// No description provided for @locationAllow.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow location'**
+  String get locationAllow;
+
+  /// No description provided for @locationOpenSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Open settings'**
+  String get locationOpenSettings;
+
+  /// No description provided for @locationNotNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Not now'**
+  String get locationNotNow;
+
   /// No description provided for @ordersNeedAction.
   ///
   /// In en, this message translates to:

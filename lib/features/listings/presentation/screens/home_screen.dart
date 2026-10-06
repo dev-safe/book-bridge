@@ -11,6 +11,7 @@ import 'package:go_router/go_router.dart';
 import 'package:book_bridge/features/listings/presentation/widgets/listing_card.dart';
 import 'package:book_bridge/features/listings/presentation/widgets/academic_filter_bar.dart';
 import 'package:book_bridge/features/listings/presentation/widgets/radius_filter_bar.dart';
+import 'package:book_bridge/features/listings/presentation/widgets/location_prompt_card.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:book_bridge/features/listings/presentation/viewmodels/locale_viewmodel.dart';
 import 'package:provider/provider.dart';
@@ -25,7 +26,7 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _searchController = TextEditingController();
   final PageController _pageController = PageController();
@@ -34,12 +35,21 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _scrollController.addListener(_onScroll);
     // Initial load is handled by the ViewModel
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      context.read<HomeViewModel>().onAppResumed();
+    }
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _scrollController.dispose();
     _searchController.dispose();
     _pageController.dispose();
@@ -96,6 +106,14 @@ class _HomeScreenState extends State<HomeScreen> {
           const SliverToBoxAdapter(child: OfflineBanner()),
         const SliverToBoxAdapter(child: SizedBox(height: 16)),
         const SliverToBoxAdapter(child: PendingOrdersCard()),
+        if (viewModel.showLocationPrompt)
+          SliverToBoxAdapter(
+            child: LocationPromptCard(
+              status: viewModel.locationStatus,
+              onAction: viewModel.resolveLocationAccess,
+              onDismiss: viewModel.dismissLocationPrompt,
+            ),
+          ),
         _buildPromoBanners(),
         if (viewModel.platformStats != null)
           SliverToBoxAdapter(

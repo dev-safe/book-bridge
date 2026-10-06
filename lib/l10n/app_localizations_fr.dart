@@ -1497,6 +1497,30 @@ class AppLocalizationsFr extends AppLocalizations {
   String get myOrders => 'Mes commandes';
 
   @override
+  String get locationPromptTitle => 'Voir les livres près de vous';
+
+  @override
+  String get locationServiceOffMessage => 'La localisation de votre téléphone est désactivée. Activez-la pour voir d\'abord les livres les plus proches.';
+
+  @override
+  String get locationPermissionDeniedMessage => 'Autorisez BookBridge à utiliser votre position pour afficher d\'abord les livres les plus proches.';
+
+  @override
+  String get locationPermissionBlockedMessage => 'L\'accès à la position est bloqué pour BookBridge. Activez-le dans les Paramètres pour voir les livres à proximité.';
+
+  @override
+  String get locationTurnOn => 'Activer la localisation';
+
+  @override
+  String get locationAllow => 'Autoriser la localisation';
+
+  @override
+  String get locationOpenSettings => 'Ouvrir les paramètres';
+
+  @override
+  String get locationNotNow => 'Plus tard';
+
+  @override
   String get ordersNeedAction => 'Des commandes attendent votre action';
 
   @override
