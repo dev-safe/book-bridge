@@ -5,6 +5,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:book_bridge/features/listings/presentation/viewmodels/home_viewmodel.dart';
 import 'package:book_bridge/core/constants/categories.dart';
 import 'package:flutter/material.dart';
+import 'package:book_bridge/features/transactions/presentation/widgets/orders_shortcuts.dart';
 import 'package:book_bridge/l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
 import 'package:book_bridge/features/listings/presentation/widgets/listing_card.dart';
@@ -94,6 +95,7 @@ class _HomeScreenState extends State<HomeScreen> {
         if (viewModel.isOffline)
           const SliverToBoxAdapter(child: OfflineBanner()),
         const SliverToBoxAdapter(child: SizedBox(height: 16)),
+        const SliverToBoxAdapter(child: PendingOrdersCard()),
         _buildPromoBanners(),
         if (viewModel.platformStats != null)
           SliverToBoxAdapter(
@@ -344,6 +346,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 },
               ),
               const Spacer(),
+              OrdersIcon(color: theme.appBarTheme.foregroundColor),
               NotificationIcon(color: theme.appBarTheme.foregroundColor),
               Container(
                 margin: const EdgeInsets.symmetric(horizontal: 4),

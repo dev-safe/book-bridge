@@ -9,6 +9,9 @@ class ContactLinks {
   static const String supportEmail = 'verlaberinyuy8@gmail.com';
   static const String linkedInUrl =
       'https://www.linkedin.com/in/verla-berinyuy-ndey-15b1262a5/';
+  // Public company page; the /admin/dashboard URL only works for page admins.
+  static const String devSafeLinkedInUrl =
+      'https://www.linkedin.com/company/146681423/';
   static const String whatsAppCommunityUrl =
       'https://chat.whatsapp.com/H6WZEE86OEoDkb4jjjtOHZ';
 }

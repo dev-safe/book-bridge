@@ -1492,4 +1492,35 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get linkOpenError => 'Impossible d\'ouvrir le lien';
+
+  @override
+  String get myOrders => 'Mes commandes';
+
+  @override
+  String get ordersNeedAction => 'Des commandes attendent votre action';
+
+  @override
+  String ordersToConfirm(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count achats : confirmez la réception des livres',
+      one: '1 achat : confirmez la réception du livre',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String ordersToHandOver(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ventes : remettez les livres pour être payé',
+      one: '1 vente : remettez le livre pour être payé',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get viewOrders => 'Voir les commandes';
 }

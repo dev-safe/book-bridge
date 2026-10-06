@@ -357,6 +357,25 @@ class AppTheme {
       ),
       // Icon theme
       iconTheme: const IconThemeData(color: scholarBlueLight, size: 24),
+      // The default off-state outline (darkDivider) is invisible on dark
+      // surfaces, so give unselected switches a muted, readable contrast.
+      switchTheme: SwitchThemeData(
+        thumbColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.selected)
+              ? scholarBlueLight
+              : darkMutedText,
+        ),
+        trackColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.selected)
+              ? scholarBlueLight.withValues(alpha: 0.5)
+              : darkSurfaceHigh,
+        ),
+        trackOutlineColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.selected)
+              ? Colors.transparent
+              : darkMutedText,
+        ),
+      ),
     );
   }
 }

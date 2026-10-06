@@ -2974,6 +2974,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not open link'**
   String get linkOpenError;
+
+  /// No description provided for @myOrders.
+  ///
+  /// In en, this message translates to:
+  /// **'My orders'**
+  String get myOrders;
+
+  /// No description provided for @ordersNeedAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Orders need your attention'**
+  String get ordersNeedAction;
+
+  /// No description provided for @ordersToConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 purchase: confirm you received the book} other{{count} purchases: confirm you received the books}}'**
+  String ordersToConfirm(int count);
+
+  /// No description provided for @ordersToHandOver.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 sale: hand over the book to get paid} other{{count} sales: hand over the books to get paid}}'**
+  String ordersToHandOver(int count);
+
+  /// No description provided for @viewOrders.
+  ///
+  /// In en, this message translates to:
+  /// **'View orders'**
+  String get viewOrders;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

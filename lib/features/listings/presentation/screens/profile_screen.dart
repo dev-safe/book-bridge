@@ -20,6 +20,8 @@ import 'package:book_bridge/injection_container.dart';
 import 'package:book_bridge/features/subscriptions/data/datasources/rust_subscription_data_source.dart';
 import 'package:book_bridge/features/subscriptions/presentation/widgets/power_seller_widgets.dart';
 import 'package:book_bridge/features/notifications/presentation/viewmodels/notifications_viewmodel.dart';
+import 'package:book_bridge/features/transactions/presentation/viewmodels/pending_orders_viewmodel.dart';
+import 'package:book_bridge/features/transactions/presentation/widgets/orders_shortcuts.dart';
 
 /// User profile screen displaying user information and their listings.
 ///
@@ -173,6 +175,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   context,
                   AppLocalizations.of(context)!.myAccount,
                   [
+                    Consumer<PendingOrdersViewModel>(
+                      builder: (context, pending, _) => _buildMenuItem(
+                        context,
+                        icon: Icons.receipt_long_outlined,
+                        title: AppLocalizations.of(context)!.myOrders,
+                        subtitle: AppLocalizations.of(
+                          context,
+                        )!.transactionHistory,
+                        badgeCount: pending.totalCount,
+                        onTap: () => openMyOrders(context),
+                      ),
+                    ),
                     _buildMenuItem(
                       context,
                       icon: Icons.person_outline,
@@ -204,12 +218,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       icon: Icons.book_outlined,
                       title: AppLocalizations.of(context)!.myBooks,
                       onTap: () => context.push('/my-books'),
-                    ),
-                    _buildMenuItem(
-                      context,
-                      icon: Icons.history,
-                      title: AppLocalizations.of(context)!.transactionHistory,
-                      onTap: () => context.push('/transactions'),
                       isLast: true,
                     ),
                   ],
@@ -562,7 +570,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
     Color? textColor,
     bool isLast = false,
     bool indent = false,
+    int badgeCount = 0,
   }) {
+    final chevron = Icon(
+      Icons.chevron_right,
+      size: 18,
+      color: Colors.grey.withValues(alpha: 0.6),
+    );
     return Column(
       children: [
         ListTile(
@@ -586,11 +600,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
               : Text(subtitle, style: const TextStyle(fontSize: 12)),
           onTap: onTap,
           onLongPress: onLongPress,
-          trailing: Icon(
-            Icons.chevron_right,
-            size: 18,
-            color: Colors.grey.withValues(alpha: 0.6),
-          ),
+          trailing: badgeCount > 0
+              ? Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Badge(
+                      backgroundColor: AppTheme.bridgeOrange,
+                      label: Text(badgeCount.toString()),
+                    ),
+                    const SizedBox(width: 8),
+                    chevron,
+                  ],
+                )
+              : chevron,
           contentPadding: EdgeInsets.only(left: indent ? 40 : 20, right: 20),
           visualDensity: VisualDensity.compact,
         ),
@@ -736,7 +758,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   FontAwesomeIcons.linkedinIn,
                   const Color(0xFF0A66C2),
                   AppLocalizations.of(context)!.linkedin,
-                  () => openExternalUrl(context, ContactLinks.linkedInUrl),
+                  () =>
+                      openExternalUrl(context, ContactLinks.devSafeLinkedInUrl),
                 ),
                 _buildSocialIcon(
                   FontAwesomeIcons.youtube,
