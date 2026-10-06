@@ -739,11 +739,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
             child: Row(
               children: [
                 _buildSocialIcon(
-                  FontAwesomeIcons.whatsapp,
-                  const Color(0xFF25D366),
-                  ContactLinks.supportWhatsAppDisplay,
-                  () =>
-                      openExternalUrl(context, ContactLinks.supportWhatsAppUrl),
+                  FontAwesomeIcons.tiktok,
+                  const Color(0xFFFE2C55),
+                  'TikTok',
+                  () => openExternalUrl(context, ContactLinks.tikTokUrl),
                 ),
                 _buildSocialIcon(
                   FontAwesomeIcons.users,

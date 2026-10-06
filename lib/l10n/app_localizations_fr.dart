@@ -1523,4 +1523,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get viewOrders => 'Voir les commandes';
+
+  @override
+  String get priceTitle => 'Prix';
 }

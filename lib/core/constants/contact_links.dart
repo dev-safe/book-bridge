@@ -14,4 +14,6 @@ class ContactLinks {
       'https://www.linkedin.com/company/146681423/';
   static const String whatsAppCommunityUrl =
       'https://chat.whatsapp.com/H6WZEE86OEoDkb4jjjtOHZ';
+  static const String tikTokUrl =
+      'https://www.tiktok.com/@dct_deepcodethinking';
 }
