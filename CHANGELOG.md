@@ -8,6 +8,7 @@ Safety release for Google Play's user-generated content policy.
 
 - **Report a listing or a user** from the ⋮ menu on book details and in chat. Pick a reason (spam, scam, inappropriate, harassment, prohibited item, other) and add optional details. Up to 20 reports a day per user; reporting the same thing twice is ignored.
 - **Block a user** from the same menus. Their books disappear from home and search, the conversation is hidden from your chats, and neither of you can message the other (enforced in the database). Blocked users are listed under **Profile → Blocked users**, where you can unblock them.
+- **Edit Listing** button on your own book's details page (opened from Home, Discover or a shared link). It opens the same edit form as Profile → My Books.
 - **Admin → Reports** tab to review open reports: dismiss, or remove the reported listing. Served by new Rust endpoints `GET /admin/reports`, `POST /admin/reports/{id}/dismiss` and `POST /admin/reports/{id}/remove-listing`.
 
 ### Database
