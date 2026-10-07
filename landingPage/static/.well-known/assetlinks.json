@@ -5,7 +5,8 @@
       "namespace": "android_app",
       "package_name": "cm.devsafe.bookbridge",
       "sha256_cert_fingerprints": [
-        "89:8D:E6:02:6B:0B:DF:11:75:7F:63:F5:08:F3:8B:DF:D8:E7:DE:1A:C4:BE:1B:DD:75:9E:CD:94:BE:AD:53:B4"
+        "89:8D:E6:02:6B:0B:DF:11:75:7F:63:F5:08:F3:8B:DF:D8:E7:DE:1A:C4:BE:1B:DD:75:9E:CD:94:BE:AD:53:B4",
+        "8F:A5:9F:0D:B0:23:E5:07:2E:A4:73:FE:E7:3E:03:38:3D:5A:8B:05:B7:F4:5A:D1:D3:01:15:50:81:39:63:01"
       ]
     }
   },
