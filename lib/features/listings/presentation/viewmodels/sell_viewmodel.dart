@@ -18,6 +18,13 @@ import 'package:book_bridge/features/listings/presentation/viewmodels/academic_f
 /// State enum for the Sell screen.
 enum SellState { initial, loading, success, error }
 
+/// Longest edge, in pixels, of listing photos after picking. Phone cameras
+/// produce 8-12 MB originals that stall uploads on mobile data.
+const double maxPhotoDimension = 1600;
+
+/// JPEG quality (0-100) applied to listing photos after picking.
+const int photoQuality = 70;
+
 /// ViewModel for managing the sell/create listing functionality.
 ///
 /// This ViewModel handles the creation of new listings including
@@ -494,7 +501,12 @@ class SellViewModel extends ChangeNotifier with AcademicFiltersMixin {
   Future<void> pickImageFromGallery() async {
     if (!canAddImage) return;
     final remaining = Listing.maxImages - _imageUrls.length;
-    final picked = await ImagePicker().pickMultiImage(limit: remaining);
+    final picked = await ImagePicker().pickMultiImage(
+      limit: remaining,
+      maxWidth: maxPhotoDimension,
+      maxHeight: maxPhotoDimension,
+      imageQuality: photoQuality,
+    );
     await addImageFiles([for (final file in picked) File(file.path)]);
   }
 
@@ -512,7 +524,12 @@ class SellViewModel extends ChangeNotifier with AcademicFiltersMixin {
   Future<void> pickImageFromCamera() async {
     if (!canAddImage) return;
     final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.camera);
+    final pickedFile = await picker.pickImage(
+      source: ImageSource.camera,
+      maxWidth: maxPhotoDimension,
+      maxHeight: maxPhotoDimension,
+      imageQuality: photoQuality,
+    );
 
     if (pickedFile != null) {
       await addImageFile(File(pickedFile.path));

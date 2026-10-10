@@ -1,7 +1,14 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
+import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:book_bridge/core/error/exceptions.dart';
+
+const uploadTimeoutMessage =
+    'Upload timed out. Check your connection and try again.';
+const noConnectionMessage =
+    'No internet connection. Check your network and try again.';
 
 /// Data source for storage operations using Supabase Storage.
 ///
@@ -9,7 +16,14 @@ import 'package:book_bridge/core/error/exceptions.dart';
 class SupabaseStorageDataSource {
   final SupabaseClient supabaseClient;
 
-  SupabaseStorageDataSource({required this.supabaseClient});
+  /// Upper bound for a single photo upload so a dead connection surfaces an
+  /// error instead of an endless spinner.
+  final Duration uploadTimeout;
+
+  SupabaseStorageDataSource({
+    required this.supabaseClient,
+    this.uploadTimeout = const Duration(seconds: 60),
+  });
 
   /// Uploads an image file to Supabase Storage.
   ///
@@ -34,16 +48,17 @@ class SupabaseStorageDataSource {
       final bytes = await imageFile.readAsBytes();
 
       // Upload the file to the 'book_images' bucket using binary upload
-      await Supabase.instance.client.storage
+      await supabaseClient.storage
           .from('book_images')
           .uploadBinary(
-            filePath, // Use filePath instead of fileName
+            filePath,
             bytes,
             fileOptions: const FileOptions(
               upsert: true,
               contentType: 'image/jpeg',
             ),
-          );
+          )
+          .timeout(uploadTimeout);
 
       // Return the public URL of the uploaded image
       final publicUrl = supabaseClient.storage
@@ -54,6 +69,12 @@ class SupabaseStorageDataSource {
       rethrow;
     } on StorageException catch (e) {
       throw ServerException(message: 'Upload failed: ${e.message}');
+    } on TimeoutException {
+      throw ServerException(message: uploadTimeoutMessage);
+    } on SocketException {
+      throw ServerException(message: noConnectionMessage);
+    } on http.ClientException {
+      throw ServerException(message: noConnectionMessage);
     } catch (e) {
       throw ServerException(message: 'Upload failed: ${e.toString()}');
     }
@@ -90,7 +111,8 @@ class SupabaseStorageDataSource {
               upsert: true,
               contentType: 'image/jpeg',
             ),
-          );
+          )
+          .timeout(uploadTimeout);
 
       // Return the public URL
       final publicUrl = supabaseClient.storage
@@ -103,6 +125,12 @@ class SupabaseStorageDataSource {
       throw ServerException(
         message: 'Profile picture upload failed: ${e.message}',
       );
+    } on TimeoutException {
+      throw ServerException(message: uploadTimeoutMessage);
+    } on SocketException {
+      throw ServerException(message: noConnectionMessage);
+    } on http.ClientException {
+      throw ServerException(message: noConnectionMessage);
     } catch (e) {
       throw ServerException(
         message: 'Profile picture upload failed: ${e.toString()}',
