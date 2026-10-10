@@ -242,6 +242,23 @@ final appRouter = GoRouter(
       builder: (context, state) => const MyBooksScreen(),
     ),
 
+    // Edit Listing Route (Full Screen, outside shell). Root-level screens
+    // must not push the shell's '/sell' route: doing so duplicates the shell
+    // navigator's page keys, so the keyboard opening remounts the form
+    // (keyboard flickers closed) or blanks the screen. '/new-listing' is the
+    // same fix for creating a listing from root-level screens.
+    GoRoute(
+      path: '/edit-listing',
+      name: 'edit-listing',
+      redirect: (context, state) => state.extra is Listing ? null : '/my-books',
+      builder: (context, state) => SellScreen(listing: state.extra as Listing),
+    ),
+    GoRoute(
+      path: '/new-listing',
+      name: 'new-listing',
+      builder: (context, state) => const SellScreen(),
+    ),
+
     // Chat Thread Route (Full Screen, outside shell)
     GoRoute(
       path: '/chat/:listingId',
