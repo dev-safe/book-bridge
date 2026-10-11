@@ -1,6 +1,5 @@
 .{
     .workspace = "bookbridge",
-    .env = .{},
     .sources = .{
         .{ "web", "web/" },
         .{ "backend", "backend/" },
@@ -8,7 +7,6 @@
         .{ "app.web", "app/web/" },
     },
     .pipelines = .{
-        // /backend
         .{
             .name = "backend.build",
             .in = .{"src.backend"},
@@ -21,6 +19,9 @@
             .name = "backend.migrate",
             .in = .{"backend.build"},
             .required_env = .{"DATABASE_URL"},
+            .env = .{
+                .{ "DATABASE_URL", "postgresql://postgres:@localhost:5432/bookbridge" },
+            },
             .second_instance = .fail,
         },
         .{
@@ -34,17 +35,13 @@
             },
             .second_instance = .kill,
         },
-        // /web
-        .{
-            .name = "install-bun",
-            .second_instance = .fail,
-        },
         .{
             .name = "web.build",
             .in = .{"src.web"},
             .keep = .{
                 .{ "web-modules", "node_modules/" },
             },
+            .pkgs = .{"qkydg77xf2s395md9fq0a6djjpq7fzh4-bun-1.4.2"},
         },
         .{
             .name = "web.run",
@@ -54,8 +51,8 @@
                 .{ "BACKEND_URL", "http://localhost:3040" },
                 .{ "PORT", "3000" },
             },
+            .pkgs = .{"qkydg77xf2s395md9fq0a6djjpq7fzh4-bun-1.4.2"},
         },
-        // /app
         .{
             .name = "app.build-web",
             .in = .{"src.app"},
@@ -72,17 +69,16 @@
             .in = .{ "app.build-web", "src.app.web" },
             .out = .{"app.run-web"},
             .second_instance = .kill,
+            .pkgs = .{"qkydg77xf2s395md9fq0a6djjpq7fzh4-bun-1.4.2"},
         },
         .{
             .name = "app.build-apk",
             .in = .{"src.app"},
-            .out = .{"app-apk"},
             .second_instance = .kill,
             .keep = .{
                 .{ "app-build", "build/" },
             },
         },
-        // /alias
         .{
             .name = "build",
             .in = .{ "backend.build", "web.build", "app.build-web" },
@@ -93,5 +89,9 @@
             .in = .{ "backend.run", "web.run", "app.run-web" },
             .run = .nothing,
         },
+    },
+    .remotes = .{
+        .{ "ds", "57.129.106.133:2312", "" },
+        .{ "jealomy", "57.129.106.133:4981", "" },
     },
 }

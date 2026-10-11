@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-source ~/.bashrc
-
 cp -r $IN/web.build/* ./
 
 for i in {1..10}; do
