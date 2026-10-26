@@ -1,4 +1,5 @@
 import 'package:book_bridge/l10n/app_localizations.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 /// Swipeable gallery of a listing's photos with page indicators.
@@ -41,12 +42,13 @@ class _ListingImageCarouselState extends State<ListingImageCarousel> {
           itemBuilder: (context, i) => Semantics(
             image: true,
             label: l10n.photoOfTotal(i + 1, urls.length),
-            child: Image.network(
-              urls[i],
+            child: CachedNetworkImage(
+              imageUrl: urls[i],
               fit: BoxFit.cover,
-              errorBuilder: i == 0 && widget.coverErrorBuilder != null
-                  ? widget.coverErrorBuilder
-                  : (context, error, stackTrace) => _placeholder(context),
+              errorWidget: i == 0 && widget.coverErrorBuilder != null
+                  ? (context, url, error) =>
+                        widget.coverErrorBuilder!(context, error, null)
+                  : (context, url, error) => _placeholder(context),
             ),
           ),
         ),

@@ -107,7 +107,7 @@ class _MyBooksScreenState extends State<MyBooksScreen> {
           return ListingCard(
             listing: listing,
             extraActions: _buildMoreMenu(context, listing),
-            onTap: () => context.push('/sell', extra: listing),
+            onTap: () => context.push('/edit-listing', extra: listing),
           );
         },
       ),
@@ -126,7 +126,7 @@ class _MyBooksScreenState extends State<MyBooksScreen> {
         constraints: const BoxConstraints(),
         onSelected: (value) async {
           if (value == 'edit') {
-            context.push('/sell', extra: listing);
+            context.push('/edit-listing', extra: listing);
           } else if (value == 'delete') {
             final confirmed = await showDialog<bool>(
               context: context,
@@ -247,7 +247,7 @@ class _MyBooksScreenState extends State<MyBooksScreen> {
             ),
             const SizedBox(height: 24),
             ElevatedButton.icon(
-              onPressed: () => context.push('/sell'),
+              onPressed: () => context.push('/new-listing'),
               icon: const Icon(Icons.add),
               label: Text(AppLocalizations.of(context)!.listFirstBookButton),
               style: ElevatedButton.styleFrom(

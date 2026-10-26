@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -61,10 +62,11 @@ class ListingCard extends StatelessWidget {
             Container(
               color: Theme.of(context).colorScheme.surfaceContainerHighest,
               child: listing.imageUrl.isNotEmpty
-                  ? Image.network(
-                      listing.imageUrl,
+                  ? CachedNetworkImage(
+                      imageUrl: listing.imageUrl,
                       fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => Center(
+                      memCacheWidth: 600,
+                      errorWidget: (context, url, error) => Center(
                         child: Icon(
                           Icons.broken_image,
                           size: 32,

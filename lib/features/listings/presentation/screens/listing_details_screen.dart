@@ -831,7 +831,7 @@ class _ListingDetailsScreenState extends State<ListingDetailsScreen> {
   ) {
     return ListingOwnerBar(
       // Opens the same edit form as Profile → My Books.
-      onEdit: () => context.push('/sell', extra: listing),
+      onEdit: () => context.push('/edit-listing', extra: listing),
       onBoost: kDigitalPaymentsEnabled
           ? () => _showBoostBottomSheet(context, listing, viewModel)
           : null,
