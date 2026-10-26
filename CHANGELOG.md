@@ -6,6 +6,19 @@
 
 - Listing locations are now rounded to about 1 km by a database trigger (`20261020000000_coarse_listing_location.sql`), and existing listings are rounded too. Other users no longer see a seller's exact GPS position. No app update is needed.
 
+## 1.6.4 - October 26, 2026
+
+Reliability release for photo uploads and listing edits.
+
+### Fixed
+
+- **Photo uploads no longer hang.** Photos from the gallery or camera are resized to at most 1600 px at quality 70 before upload (an 8–12 MB camera photo now uploads as about 200 KB). Uploads time out after 60 seconds with a clear "check your connection" message instead of spinning forever.
+- **Editing a listing keeps the keyboard open.** Opening Edit Listing from My Books or a book's details page no longer makes the keyboard flicker or the screen turn white. The edit and new-listing forms now open on their own routes (`/edit-listing`, `/new-listing`).
+
+### Changed
+
+- Book photos in listing cards and the details carousel are cached on the device, so scrolling and reopening books uses less data.
+
 ## 1.6.3 - October 6, 2026
 
 Safety release for Google Play's user-generated content policy.
