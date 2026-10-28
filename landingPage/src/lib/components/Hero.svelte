@@ -1,7 +1,8 @@
 <script>
-  import { Star, Download, CheckCircle, MessageCircle } from "lucide-svelte";
+  import { Star, CheckCircle, MessageCircle } from "lucide-svelte";
   import screenshot from "$lib/assets/screenshot.png";
-  import { APP_DOWNLOAD_LINK } from "$lib/links";
+  import playBadge from "$lib/assets/google-play-badge.png";
+  import { PLAY_STORE_LINK } from "$lib/links";
 </script>
 
 <section id="hero" class="hero">
@@ -10,7 +11,7 @@
       <div class="badge-container">
         <span class="badge">
           <Star size={14} fill="var(--scholar-blue)" strokeWidth={0} />
-          #1 Student Marketplace in Cameroon
+          Now live on Google Play
         </span>
       </div>
       <h1>
@@ -24,12 +25,18 @@
 
       <div class="hero-actions">
         <a
-          href={APP_DOWNLOAD_LINK}
+          href={PLAY_STORE_LINK}
           target="_blank"
           rel="noopener noreferrer"
-          class="btn-primary-lg"
+          class="play-badge-link"
         >
-          <Download size={20} /> Download App
+          <img
+            src={playBadge}
+            alt="Get it on Google Play"
+            width="646"
+            height="250"
+            class="play-badge"
+          />
         </a>
         <a href="#how-it-works" class="btn-secondary-lg"> How it Works </a>
       </div>
@@ -149,29 +156,34 @@
 
   .hero-actions {
     display: flex;
+    align-items: center;
     gap: 1rem;
     margin-bottom: 3rem;
   }
 
-  .btn-primary-lg {
-    background-color: var(--scholar-blue);
-    color: white;
-    padding: 1rem 2rem;
+  .play-badge-link {
+    display: inline-flex;
     border-radius: 12px;
-    font-weight: 600;
-    text-decoration: none;
-    display: flex;
-    align-items: center;
-    gap: 0.8rem;
-    font-size: 1.1rem;
-    transition: all 0.3s ease;
-    box-shadow: 0 10px 20px rgba(59, 130, 246, 0.2);
+    transition: transform 0.3s ease;
   }
 
-  .btn-primary-lg:hover {
+  .play-badge-link:hover {
     transform: translateY(-3px);
-    box-shadow: 0 15px 30px rgba(59, 130, 246, 0.3);
-    background-color: var(--scholar-blue-hover);
+  }
+
+  .play-badge-link:focus-visible {
+    outline: 3px solid var(--scholar-blue);
+    outline-offset: 2px;
+  }
+
+  /* The official badge PNG ships with 41px transparent clear space per side
+     (≈14px at this size); offset it so the visible badge lines up with the
+     neighbouring button. */
+  .play-badge {
+    display: block;
+    height: 86px;
+    width: auto;
+    margin: -14px;
   }
 
   .btn-secondary-lg {
@@ -342,6 +354,7 @@
     }
     .hero-actions {
       justify-content: center;
+      align-items: center;
     }
     .avatar-group {
       justify-content: center;
@@ -360,10 +373,12 @@
     }
     .hero-actions {
       flex-direction: column;
+      align-items: center;
+      gap: 1.5rem;
     }
-    .btn-primary-lg, .btn-secondary-lg {
+    .btn-secondary-lg {
       width: 100%;
-      justify-content: center;
+      text-align: center;
     }
   }
 </style>

@@ -1,5 +1,5 @@
-export const APP_DOWNLOAD_LINK = "https://github.com/DCT-Berinyuy/book-bridge/releases/latest/download/app-release.apk";
-export const GITHUB_REPO_LINK = "https://github.com/DCT-Berinyuy/book-bridge";
+export const PLAY_STORE_LINK = "https://play.google.com/store/apps/details?id=cm.devsafe.bookbridge";
+export const GITHUB_REPO_LINK = "https://github.com/dev-safe/book-bridge";
 export const WHATSAPP_COMMUNITY_LINK = "https://chat.whatsapp.com/H6WZEE86OEoDkb4jjjtOHZ";
 export const LINKEDIN_PROFILE_LINK = "https://www.linkedin.com/in/verla-berinyuy-ndey-15b1262a5/";
 export const YOUTUBE_CHANNEL_LINK = "https://www.youtube.com/@VerlaBerinyuy";
