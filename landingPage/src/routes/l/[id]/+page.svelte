@@ -1,5 +1,5 @@
 <script>
-	import { APP_DOWNLOAD_LINK } from '$lib/links.js';
+	import { PLAY_STORE_LINK } from '$lib/links.js';
 
 	let { data } = $props();
 
@@ -16,7 +16,7 @@
 	const listing = $derived(data.listing);
 	const shareUrl = $derived(`${SITE_URL}/l/${data.id}`);
 	const intentUrl = $derived(
-		`intent://bookbridge.devsafe.cm/l/${data.id}#Intent;scheme=https;package=cm.devsafe.bookbridge;S.browser_fallback_url=${encodeURIComponent(APP_DOWNLOAD_LINK)};end`
+		`intent://bookbridge.devsafe.cm/l/${data.id}#Intent;scheme=https;package=cm.devsafe.bookbridge;S.browser_fallback_url=${encodeURIComponent(PLAY_STORE_LINK)};end`
 	);
 	const priceLabel = $derived(
 		listing ? `${new Intl.NumberFormat('fr-FR').format(listing.priceFcfa)} FCFA` : ''
@@ -86,7 +86,7 @@
 
 	<div class="actions">
 		<a class="btn primary" href={intentUrl}>Open in BookBridge</a>
-		<a class="btn secondary" href={APP_DOWNLOAD_LINK}>Download the app</a>
+		<a class="btn secondary" href={PLAY_STORE_LINK}>Get it on Google Play</a>
 	</div>
 	<p class="hint">Contact the seller and pay securely inside the app.</p>
 </section>

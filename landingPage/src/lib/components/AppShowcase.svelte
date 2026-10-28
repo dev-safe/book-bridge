@@ -1,6 +1,7 @@
 <script>
-  import { Download, Smartphone, Apple } from "lucide-svelte";
-  import { APP_DOWNLOAD_LINK } from "$lib/links";
+  import { Apple } from "lucide-svelte";
+  import playBadge from "$lib/assets/google-play-badge.png";
+  import { PLAY_STORE_LINK } from "$lib/links";
 </script>
 
 <section id="app" class="app-showcase">
@@ -8,30 +9,24 @@
     <div class="showcase-content">
       <h2>Your Library in Your Pocket</h2>
       <p>
-        Download BookBridge today and join the fastest growing student
-        community in Cameroon.
+        BookBridge is now live on Google Play. Install it free and join
+        students across Cameroon buying and selling textbooks.
       </p>
       <div class="store-buttons">
         <a
-          href={APP_DOWNLOAD_LINK}
+          href={PLAY_STORE_LINK}
           target="_blank"
           rel="noopener noreferrer"
-          class="store-btn android"
+          class="play-badge-link"
         >
-          <Download size={24} />
-          <div class="btn-text">
-            <span>Download APK</span>
-            <strong>Direct Download</strong>
-          </div>
+          <img
+            src={playBadge}
+            alt="Get it on Google Play"
+            width="646"
+            height="250"
+            class="play-badge"
+          />
         </a>
-        <!-- Placeholder for Play Store -->
-        <button class="store-btn other" disabled>
-          <Smartphone size={24} />
-          <div class="btn-text">
-            <span>Coming soon to</span>
-            <strong>Play Store</strong>
-          </div>
-        </button>
         <!-- Placeholder for App Store -->
         <button class="store-btn other" disabled>
           <Apple size={24} />
@@ -87,8 +82,32 @@
   .store-buttons {
     display: flex;
     justify-content: center;
+    align-items: center;
     gap: 1.5rem;
     flex-wrap: wrap;
+  }
+
+  .play-badge-link {
+    display: inline-flex;
+    border-radius: 12px;
+    transition: transform 0.3s ease;
+  }
+
+  .play-badge-link:hover {
+    transform: translateY(-3px);
+  }
+
+  .play-badge-link:focus-visible {
+    outline: 3px solid white;
+    outline-offset: 2px;
+  }
+
+  /* Offsets the official badge's built-in transparent clear space. */
+  .play-badge {
+    display: block;
+    height: 96px;
+    width: auto;
+    margin: -16px;
   }
 
   .store-btn {
@@ -103,11 +122,6 @@
     transition: all 0.3s ease;
     border: 1px solid var(--border-color);
     box-shadow: var(--shadow-md);
-  }
-
-  .store-btn.android:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.25);
   }
 
   .store-btn.other {
@@ -155,6 +169,10 @@
 
     .store-btn {
       justify-content: center;
+    }
+
+    .play-badge-link {
+      align-self: center;
     }
   }
 </style>
