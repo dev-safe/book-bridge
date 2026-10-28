@@ -1,7 +1,7 @@
 <script>
   import { Menu, X, Github, Download, Sun, Moon } from "lucide-svelte";
   import logo from "$lib/assets/logo.png";
-  import { APP_DOWNLOAD_LINK, GITHUB_REPO_LINK } from "$lib/links";
+  import { PLAY_STORE_LINK, GITHUB_REPO_LINK } from "$lib/links";
   import { theme } from "$lib/theme.svelte.js";
 
   let { scrollY = 0 } = $props();
@@ -51,13 +51,13 @@
         <Github size={20} />
       </a>
       <a
-        href={APP_DOWNLOAD_LINK}
+        href={PLAY_STORE_LINK}
         target="_blank"
         rel="noopener noreferrer"
         class="btn-primary"
         style="text-decoration: none; display: flex; align-items: center; gap: 8px;"
       >
-        <Download size={18} /> Download App
+        <Download size={18} /> Get the App
       </a>
     </div>
 
@@ -101,14 +101,14 @@
         <Github size={24} /> GitHub
       </a>
       <a
-        href={APP_DOWNLOAD_LINK}
+        href={PLAY_STORE_LINK}
         target="_blank"
         rel="noopener noreferrer"
         class="btn-primary"
         style="text-decoration: none; width: 100%; text-align: center;"
         onclick={toggleMenu}
       >
-        Download App
+        Get it on Google Play
       </a>
     </div>
   {/if}
